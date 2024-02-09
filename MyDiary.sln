@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.Avalonia", "MyDiary.Avalonia\MyDiary.Avalonia\MyDiary.Avalonia.csproj", "{90AD841C-94E2-4211-8A26-94B8947AD656}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.UI", "MyDiary.UI\MyDiary.UI\MyDiary.UI.csproj", "{90AD841C-94E2-4211-8A26-94B8947AD656}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.Avalonia.Android", "MyDiary.Avalonia\MyDiary.Avalonia.Android\MyDiary.Avalonia.Android.csproj", "{E3415D57-A3CD-4F50-ADAE-49F544932D9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.UI.Android", "MyDiary.UI\MyDiary.UI.Android\MyDiary.UI.Android.csproj", "{E3415D57-A3CD-4F50-ADAE-49F544932D9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.Avalonia.Desktop", "MyDiary.Avalonia\MyDiary.Avalonia.Desktop\MyDiary.Avalonia.Desktop.csproj", "{BC851F4E-5DF3-4DAD-8957-BB9BA5D53EE0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.UI.Desktop", "MyDiary.UI\MyDiary.UI.Desktop\MyDiary.UI.Desktop.csproj", "{BC851F4E-5DF3-4DAD-8957-BB9BA5D53EE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.Avalonia.iOS", "MyDiary.Avalonia\MyDiary.Avalonia.iOS\MyDiary.Avalonia.iOS.csproj", "{C4D6324B-0C26-4070-ACE2-4AA5A901C905}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.UI.iOS", "MyDiary.UI\MyDiary.UI.iOS\MyDiary.UI.iOS.csproj", "{C4D6324B-0C26-4070-ACE2-4AA5A901C905}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.Avalonia.Browser", "MyDiary.Avalonia\MyDiary.Avalonia.Browser\MyDiary.Avalonia.Browser.csproj", "{1B537366-E411-4EC2-ADA3-A6B06CBD87D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.UI.Browser", "MyDiary.UI\MyDiary.UI.Browser\MyDiary.UI.Browser.csproj", "{1B537366-E411-4EC2-ADA3-A6B06CBD87D0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyDiary.Core", "MyDiary.Core\MyDiary.Core.csproj", "{FE430516-4331-4268-BF76-C579ECE066D6}"
 EndProject

@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <Nullable>disable</Nullable>
+    <ApplicationId>com.CompanyName.MyDiary.UI</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableProfiledAot>False</AndroidEnableProfiledAot>
+    <BaseIntermediateOutputPath>$(Temp)\MyDiary\obj\$(AssemblyName)</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>$(Temp)\MyDiary\$(AssemblyName)</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>..\Publish\Release</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AndroidJavaSource Remove="obj\**" />
+    <AndroidLibrary Remove="obj\**" />
+    <AndroidNativeLibrary Remove="obj\**" />
+    <AvaloniaXaml Remove="obj\**" />
+    <Compile Remove="obj\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <JavaSourceJar Remove="obj\**" />
+    <None Remove="obj\**" />
+    <ProguardConfiguration Remove="obj\**" />
+    <TransformFile Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="Icon.png">
+      <Link>Resources\drawable\Icon.png</Link>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyDiary.UI\MyDiary.UI.csproj" />
+  </ItemGroup>
+
+
+</Project>
