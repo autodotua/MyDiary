@@ -39,6 +39,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\AddPartBar.axaml.cs">
+      <DependentUpon>AddPartBar.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\DiaryPad.axaml.cs">
+      <DependentUpon>DiaryPad.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\DiaryDatePicker.axaml.cs">
       <DependentUpon>DiaryDatePicker.axaml</DependentUpon>
     </Compile>
