@@ -1,0 +1,18 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using MyDiary.UI.ViewModels;
+using System;
+
+namespace MyDiary.UI.Views.DiaryDocElement;
+
+public partial class DiaryTextBox : TextBox
+{
+    public DiaryTextBox()
+    {
+        InitializeComponent();
+    } 
+}

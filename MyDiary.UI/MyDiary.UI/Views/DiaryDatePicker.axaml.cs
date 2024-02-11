@@ -10,28 +10,7 @@ public partial class DiaryDatePicker : UserControl
 {
     private bool isChangingSelectedDate = false;
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
-        = AvaloniaProperty.Register<DiaryDatePicker, DateTime?>(nameof(SelectedDate), DateTime.Today,
-            coerce: (s, v) =>
-            {
-                var obj = s as DiaryDatePicker;
-                if (obj.isChangingSelectedDate)
-                {
-                    return v;
-                }
-                obj.isChangingSelectedDate = true;
-                if (v.HasValue)
-                {
-                    obj.viewModel.Year = v.Value.Year;
-                    obj.viewModel.Month = v.Value.Month;
-                    obj.viewModel.Day = v.Value.Day;
-                }
-                else
-                {
-                    obj.viewModel.Day = null;
-                }
-                obj.isChangingSelectedDate = false;
-                return v;
-            });
+        = AvaloniaProperty.Register<DiaryDatePicker, DateTime?>(nameof(SelectedDate), DateTime.Today);
 
     public DateTime? SelectedDate
     {
@@ -55,5 +34,30 @@ public partial class DiaryDatePicker : UserControl
         isChangingSelectedDate = true;
         SelectedDate = viewModel.Day.HasValue ? new DateTime(viewModel.Year, viewModel.Month, viewModel.Day.Value) : null;
         isChangingSelectedDate = false;
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if(change.Property==SelectedDateProperty)
+        {
+            if (isChangingSelectedDate)
+            {
+                return;
+            }
+            isChangingSelectedDate = true;
+            if (SelectedDate.HasValue)
+            {
+                viewModel.Year = SelectedDate.Value.Year;
+                viewModel.Month = SelectedDate.Value.Month;
+                viewModel.Day = SelectedDate.Value.Day;
+            }
+            else
+            {
+                viewModel.Day = null;
+            }
+            isChangingSelectedDate = false;
+        }
     }
 }

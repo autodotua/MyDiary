@@ -3,6 +3,7 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dde="using:MyDiary.UI.Views.DiaryDocElement"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:system="using:System"
     xmlns:v="using:MyDiary.UI.Views"
@@ -16,7 +17,9 @@
     <Design.DataContext>
         <vm:DiaryPadVM />
     </Design.DataContext>
-    <Grid RowDefinitions="Auto,*">
+    <Grid
+        Margin="8"
+        RowDefinitions="Auto,*">
         <TextBlock
             Margin="16"
             FontSize="20"
@@ -26,42 +29,6 @@
             x:Name="stkBody"
             Grid.Row="1"
             Orientation="Vertical"
-            Spacing="8">
-            <!--<StackPanel.Resources>
-                <ControlTheme
-                    x:Key="DiaryPartTextBox"
-                    BasedOn="{StaticResource {x:Type TextBox}}"
-                    TargetType="TextBox">
-                    <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="TextWrapping" Value="Wrap" />
-
-                </ControlTheme>
-            </StackPanel.Resources>-->
-            <StackPanel.Styles>
-                <Style Selector="TextBox">
-                    <Setter Property="BorderThickness" Value="0" />
-                    <Setter Property="TextWrapping" Value="Wrap" />
-
-                    <Style Selector="^:focus">
-                        <!--<Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
-
-                    <Style Selector="^ /template/ TextBlock#PART_Watermark">
-                      <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
-                    </Style>-->
-
-                        <Style Selector="^ /template/ Border#PART_BorderElement">
-                            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
-                            <Setter Property="BorderThickness" Value="0" />
-                        </Style>
-                    </Style>
-
-                </Style>
-            </StackPanel.Styles>
-            <TextBox />
-            <Image
-                MaxHeight="400"
-                Source="/Assets/avalonia-logo.ico" />
-        </StackPanel>
+            Spacing="8" />
     </Grid>
 </UserControl>

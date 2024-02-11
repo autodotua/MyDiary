@@ -1,0 +1,38 @@
+<TextBox
+    x:Class="MyDiary.UI.Views.DiaryDocElement.DiaryTextBox"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dde="using:MyDiary.UI.Views.DiaryDocElement"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:system="using:System"
+    xmlns:v="using:MyDiary.UI.Views"
+    xmlns:vm="using:MyDiary.UI.ViewModels"
+    Theme="{StaticResource {x:Type TextBox}}"
+    mc:Ignorable="d">
+
+    <TextBox.Styles>
+        <Style Selector="dde|DiaryTextBox">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="InnerRightContent" Value="{x:Null}" />
+
+            <Style Selector="^:focus">
+                <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
+
+                <Style Selector="^ /template/ TextBlock#PART_Watermark">
+                    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
+                </Style>
+
+
+                <Style Selector="^ /template/ Border#PART_BorderElement">
+                    <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+                    <Setter Property="BorderThickness" Value="0" />
+                </Style>
+            </Style>
+
+        </Style>
+
+    </TextBox.Styles>
+</TextBox>

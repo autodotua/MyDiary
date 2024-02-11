@@ -1,0 +1,21 @@
+<ContentControl
+    x:Class="MyDiary.UI.Views.DiaryDocElement.DiaryPart"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dde="using:MyDiary.UI.Views.DiaryDocElement"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:system="using:System"
+    xmlns:v="using:MyDiary.UI.Views"
+    xmlns:vm="using:MyDiary.UI.ViewModels"
+    mc:Ignorable="d">
+    <ContentControl.Template>
+        <ControlTemplate>
+            <StackPanel Orientation="Vertical">
+                <!--<dde:AddPartBar/>-->
+                <ContentPresenter Content="{TemplateBinding Content}" />
+                <dde:AddPartBar />
+            </StackPanel>
+        </ControlTemplate>
+    </ContentControl.Template>
+</ContentControl>

@@ -39,7 +39,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Views\AddPartBar.axaml.cs">
+    <Compile Update="Views\DiaryDocElement\DiaryPart.axaml.cs">
+      <DependentUpon>DiaryPart.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\DiaryDocElement\DiaryTextBox.axaml.cs">
+      <DependentUpon>DiaryTextBox.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\DiaryDocElement\DiaryImage.axaml.cs">
+      <DependentUpon>DiaryImage.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\DiaryDocElement\AddPartBar.axaml.cs">
       <DependentUpon>AddPartBar.axaml</DependentUpon>
     </Compile>
     <Compile Update="Views\DiaryPad.axaml.cs">
