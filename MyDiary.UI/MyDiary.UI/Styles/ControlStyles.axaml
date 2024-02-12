@@ -1,0 +1,54 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <!--<Border>
+            <Button Theme="{StaticResource RoundButton">A</Button>
+        </Border>-->
+    </Design.PreviewWith>
+    <ControlTheme
+        x:Key="RoundButton"
+        BasedOn="{StaticResource {x:Type Button}}"
+        TargetType="Button">
+        <Setter Property="CornerRadius" Value="15" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <!--<Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundAccentBrush}" />
+        </Style>-->
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="{DynamicResource Foreground0}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme
+        x:Key="TransparentTextBox"
+        BasedOn="{StaticResource {x:Type TextBox}}"
+        TargetType="TextBox">
+
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="InnerRightContent" Value="{x:Null}" />
+
+        <Style Selector="^:focus">
+            <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
+
+            <Style Selector="^ /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="{DynamicResource Background1}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+        </Style>   
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
+
+            <Style Selector="^ /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="{DynamicResource Background1}" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+        </Style>
+
+    </ControlTheme>
+</ResourceDictionary>

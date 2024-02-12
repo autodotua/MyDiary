@@ -8,25 +8,5 @@
     xmlns:system="using:System"
     xmlns:v="using:MyDiary.UI.Views"
     xmlns:vm="using:MyDiary.UI.ViewModels"
-    Theme="{StaticResource {x:Type TextBox}}"
-    mc:Ignorable="d">
-
-    <TextBox.Styles>
-        <Style Selector="dde|DiaryTextBox">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="InnerRightContent" Value="{x:Null}" />
-
-            <Style Selector="^:focus">
-                <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
-
-                <Style Selector="^ /template/ Border#PART_BorderElement">
-                    <Setter Property="Background" Value="{DynamicResource Background1}" />
-                    <Setter Property="BorderThickness" Value="0" />
-                </Style>
-            </Style>
-
-        </Style>
-
-    </TextBox.Styles>
-</TextBox>
+    Theme="{StaticResource TransparentTextBox}"
+    mc:Ignorable="d" />

@@ -2,10 +2,57 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Design.PreviewWith>
-        <Border
-            Width="100"
-            Height="100"
-            BorderBrush="{DynamicResource Background1}" />
+        <StackPanel Orientation="Vertical">
+
+            <TextBlock
+                Background="{DynamicResource Background0}"
+                Foreground="{DynamicResource Foreground0}"
+                Text="Background0" />
+
+            <TextBlock
+                Background="{DynamicResource Background1}"
+                Foreground="{DynamicResource Foreground0}"
+                Text="Background1" />
+
+            <TextBlock
+                Background="{DynamicResource Background2}"
+                Foreground="{DynamicResource Foreground0}"
+                Text="Background2" />
+            <TextBlock
+                Background="{DynamicResource Background3}"
+                Foreground="{DynamicResource Foreground0}"
+                Text="Background3" />
+            <TextBlock
+                Background="{DynamicResource Foreground0}"
+                Foreground="{DynamicResource Background0}"
+                Text="Foreground0" />
+            <TextBlock
+                Background="{DynamicResource Foreground1}"
+                Foreground="{DynamicResource Background0}"
+                Text="Foreground1" />
+            <TextBlock
+                Background="{DynamicResource Foreground2}"
+                Foreground="{DynamicResource Background0}"
+                Text="Foreground2" />
+            <TextBlock
+                Background="{DynamicResource Foreground3}"
+                Foreground="{DynamicResource Background0}"
+                Text="Foreground3" />
+
+            <TextBlock
+                Background="{DynamicResource Accent0}"
+                Foreground="{DynamicResource Background0}"
+                Text="Accent0" />
+            <TextBlock
+                Background="{DynamicResource Accent1}"
+                Foreground="{DynamicResource Background0}"
+                Text="Accent1" />
+            <TextBlock
+                Background="{DynamicResource Accent2}"
+                Foreground="{DynamicResource Background0}"
+                Text="Accent2" />
+
+        </StackPanel>
     </Design.PreviewWith>
     <SolidColorBrush
         x:Key="Background0"
@@ -15,12 +62,9 @@
         Color="{DynamicResource SystemChromeLowColor}" />
     <SolidColorBrush
         x:Key="Background2"
-        Color="{DynamicResource SystemChromeMediumLowColor}" />
-    <SolidColorBrush
-        x:Key="Background3"
         Color="{DynamicResource SystemChromeMediumColor}" />
     <SolidColorBrush
-        x:Key="Background4"
+        x:Key="Background3"
         Color="{DynamicResource SystemChromeHighColor}" />
 
     <SolidColorBrush
@@ -39,20 +83,17 @@
         x:Key="Foreground3"
         Opacity=".7"
         Color="{DynamicResource SystemBaseHighColor}" />
+
+
+
     <SolidColorBrush
-        x:Key="Foreground4"
-        Opacity=".6"
-        Color="{DynamicResource SystemBaseHighColor}" />
-
-
+        x:Key="Accent0"
+        Color="{DynamicResource SystemAccentColor}" />
     <SolidColorBrush
         x:Key="Accent1"
-        Color="{DynamicResource ListAccentHigh}" />
+        Color="{DynamicResource SystemAccentColorDark1}" />
     <SolidColorBrush
         x:Key="Accent2"
-        Color="{DynamicResource ListAccentMedium}" />
-    <SolidColorBrush
-        x:Key="Accent3"
-        Color="{DynamicResource ListAccentLow}" />
+        Color="{DynamicResource SystemAccentColorDark2}" />
 
 </ResourceDictionary>

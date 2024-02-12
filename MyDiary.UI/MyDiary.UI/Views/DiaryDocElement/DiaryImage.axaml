@@ -23,23 +23,8 @@
         Padding="5,6,6,5"
         HorizontalAlignment="Center"
         Text="图名"
-        TextAlignment="Center">
-        <TextBox.Styles>
-            <Style Selector="TextBox">
-                <Setter Property="BorderThickness" Value="0" />
-
-                <Style Selector="^:focus">
-                    <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
-
-                    <Style Selector="^ /template/ Border#PART_BorderElement">
-                        <Setter Property="Background" Value="{DynamicResource Background1}" />
-                        <Setter Property="BorderThickness" Value="0" />
-                    </Style>
-                </Style>
-            </Style>
-
-        </TextBox.Styles>
-    </TextBox>
+        TextAlignment="Center"
+        Theme="{StaticResource TransparentTextBox}" />
     <Panel
         HorizontalAlignment="Stretch"
         VerticalAlignment="Stretch"

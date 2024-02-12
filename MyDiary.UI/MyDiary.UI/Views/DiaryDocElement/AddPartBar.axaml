@@ -32,7 +32,7 @@
         </StackPanel.Styles>
         <TextBlock
             VerticalAlignment="Center"
-            Foreground="{DynamicResource Foreground4}"
+            Foreground="{DynamicResource Foreground3}"
             Text="插入" />
         <Button
             Click="InsertTextButton_Click"
@@ -41,7 +41,7 @@
                 Width="16"
                 Height="16"
                 Data="{StaticResource IconText}"
-                Foreground="{DynamicResource Foreground4}" />
+                Foreground="{DynamicResource Foreground3}" />
         </Button>
         <Button
             Click="InsertImageButton_Click"
@@ -50,7 +50,7 @@
                 Width="18"
                 Height="18"
                 Data="{StaticResource IconImage}"
-                Foreground="{DynamicResource Foreground4}" />
+                Foreground="{DynamicResource Foreground3}" />
         </Button>
         <Button
             Click="InsertTableButton_Click"
@@ -59,7 +59,7 @@
                 Width="17"
                 Height="17"
                 Data="{StaticResource IconTable}"
-                Foreground="{DynamicResource Foreground4}" />
+                Foreground="{DynamicResource Foreground3}" />
         </Button>
     </StackPanel>
     <!--<PathIcon
@@ -68,9 +68,9 @@
     <Border
         Grid.Column="0"
         Height="1"
-        Background="{DynamicResource Foreground4}" />
+        Background="{DynamicResource Foreground3}" />
     <Border
         Grid.Column="99"
         Height="1"
-        Background="{DynamicResource Foreground4}" />
+        Background="{DynamicResource Foreground3}" />
 </Grid>
