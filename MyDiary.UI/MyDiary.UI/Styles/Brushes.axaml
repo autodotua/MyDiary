@@ -1,0 +1,58 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border
+            Width="100"
+            Height="100"
+            BorderBrush="{DynamicResource Background1}" />
+    </Design.PreviewWith>
+    <SolidColorBrush
+        x:Key="Background0"
+        Color="{DynamicResource SystemAltHighColor}" />
+    <SolidColorBrush
+        x:Key="Background1"
+        Color="{DynamicResource SystemChromeLowColor}" />
+    <SolidColorBrush
+        x:Key="Background2"
+        Color="{DynamicResource SystemChromeMediumLowColor}" />
+    <SolidColorBrush
+        x:Key="Background3"
+        Color="{DynamicResource SystemChromeMediumColor}" />
+    <SolidColorBrush
+        x:Key="Background4"
+        Color="{DynamicResource SystemChromeHighColor}" />
+
+    <SolidColorBrush
+        x:Key="Foreground0"
+        Opacity="1"
+        Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush
+        x:Key="Foreground1"
+        Opacity=".9"
+        Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush
+        x:Key="Foreground2"
+        Opacity=".8"
+        Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush
+        x:Key="Foreground3"
+        Opacity=".7"
+        Color="{DynamicResource SystemBaseHighColor}" />
+    <SolidColorBrush
+        x:Key="Foreground4"
+        Opacity=".6"
+        Color="{DynamicResource SystemBaseHighColor}" />
+
+
+    <SolidColorBrush
+        x:Key="Accent1"
+        Color="{DynamicResource ListAccentHigh}" />
+    <SolidColorBrush
+        x:Key="Accent2"
+        Color="{DynamicResource ListAccentMedium}" />
+    <SolidColorBrush
+        x:Key="Accent3"
+        Color="{DynamicResource ListAccentLow}" />
+
+</ResourceDictionary>

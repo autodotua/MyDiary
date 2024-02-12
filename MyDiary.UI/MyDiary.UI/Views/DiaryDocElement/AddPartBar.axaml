@@ -21,7 +21,7 @@
             <Setter Property="Opacity" Value="0" />
         </Style>
         <Style Selector="dde|AddPartBar.add:pointerover">
-            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Opacity" Value="1" />
         </Style>
     </Grid.Styles>
     <StackPanel
@@ -32,6 +32,7 @@
         </StackPanel.Styles>
         <TextBlock
             VerticalAlignment="Center"
+            Foreground="{DynamicResource Foreground4}"
             Text="插入" />
         <Button
             Click="InsertTextButton_Click"
@@ -39,8 +40,8 @@
             <PathIcon
                 Width="16"
                 Height="16"
-                Data="{StaticResource  IconText}"
-                Foreground="{Binding $parent.Foreground}" />
+                Data="{StaticResource IconText}"
+                Foreground="{DynamicResource Foreground4}" />
         </Button>
         <Button
             Click="InsertImageButton_Click"
@@ -49,7 +50,7 @@
                 Width="18"
                 Height="18"
                 Data="{StaticResource IconImage}"
-                Foreground="{Binding $parent.Foreground}" />
+                Foreground="{DynamicResource Foreground4}" />
         </Button>
         <Button
             Click="InsertTableButton_Click"
@@ -58,7 +59,7 @@
                 Width="17"
                 Height="17"
                 Data="{StaticResource IconTable}"
-                Foreground="{Binding $parent.Foreground}" />
+                Foreground="{DynamicResource Foreground4}" />
         </Button>
     </StackPanel>
     <!--<PathIcon
@@ -67,9 +68,9 @@
     <Border
         Grid.Column="0"
         Height="1"
-        Background="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        Background="{DynamicResource Foreground4}" />
     <Border
         Grid.Column="99"
         Height="1"
-        Background="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        Background="{DynamicResource Foreground4}" />
 </Grid>

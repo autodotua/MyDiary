@@ -18,16 +18,10 @@
             <Setter Property="InnerRightContent" Value="{x:Null}" />
 
             <Style Selector="^:focus">
-                <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundFocused}" />
-
-                <Style Selector="^ /template/ TextBlock#PART_Watermark">
-                    <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundFocused}" />
-                </Style>
-
+                <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
 
                 <Style Selector="^ /template/ Border#PART_BorderElement">
-                    <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}" />
-                    <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushFocused}" />
+                    <Setter Property="Background" Value="{DynamicResource Background1}" />
                     <Setter Property="BorderThickness" Value="0" />
                 </Style>
             </Style>
