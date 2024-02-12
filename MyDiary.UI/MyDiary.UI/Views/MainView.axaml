@@ -13,7 +13,7 @@
     <Design.DataContext>
         <vm:MainViewVM />
     </Design.DataContext>
-    <Grid ColumnDefinitions="Auto,8,*">
+    <Grid ColumnDefinitions="Auto,0,*">
         <v:DiaryDatePicker x:Name="datePicker" />
         <v:DiaryPad
             Grid.Column="2"

@@ -8,11 +8,10 @@ using MyDiary.UI.ViewModels;
 using System;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
-
-public partial class DiaryTextBox : TextBox
+public partial class DiaryTextBox : TextBox, IDiaryElement
 {
     public DiaryTextBox()
     {
         InitializeComponent();
-    } 
+    }
 }

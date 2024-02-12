@@ -18,17 +18,22 @@
         <vm:DiaryPadVM />
     </Design.DataContext>
     <Grid
-        Margin="8"
+        Margin="4"
         RowDefinitions="Auto,*">
         <TextBlock
             Margin="16"
             FontSize="20"
             FontWeight="Bold"
             Text="{Binding #pad.SelectedDate, StringFormat=yyyy-MM-dd}" />
-        <StackPanel
-            x:Name="stkBody"
+        <ScrollViewer
             Grid.Row="1"
-            Orientation="Vertical"
-            Spacing="8" />
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                x:Name="stkBody"
+                Margin="4,4,16,4"
+                Orientation="Vertical"
+                Spacing="8" />
+        </ScrollViewer>
     </Grid>
 </UserControl>

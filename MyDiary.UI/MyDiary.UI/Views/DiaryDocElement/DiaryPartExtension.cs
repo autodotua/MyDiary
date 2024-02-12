@@ -14,17 +14,25 @@ namespace MyDiary.UI.Views.DiaryDocElement
             throw new ArgumentException($"{nameof(container.Content)}不是{nameof(Control)}");
         }
 
-        public static DiaryPart AsDiaryPart(this Control control)
+        public static DiaryPart GetParentDiaryPart(this Control control)
         {
             if (control.Parent is DiaryPart dp)
             {
                 return dp;
             }
-            else if (control.Parent == null)
+            if (control.Parent is Control c && c.Parent is DiaryPart dp2)
+            {
+                return dp2;
+            }
+            throw new ArgumentException($"{nameof(control)}的{nameof(control.Parent)}不为{nameof(DiaryPart)}");
+        }
+        public static DiaryPart CreateDiaryPart(this Control control)
+        {
+            if (control.Parent == null)
             {
                 return new DiaryPart() { Content = control };
             }
-            throw new ArgumentException($"{nameof(control)}的{nameof(control.Parent)}已分配且不为{nameof(DiaryPart)}");
+            throw new ArgumentException($"{nameof(control)}的{nameof(control.Parent)}已分配");
         }
     }
 }

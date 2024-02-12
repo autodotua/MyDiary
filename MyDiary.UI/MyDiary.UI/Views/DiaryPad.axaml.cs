@@ -1,12 +1,14 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MyDiary.UI.Views;
@@ -60,7 +62,7 @@ public partial class DiaryPad : UserControl
                     && stkBody.GetPreviousControl(oldTextBox) is DiaryTextBox t1:
                 //如果当前指针位置在最左侧，并且不是第一个段落，并且上一个段落也是TextBox
                 newTextBox = t1;
-                stkBody.Children.Remove(oldTextBox.AsDiaryPart());
+                stkBody.Children.Remove(oldTextBox.GetParentDiaryPart());
                 if (!string.IsNullOrEmpty(text))
                 {
                     newTextBox.Text = newTextBox.Text == null ? text : newTextBox.Text + text;
@@ -73,7 +75,7 @@ public partial class DiaryPad : UserControl
                     && stkBody.GetNextControl(oldTextBox) is DiaryTextBox t2:
                 //如果当前指针位置在最右侧，并且不是最后一个段落，并且下一个段落也是TextBox
                 newTextBox = t2;
-                stkBody.Children.Remove(oldTextBox.AsDiaryPart());
+                stkBody.Children.Remove(oldTextBox.GetParentDiaryPart());
                 int caretIndex = 0;
                 if (!string.IsNullOrEmpty(text))
                 {
@@ -133,5 +135,20 @@ public partial class DiaryPad : UserControl
     private void UserControl_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         stkBody.GetChild(0).GetControlContent().Focus();
+    }
+
+    public T InsertElementAfter<T>(AddPartBar element) where T : Control, IDiaryElement, new()
+    {
+        int index = stkBody.Children.IndexOf(element.GetParentDiaryPart());
+        T newElement = new T();
+        stkBody.InsertDiaryPart(index + 1, newElement);
+        return newElement;
+    }
+
+
+    public static DiaryPad GetDiaryPad(Control control)
+    {
+        return control.GetLogicalAncestors().OfType<DiaryPad>().FirstOrDefault()
+            ?? throw new Exception($"提供的{nameof(control)}非{nameof(DiaryPad)}子元素");
     }
 }

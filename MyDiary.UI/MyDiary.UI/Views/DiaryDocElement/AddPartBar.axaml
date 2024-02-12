@@ -3,10 +3,10 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dde="using:MyDiary.UI.Views.DiaryDocElement"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:system="using:System"
     xmlns:v="using:MyDiary.UI.Views"
-    xmlns:dde="using:MyDiary.UI.Views.DiaryDocElement"
     xmlns:vm="using:MyDiary.UI.ViewModels"
     x:Name="pad"
     Margin="8,0"
@@ -14,7 +14,7 @@
     d:DesignWidth="800"
     Background="Transparent"
     Classes="add"
-    ColumnDefinitions="Auto,8,*"
+    ColumnDefinitions="*,8,Auto,8,*"
     mc:Ignorable="d">
     <Grid.Styles>
         <Style Selector="dde|AddPartBar.add">
@@ -24,9 +24,52 @@
             <Setter Property="Opacity" Value="0.5" />
         </Style>
     </Grid.Styles>
-    <PathIcon Data="M42.666667 512c0 259.2 210.133333 469.333333 469.333333 469.333333s469.333333-210.133333 469.333333-469.333333S771.2 42.666667 512 42.666667 42.666667 252.8 42.666667 512z m469.333333-384a384 384 0 1 1 0 768 384 384 0 0 1 0-768z m-256 384a42.666667 42.666667 0 0 0 42.666667 42.666667h170.666666v170.666666a42.666667 42.666667 0 1 0 85.333334 0v-170.666666h170.666666a42.666667 42.666667 0 1 0 0-85.333334h-170.666666V298.666667a42.666667 42.666667 0 1 0-85.333334 0v170.666666H298.666667a42.666667 42.666667 0 0 0-42.666667 42.666667z" />
-    <Border
+    <StackPanel
         Grid.Column="2"
+        Orientation="Horizontal">
+        <StackPanel.Styles>
+            <Style Selector="PathIcon" />
+        </StackPanel.Styles>
+        <TextBlock
+            VerticalAlignment="Center"
+            Text="插入" />
+        <Button
+            Click="InsertTextButton_Click"
+            Theme="{StaticResource RoundButton}">
+            <PathIcon
+                Width="16"
+                Height="16"
+                Data="{StaticResource  IconText}"
+                Foreground="{Binding $parent.Foreground}" />
+        </Button>
+        <Button
+            Click="InsertImageButton_Click"
+            Theme="{StaticResource RoundButton}">
+            <PathIcon
+                Width="18"
+                Height="18"
+                Data="{StaticResource IconImage}"
+                Foreground="{Binding $parent.Foreground}" />
+        </Button>
+        <Button
+            Click="InsertTableButton_Click"
+            Theme="{StaticResource RoundButton}">
+            <PathIcon
+                Width="17"
+                Height="17"
+                Data="{StaticResource IconTable}"
+                Foreground="{Binding $parent.Foreground}" />
+        </Button>
+    </StackPanel>
+    <!--<PathIcon
+        Grid.Column="2"
+        Data="M42.666667 512c0 259.2 210.133333 469.333333 469.333333 469.333333s469.333333-210.133333 469.333333-469.333333S771.2 42.666667 512 42.666667 42.666667 252.8 42.666667 512z m469.333333-384a384 384 0 1 1 0 768 384 384 0 0 1 0-768z m-256 384a42.666667 42.666667 0 0 0 42.666667 42.666667h170.666666v170.666666a42.666667 42.666667 0 1 0 85.333334 0v-170.666666h170.666666a42.666667 42.666667 0 1 0 0-85.333334h-170.666666V298.666667a42.666667 42.666667 0 1 0-85.333334 0v170.666666H298.666667a42.666667 42.666667 0 0 0-42.666667 42.666667z" />-->
+    <Border
+        Grid.Column="0"
+        Height="1"
+        Background="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+    <Border
+        Grid.Column="99"
         Height="1"
         Background="{DynamicResource SystemControlForegroundBaseHighBrush}" />
 </Grid>

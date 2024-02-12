@@ -35,7 +35,7 @@ namespace MyDiary.UI.Views.DiaryDocElement
 
         public static void InsertDiaryPart(this StackPanel panel, int index, Control control)
         {
-            panel.Children.Insert(index, control.AsDiaryPart());
+            panel.Children.Insert(index, control.CreateDiaryPart());
         }
 
         public static bool IsFirstElement(this StackPanel panel, Control element)
