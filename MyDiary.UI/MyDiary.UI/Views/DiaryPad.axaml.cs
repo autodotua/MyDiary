@@ -29,7 +29,7 @@ public partial class DiaryPad : UserControl
 #if DEBUG        
         var table = new DiaryTable();
         stkBody.Children.Add(new DiaryPart() { Content = table });
-        table.SetSize(4, 3);
+        table.MakeEmptyTable(6, 6);
         stkBody.Children.Add(new DiaryPart() { Content = new DiaryImage() { ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico"))) } });
 
 #endif

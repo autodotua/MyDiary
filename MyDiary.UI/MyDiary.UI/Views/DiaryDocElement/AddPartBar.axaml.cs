@@ -40,6 +40,6 @@ public partial class AddPartBar : Grid
     private void CreateTableButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var table = DiaryPad.GetDiaryPad(this).InsertElementAfter<DiaryTable>(this);
-        table.SetSize((DataContext as AddPartBarVM).Row, (DataContext as AddPartBarVM).Column);
+        table.MakeEmptyTable((DataContext as AddPartBarVM).Row, (DataContext as AddPartBarVM).Column);
     }
 }
