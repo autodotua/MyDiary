@@ -25,8 +25,14 @@ public partial class DiaryPad : UserControl
         DataContext = viewModel;
         InitializeComponent();
         stkBody.Children.Add(new DiaryPart() { Content = new DiaryTextBox() });
-        stkBody.Children.Add(new DiaryPart() { Content = new DiaryImage() { ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico"))) } });
         stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+#if DEBUG        
+        var table = new DiaryTable();
+        stkBody.Children.Add(new DiaryPart() { Content = table });
+        table.SetSize(4, 3);
+        stkBody.Children.Add(new DiaryPart() { Content = new DiaryImage() { ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico"))) } });
+
+#endif
     }
 
     public DateTime? SelectedDate
@@ -34,7 +40,7 @@ public partial class DiaryPad : UserControl
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
     }
-    private async void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
+    private  void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
     {
         StackPanel stkBody = this.stkBody;
         var oldTextBox = sender as DiaryTextBox;

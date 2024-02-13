@@ -20,6 +20,12 @@
         </Style>-->
         <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="BorderBrush" Value="{DynamicResource Foreground0}" />
+            <Setter Property="Background" Value="{DynamicResource Accent0}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>   
+      <Style Selector="^:flyout-open /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="{DynamicResource Foreground0}" />
+            <Setter Property="Background" Value="{DynamicResource Accent0}" />
             <Setter Property="BorderThickness" Value="1" />
         </Style>
     </ControlTheme>
@@ -40,7 +46,7 @@
                 <Setter Property="Background" Value="{DynamicResource Background1}" />
                 <Setter Property="BorderThickness" Value="0" />
             </Style>
-        </Style>   
+        </Style>
         <Style Selector="^:pointerover">
             <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
 

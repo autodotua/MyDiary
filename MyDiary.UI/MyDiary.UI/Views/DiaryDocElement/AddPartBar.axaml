@@ -12,6 +12,7 @@
     Margin="8,0"
     d:DesignHeight="600"
     d:DesignWidth="800"
+    x:DataType="vm:AddPartBarVM"
     Background="Transparent"
     Classes="add"
     ColumnDefinitions="*,8,Auto,8,*"
@@ -53,13 +54,42 @@
                 Foreground="{DynamicResource Foreground3}" />
         </Button>
         <Button
-            Click="InsertTableButton_Click"
             Theme="{StaticResource RoundButton}">
             <PathIcon
                 Width="17"
                 Height="17"
                 Data="{StaticResource IconTable}"
                 Foreground="{DynamicResource Foreground3}" />
+            <Button.Flyout>
+                <Flyout ShowMode="Transient">
+                    <StackPanel
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <StackPanel.Styles>
+                            <Style Selector="NumericUpDown">
+                                <Setter Property="Width" Value="120" />
+                                <Setter Property="ClipValueToMinMax" Value="True" />
+                                <Setter Property="FormatString" Value="0" />
+                                <Setter Property="ParsingNumberStyle" Value="Integer" />
+                            </Style>
+                        </StackPanel.Styles>
+                        <NumericUpDown
+                            Maximum="100"
+                            Minimum="1"
+                            Watermark="行"
+                            Value="{Binding Row}" />
+                        <TextBlock VerticalAlignment="Center">×</TextBlock>
+                        <NumericUpDown
+                            Maximum="10"
+                            Minimum="1"
+                            Watermark="列"
+                            Value="{Binding Column}" />
+                        <Button
+                            Click="CreateTableButton_Click"
+                            Content="创建" />
+                    </StackPanel>
+                </Flyout>
+            </Button.Flyout>
         </Button>
     </StackPanel>
     <!--<PathIcon

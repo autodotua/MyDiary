@@ -15,6 +15,7 @@ public partial class AddPartBar : Grid
 {
     public AddPartBar()
     {
+        DataContext = new AddPartBarVM();
         InitializeComponent();
     }
 
@@ -35,7 +36,10 @@ public partial class AddPartBar : Grid
             image.ImageSource = new Bitmap(files[0].Path.LocalPath);
         }
     }
-    private void InsertTableButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+
+    private void CreateTableButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        var table = DiaryPad.GetDiaryPad(this).InsertElementAfter<DiaryTable>(this);
+        table.SetSize((DataContext as AddPartBarVM).Row, (DataContext as AddPartBarVM).Column);
     }
 }

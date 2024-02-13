@@ -1,5 +1,5 @@
 <Grid
-    x:Class="MyDiary.UI.Views.DiaryDocElement.DiaryImage"
+    x:Class="MyDiary.UI.Views.DiaryDocElement.DiaryTable"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,19 +12,20 @@
     d:DesignWidth="800"
     Background="Transparent"
     Classes="add"
-    RowDefinitions="*,8,Auto"
+    RowDefinitions="Auto,8,*,8"
     mc:Ignorable="d">
-    <Image
-        x:Name="image"
-        MaxHeight="400" />
     <TextBox
-        Grid.Row="2"
         MinWidth="108"
         Padding="5,6,6,5"
         HorizontalAlignment="Center"
-        Text="图名"
+        Text="表名"
         TextAlignment="Center"
         Theme="{StaticResource TransparentTextBox}" />
+
+    <Grid
+        x:Name="grd"
+        Grid.Row="2"
+        HorizontalAlignment="Center" />
 
     <StackPanel
         HorizontalAlignment="Right"
@@ -35,7 +36,7 @@
         <Button
             Click="ChangeSourceButton_Click"
             Theme="{StaticResource RoundButton}">
-            <PathIcon Data="{DynamicResource IconImage}" />
+            <PathIcon Data="{DynamicResource IconTable}" />
         </Button>
         <Button
             Click="DeleteButton_Click"
