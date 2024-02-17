@@ -44,4 +44,5 @@
             <PathIcon Data="{DynamicResource IconDelete}" />
         </Button>
     </StackPanel>
+  <Panel x:Name="pnlSelection"  Grid.RowSpan="99"/>
 </Grid>
