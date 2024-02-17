@@ -24,8 +24,10 @@ namespace MyDiary.Core.Models
             Text = text;
         }
 
-        public int RowSpan { get; }
-        public int ColumnSpan { get; }
+        public int RowSpan { get; set; }
+        public int ColumnSpan { get; set; }
         public string Text { get; set; }
+        public bool Bold { get; set; }
+        public bool Italic { get; set; }
     }
 }
