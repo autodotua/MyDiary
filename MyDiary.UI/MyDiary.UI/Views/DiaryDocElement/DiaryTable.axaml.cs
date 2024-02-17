@@ -17,6 +17,7 @@ using Avalonia.Input;
 using System.Linq;
 using FzLib;
 using static System.Net.Mime.MediaTypeNames;
+using System.Collections.Generic;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -52,12 +53,33 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// <summary>
     /// 网格对应的TextBox[行号,列号]
     /// </summary>
-    private TextBox[,] textBoxes;
+    private DiaryTextBox[,] textBoxes;
 
     public DiaryTable()
     {
         InitializeComponent();
     }
+
+
+    public static readonly AttachedProperty<int> TableRowProperty = AvaloniaProperty.RegisterAttached<DiaryTable, DiaryTextBox, int>("Row");
+
+    public static void SetTableRow(DiaryTextBox element, int value) => element.SetValue(TableRowProperty, value);
+
+    public static int GetTableRow(DiaryTextBox element) => element.GetValue(TableRowProperty);
+
+    public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, DiaryTextBox, int>("Column");
+
+    public static void SetTableColumn(DiaryTextBox element, int value) => element.SetValue(TableColumnProperty, value);
+
+    public static int GetTableColumn(DiaryTextBox element) => element.GetValue(TableColumnProperty);
+
+    public static readonly AttachedProperty<StringDataTableItem> TableDataProperty = AvaloniaProperty.RegisterAttached<DiaryTable, DiaryTextBox, StringDataTableItem>("RowSpan");
+
+    public static void SetTableData(DiaryTextBox element, StringDataTableItem value) => element.SetValue(TableDataProperty, value);
+
+    public static StringDataTableItem GetTableData(DiaryTextBox element) => element.GetValue(TableDataProperty);
+
+
     public void MakeEmptyTable(int row, int column)
     {
         StringDataTableItem[,] data = new StringDataTableItem[row, column];
@@ -103,117 +125,125 @@ public partial class DiaryTable : Grid, IDiaryElement
     {
         base.OnPointerMoved(e);
         var point = e.GetCurrentPoint(pnlSelection);
-        if (point.Properties.IsLeftButtonPressed)
-        {
-            if (mouseDownPosition == null)
-            {
-                //由于无法使用OnPointerPressed获取位置，所以在Moved中获取
-                mouseDownPosition = point.Position;
-            }
-            else
-            {
-                if (selectionBorder == null)
-                {
-                    selectionBorder = new Border()
-                    {
-                        BorderBrush = Brushes.Red,
-                        BorderThickness = new Thickness(4),
-                        HorizontalAlignment = HorizontalAlignment.Stretch,
-                        VerticalAlignment = VerticalAlignment.Stretch,
-                        IsVisible = false
-                    };
-                    pnlSelection.Children.Add(selectionBorder);
-                }
 
-                //以下注释部分为根据实际鼠标位置画框
-                //bool right = point.Position.X - mouseDownPosition.Value.X > 0;
-                //bool down = point.Position.Y - mouseDownPosition.Value.Y > 0;
-                //var marginLeft = right ? mouseDownPosition.Value.X : point.Position.X;
-                //var marginTop = down ? mouseDownPosition.Value.Y : point.Position.Y;
-                //var marginRight = pnlSelection.Bounds.Width - (right ? point.Position.X : mouseDownPosition.Value.X);
-                //var marginBottom = pnlSelection.Bounds.Height - (down ? point.Position.Y : mouseDownPosition.Value.Y);
-                //if (pnlSelection.Bounds.Width- marginRight - marginBottom > 8 && pnlSelection.Bounds.Height - marginBottom - marginTop > 8)
-                //{
-                //    selectionBorder.Margin = new Thickness(marginLeft, marginTop, marginRight, marginBottom);
-                //}
-
-                //整理Grid的每个行列距离顶部和左侧的累计距离
-                var gridLefts = grd.ColumnDefinitions.Select(p => p.ActualWidth).ToList();
-                gridLefts[0] = grd.Bounds.Left;
-                for (int i = 1; i < gridLefts.Count; i++)
-                {
-                    gridLefts[i] = gridLefts[i] + gridLefts[i - 1];
-                }
-                var gridTops = grd.RowDefinitions.Select(p => p.ActualHeight).ToList();
-                gridTops[0] = grd.Bounds.Top;
-                for (int i = 1; i < gridTops.Count; i++)
-                {
-                    gridTops[i] = gridTops[i] + gridTops[i - 1];
-                }
-
-                //计算鼠标框选实际范围的边界
-                var left = Math.Min(mouseDownPosition.Value.X, point.Position.X);
-                var right = Math.Max(mouseDownPosition.Value.X, point.Position.X);
-                var top = Math.Min(mouseDownPosition.Value.Y, point.Position.Y);
-                var bottom = Math.Max(mouseDownPosition.Value.Y, point.Position.Y);
-                if (right - left < 8 || bottom - top < 8)
-                {
-                    return;
-                }
-
-                //计算与鼠标实际框选范围相交的单元格
-                int leftIndex = -1, rightIndex = -1, topIndex = -1, bottomIndex = -1;
-                for (int i = 2; i <= gridLefts.Count - 2; i += 2)
-                {
-                    if (left > gridLefts[i - 2] && left < gridLefts[i+1])
-                    {
-                        leftIndex = GID2TID(i);
-                    }
-                    if (right > gridLefts[i - 2] && right < gridLefts[i + 1])
-                    {
-                        rightIndex = GID2TID(i);
-                    }
-                }
-                for (int i = 2; i <= gridTops.Count - 2; i += 2)
-                {
-                    if (top > gridTops[i - 2] && top < gridTops[i + 1])
-                    {
-                        topIndex = GID2TID(i);
-                    }
-                    if (bottom > gridTops[i - 2] && bottom < gridTops[i + 1])
-                    {
-                        bottomIndex = GID2TID(i);
-                    }
-                }
-                //for (int i = leftIndex; i <= rightIndex; i++)
-                //{
-                //    for (int j = topIndex; j <= bottomIndex; j++)
-                //    {
-                //        textBoxes[j, i].Background = Brushes.Red;
-                //    }
-                //}
-                if (leftIndex < 0 || rightIndex < 0 || topIndex < 0 || bottomIndex < 0)
-                {
-                    selectionBorder.IsVisible = false;
-                    return;
-                }
-
-                //显示单元格框
-                selectionBorder.IsVisible = true;
-                selectionBorder.Margin = new Thickness(
-                    grd.Bounds.Left + textBoxes[topIndex, leftIndex].Bounds.Left-InnerBorderWidth,
-                    grd.Bounds.Top + textBoxes[topIndex, leftIndex].Bounds.Top - InnerBorderWidth,
-                    Bounds.Width - grd.Bounds.Left - textBoxes[bottomIndex, rightIndex].Bounds.Right - InnerBorderWidth,
-                    Bounds.Height - grd.Bounds.Top - textBoxes[bottomIndex, rightIndex].Bounds.Bottom - InnerBorderWidth
-                    );
-                Debug.WriteLine(selectionBorder.Margin);
-            }
-        }
-        else
+        //左键没有按下，不执行操作，若之前在选择状态，则清除
+        if (!point.Properties.IsLeftButtonPressed)
         {
             ClearSelection();
+            return;
         }
+
+        //若焦点不在TextBox（例如在调整边框），则不执行操作
+        if (TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is not TextBox)
+        {
+            return;
+        }
+        //首次按下，记录
+        if (mouseDownPosition == null)
+        {
+            //由于无法使用OnPointerPressed获取位置，所以在Moved中获取
+            mouseDownPosition = point.Position;
+            return;
+        }
+
+        //开始框选
+        SelectCells(point);
     }
+
+    private void SelectCells(PointerPoint point)
+    {
+        //创建框选显示框
+        if (selectionBorder == null)
+        {
+            selectionBorder = new Border()
+            {
+                BorderBrush = Brushes.Red,
+                BorderThickness = new Thickness(4),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                IsVisible = false
+            };
+            pnlSelection.Children.Add(selectionBorder);
+        }
+
+        //整理Grid的每个行列距离顶部和左侧的累计距离
+        var gridLefts = grd.ColumnDefinitions.Select(p => p.ActualWidth).ToList();
+        gridLefts[0] = grd.Bounds.Left;
+        for (int i = 1; i < gridLefts.Count; i++)
+        {
+            gridLefts[i] = gridLefts[i] + gridLefts[i - 1];
+        }
+        var gridTops = grd.RowDefinitions.Select(p => p.ActualHeight).ToList();
+        gridTops[0] = grd.Bounds.Top;
+        for (int i = 1; i < gridTops.Count; i++)
+        {
+            gridTops[i] = gridTops[i] + gridTops[i - 1];
+        }
+
+        //计算鼠标框选实际范围的边界
+        var left = Math.Min(mouseDownPosition.Value.X, point.Position.X);
+        var right = Math.Max(mouseDownPosition.Value.X, point.Position.X);
+        var top = Math.Min(mouseDownPosition.Value.Y, point.Position.Y);
+        var bottom = Math.Max(mouseDownPosition.Value.Y, point.Position.Y);
+
+        //计算与鼠标实际框选范围相交的单元格
+        int leftIndex = -1, rightIndex = -1, topIndex = -1, bottomIndex = -1;
+        for (int i = 2; i <= gridLefts.Count - 2; i += 2)
+        {
+            if (left > gridLefts[i - 2] && left < gridLefts[i + 1])
+            {
+                leftIndex = GID2TID(i);
+            }
+            if (right > gridLefts[i - 2] && right < gridLefts[i + 1])
+            {
+                rightIndex = GID2TID(i);
+            }
+        }
+        for (int i = 2; i <= gridTops.Count - 2; i += 2)
+        {
+            if (top > gridTops[i - 2] && top < gridTops[i + 1])
+            {
+                topIndex = GID2TID(i);
+            }
+            if (bottom > gridTops[i - 2] && bottom < gridTops[i + 1])
+            {
+                bottomIndex = GID2TID(i);
+            }
+        }
+
+
+        if (leftIndex < 0 || rightIndex < 0 || topIndex < 0 || bottomIndex < 0 //没框到
+            || topIndex == bottomIndex && leftIndex == rightIndex) //只框了一个，此时认为在选择TextBox内的文字
+        {
+            selectionBorder.IsVisible = false;
+            return;
+        }
+
+        //确定最终范围。上述的范围可能会截断一些合并的单元格，我们需要确保框选范围内都是完整的单元格。
+        int txtLeftIndex = leftIndex, txtRightIndex = rightIndex, txtTopIndex = topIndex, txtBottomIndex = bottomIndex;
+        for (int i = leftIndex; i <= rightIndex; i++)
+        {
+            for (int j = topIndex; j <= bottomIndex; j++)
+            {
+                var txt = textBoxes[j, i];
+                txtLeftIndex = Math.Min(txtLeftIndex, GetTableColumn(txt));
+                txtRightIndex = Math.Max(txtRightIndex, GetTableColumn(txt) + GetTableData(txt).ColumnSpan - 1);
+                txtTopIndex = Math.Min(txtTopIndex, GetTableRow(txt));
+                txtBottomIndex = Math.Max(txtBottomIndex, GetTableRow(txt) + GetTableData(txt).RowSpan - 1);
+            }
+        }
+        Debug.WriteLine($"{txtLeftIndex},{txtRightIndex},{txtTopIndex},{txtBottomIndex}");
+
+        //设置框的位置
+        selectionBorder.IsVisible = true;
+        selectionBorder.Margin = new Thickness(
+            grd.Bounds.Left + textBoxes[txtTopIndex, txtLeftIndex].Bounds.Left - InnerBorderWidth,
+            grd.Bounds.Top + textBoxes[txtTopIndex, txtLeftIndex].Bounds.Top - InnerBorderWidth,
+            Bounds.Width - grd.Bounds.Left - textBoxes[txtBottomIndex, txtRightIndex].Bounds.Right - InnerBorderWidth,
+            Bounds.Height - grd.Bounds.Top - textBoxes[txtBottomIndex, txtRightIndex].Bounds.Bottom - InnerBorderWidth
+            );
+    }
+
     /// <summary>
     /// Border (GridSplitter/Rectangle) Row/Column 转 Grid Row/Column
     /// </summary>
@@ -268,6 +298,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             selectionBorder = null;
         }
     }
+
     private void CreateTableStructure(int row, int column, Panel[] horizontalLines, Panel[] verticalLines)
     {
         for (int j = 0; j <= column; j++)
@@ -342,7 +373,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     private void FillTextBoxes(StringDataTableItem[,] data, int row, int column)
     {
         bool[,] cellCreated = new bool[row, column];
-        textBoxes = new TextBox[row, column];
+        textBoxes = new DiaryTextBox[row, column];
         for (int i = 0; i < row; i++)
         {
             for (int j = 0; j < column; j++)
@@ -359,6 +390,10 @@ public partial class DiaryTable : Grid, IDiaryElement
                     CornerRadius = new CornerRadius(0),
                     Text = item.Text,
                 };
+                SetTableRow(txt, i);
+                SetTableColumn(txt, j);
+                SetTableData(txt, item);
+
                 textBoxes[i, j] = txt;
                 SetRow(txt, TID2GID(i));
                 SetColumn(txt, TID2GID(j));
