@@ -21,7 +21,7 @@ public partial class AddPartBar : Grid
 
     private void InsertTextButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        DiaryPad.GetDiaryPad(this).InsertElementAfter<DiaryTextBox>(this);
+        DiaryPad.GetDiaryPad(this).CreateAndInsertElementAfter<DiaryTextBox>(this);
     }
     private async void InsertImageButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -32,14 +32,14 @@ public partial class AddPartBar : Grid
          });
         if (files.Count > 0)
         {
-            var image = DiaryPad.GetDiaryPad(this).InsertElementAfter<DiaryImage>(this);
+            var image = DiaryPad.GetDiaryPad(this).CreateAndInsertElementAfter<DiaryImage>(this);
             image.ImageSource = new Bitmap(files[0].Path.LocalPath);
         }
     }
 
     private void CreateTableButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var table = DiaryPad.GetDiaryPad(this).InsertElementAfter<DiaryTable>(this);
+        var table = DiaryPad.GetDiaryPad(this).CreateAndInsertElementAfter<DiaryTable>(this);
         table.MakeEmptyTable((DataContext as AddPartBarVM).Row, (DataContext as AddPartBarVM).Column);
     }
 }

@@ -8,11 +8,29 @@ using Avalonia.Platform;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace MyDiary.UI.Views;
-
+/// <summary>
+/// 
+/// </summary>
+/// <remarks>
+/// 相关内容介绍
+/// <br/>
+/// 一、<see cref="IDiaryElement"/>和<see cref="EditBar"/>的数据交换
+/// <br/>
+/// 数据交换通过<see cref="DiaryPad"/>作为中介进行中转。
+/// <br/>
+/// 1、<see cref="IDiaryElement"/>向<see cref="EditBar"/>传递
+/// 在文档属性发生变动时，通过<see cref="IDiaryElement.EditPropertiesUpdated"/>事件进行通知。
+/// <see cref="DiaryPad"/>会接收每个<see cref="IDiaryElement"/>的通知，
+/// 若发现发起通知的<see cref="IDiaryElement"/>被Focused，那么则进行处理。
+/// <see cref="EditBar"/>具有<see cref="EditBar.EditProperties"/>依赖属性
+/// 通过改变<see cref="EditBar.EditProperties"/>，实现通知到UI。
+/// </remarks>
 public partial class DiaryPad : UserControl
 {
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
@@ -24,13 +42,13 @@ public partial class DiaryPad : UserControl
     {
         DataContext = viewModel;
         InitializeComponent();
-        stkBody.Children.Add(new DiaryPart() { Content = new DiaryTextBox() });
+        var txt = CreateAndInsertElementAfter<DiaryTextBox>(null);
         stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-#if DEBUG        
-        var table = new DiaryTable();
-        stkBody.Children.Add(new DiaryPart() { Content = table });
+#if DEBUG
+        var table = CreateAndInsertElementAfter<DiaryTable>(txt);
         table.MakeEmptyTable(6, 6);
-        stkBody.Children.Add(new DiaryPart() { Content = new DiaryImage() { ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico"))) } });
+        var image = CreateAndInsertElementAfter<DiaryImage>(table);
+        image.ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico")));
 
 #endif
     }
@@ -40,7 +58,7 @@ public partial class DiaryPad : UserControl
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
     }
-    private  void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
+    private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
     {
         StackPanel stkBody = this.stkBody;
         var oldTextBox = sender as DiaryTextBox;
@@ -51,7 +69,7 @@ public partial class DiaryPad : UserControl
         switch (e.Key)
         {
             case Avalonia.Input.Key.Enter when !string.IsNullOrEmpty(text):
-                newTextBox = new DiaryTextBox();
+                newTextBox = CreateAndInsertElementAfter<DiaryTextBox>(oldTextBox);
                 newTextBox.KeyDown += TextBox_KeyDown;
                 stkBody.InsertDiaryPart(textBoxIndex + 1, newTextBox);
                 if (oldTextBox.SelectionEnd != text.Length)
@@ -68,7 +86,7 @@ public partial class DiaryPad : UserControl
                     && stkBody.GetPreviousControl(oldTextBox) is DiaryTextBox t1:
                 //如果当前指针位置在最左侧，并且不是第一个段落，并且上一个段落也是TextBox
                 newTextBox = t1;
-                stkBody.Children.Remove(oldTextBox.GetParentDiaryPart());
+                RemoveElement(oldTextBox);
                 if (!string.IsNullOrEmpty(text))
                 {
                     newTextBox.Text = newTextBox.Text == null ? text : newTextBox.Text + text;
@@ -81,7 +99,7 @@ public partial class DiaryPad : UserControl
                     && stkBody.GetNextControl(oldTextBox) is DiaryTextBox t2:
                 //如果当前指针位置在最右侧，并且不是最后一个段落，并且下一个段落也是TextBox
                 newTextBox = t2;
-                stkBody.Children.Remove(oldTextBox.GetParentDiaryPart());
+                RemoveElement(oldTextBox);
                 int caretIndex = 0;
                 if (!string.IsNullOrEmpty(text))
                 {
@@ -143,14 +161,34 @@ public partial class DiaryPad : UserControl
         stkBody.GetChild(0).GetControlContent().Focus();
     }
 
-    public T InsertElementAfter<T>(AddPartBar element) where T : Control, IDiaryElement, new()
+    public T CreateAndInsertElementAfter<T>(Control element) where T : Control, IDiaryElement, new()
     {
-        int index = stkBody.Children.IndexOf(element.GetParentDiaryPart());
+        int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
         T newElement = new T();
+        newElement.EditPropertiesUpdated += DiaryElement_EditPropertiesUpdated;
         stkBody.InsertDiaryPart(index + 1, newElement);
         return newElement;
     }
 
+    public void RemoveElement<T>(T element) where T : Control, IDiaryElement
+    {
+        element.EditPropertiesUpdated -= DiaryElement_EditPropertiesUpdated;
+        stkBody.Children.Remove(element.GetParentDiaryPart());
+    }
+
+    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
+    {
+        IDiaryElement element = sender as IDiaryElement;
+        var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
+        if (focusedElement is Control c && element is ILogical l)
+        {
+            if (c.GetLogicalAncestors().Contains(l))
+            {
+                Debug.WriteLine("Updated Edit Properties");
+                editBar.EditProperties = element.GetEditProperties();
+            }
+        }
+    }
 
     public static DiaryPad GetDiaryPad(Control control)
     {

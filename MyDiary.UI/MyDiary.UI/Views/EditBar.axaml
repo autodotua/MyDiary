@@ -6,6 +6,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:system="using:System"
     xmlns:vm="using:MyDiary.UI.ViewModels"
+    x:Name="bar"
+    IsEnabled="{Binding #bar.EditProperties.EnableBar}"
     mc:Ignorable="d">
     <Design.DataContext />
     <StackPanel Orientation="Horizontal">
@@ -14,7 +16,9 @@
                 <Setter Property="Background" Value="Transparent" />
             </Style>
         </StackPanel.Styles>
-        <ToggleButton>
+        <ToggleButton
+            IsChecked="{Binding #bar.EditProperties.CellsMerged}"
+            IsVisible="{Binding #bar.EditProperties.CanMergeCell}">
             <StackPanel
                 Orientation="Horizontal"
                 Spacing="4">
@@ -24,7 +28,7 @@
                     Text="合并选中的单元格" />
             </StackPanel>
         </ToggleButton>
-        <ToggleButton>
+        <ToggleButton IsChecked="{Binding #bar.EditProperties.Bold}">
             <StackPanel
                 Orientation="Horizontal"
                 Spacing="4">
@@ -34,7 +38,7 @@
                     Text="粗体" />
             </StackPanel>
         </ToggleButton>
-        <ToggleButton>
+        <ToggleButton IsChecked="{Binding #bar.EditProperties.Italic}">
             <StackPanel
                 Orientation="Horizontal"
                 Spacing="4">

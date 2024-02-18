@@ -1,14 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MyDiary.UI.ViewModels
 {
     public partial class EditProperties : ViewModelBase
     {
+        public EditProperties()
+        {
+        }
+
         [ObservableProperty]
         private double fontSize;
         [ObservableProperty]

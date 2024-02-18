@@ -51,6 +51,10 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     private const double InnerLineWidth = 1;
 
+    private readonly DiaryTableVM viewModel;
+
+    private TableCellsSelectionMode cellsSelectionMode = TableCellsSelectionMode.None;
+
     /// <summary>
     /// 鼠标首次按下时的位置
     /// </summary>
@@ -60,18 +64,6 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// 红色的选择单元格的框
     /// </summary>
     private Border selectionBorder = null;
-
-    private TableCellsSelectionMode cellsSelectionMode = TableCellsSelectionMode.None;
-    private TableCellsSelectionMode CellsSelectionMode
-    {
-        get => cellsSelectionMode;
-        set
-        {
-            cellsSelectionMode = value;
-            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
     /// <summary>
     /// 选择后TextBox边界
     /// </summary>
@@ -82,14 +74,29 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     private DiaryTextBox[,] textBoxes;
 
-    private readonly DiaryTableVM viewModel;
-
-    public event EventHandler EditPropertiesUpdated;
-
     public DiaryTable()
     {
         DataContext = viewModel = new DiaryTableVM();
         InitializeComponent();
+    }
+
+    public event EventHandler EditPropertiesUpdated;
+
+    enum TableCellsSelectionMode
+    {
+        None,
+        Selecting,
+        Selected
+    }
+
+    private TableCellsSelectionMode CellsSelectionMode
+    {
+        get => cellsSelectionMode;
+        set
+        {
+            cellsSelectionMode = value;
+            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+        }
     }
     public static int GetTableColumn(DiaryTextBox element) => element.GetValue(TableColumnProperty);
 
@@ -102,6 +109,35 @@ public partial class DiaryTable : Grid, IDiaryElement
     public static void SetTableData(DiaryTextBox element, StringDataTableItem value) => element.SetValue(TableDataProperty, value);
 
     public static void SetTableRow(DiaryTextBox element, int value) => element.SetValue(TableRowProperty, value);
+
+    public EditProperties GetEditProperties()
+    {
+        DiaryTextBox txt = GetCurrentCell();
+        var data = txt == null ? null : GetTableData(txt);
+        if (txt == null)
+        {
+            return new EditProperties()
+            {
+                EnableBar = false,
+                CanMergeCell = true,
+            };
+        }
+        bool cellsMerged = CellsSelectionMode switch
+        {
+            TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
+            _ => false
+        };
+
+
+        return new EditProperties()
+        {
+            CanMergeCell = true,
+            CellsMerged = cellsMerged,
+            Bold = txt.FontWeight > FontWeight.Normal,
+            Italic = txt.FontStyle == FontStyle.Italic,
+            FontSize = txt.FontSize,
+        };
+    }
 
     public void MakeEmptyTable(int row, int column)
     {
@@ -185,34 +221,6 @@ public partial class DiaryTable : Grid, IDiaryElement
         return (index - 2) / 2;
     }
 
-    private DiaryTextBox StringDataTableItem2DiaryTextBox(int row, int column, StringDataTableItem item)
-    {
-        var txt = new DiaryTextBox()
-        {
-            CornerRadius = new CornerRadius(0),
-#if DEBUG
-            Text = $"{row},{column}",
-#else
-            Text = item.Text,
-#endif
-            FontWeight = item.Bold ? FontWeight.Bold : FontWeight.Normal,
-            FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal
-        };
-        SetTableRow(txt, row);
-        SetTableColumn(txt, column);
-        SetTableData(txt, item);
-        txt.GotFocus += (s, e) => ClearCellsSelection();
-        return txt;
-    }
-
-    private void ClearCellsSelection()
-    {
-        CellsSelectionMode = TableCellsSelectionMode.None;
-        selectionBorder = null;
-        pointerDownPosition = null;
-        pnlSelection.Children.Clear();
-    }
-
     /// <summary>
     /// TextBox Row/Column 转 Grid Row/Column
     /// </summary>
@@ -231,6 +239,17 @@ public partial class DiaryTable : Grid, IDiaryElement
         //     FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
         // });
 
+    }
+
+    private void ClearCellsSelection()
+    {
+        if (CellsSelectionMode != TableCellsSelectionMode.None)
+        {
+            CellsSelectionMode = TableCellsSelectionMode.None;
+            selectionBorder = null;
+            pointerDownPosition = null;
+            pnlSelection.Children.Clear();
+        }
     }
 
     private void CreateTableStructure(StringDataTableItem[,] data)
@@ -305,6 +324,20 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
+    private DiaryTextBox GetCurrentCell()
+    {
+        var element = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
+        if (element is DiaryTextBox txt)
+        {
+            if (txt.GetLogicalAncestors().Contains(this))
+            {
+                return txt;
+            }
+            return null;
+        }
+        return null;
+    }
+
     private StringDataTableItem[,] GetTableItems()
     {
         bool[,] visited = new bool[textBoxes.GetLength(0), textBoxes.GetLength(1)];
@@ -330,6 +363,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
         return items;
     }
+
     private void MakeBorders(int row, int column, Panel[] horizontalLines, Panel[] verticalLines)
     {
         grd.ColumnDefinitions.Clear();
@@ -663,58 +697,27 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    public EditProperties GetEditProperties()
+    private DiaryTextBox StringDataTableItem2DiaryTextBox(int row, int column, StringDataTableItem item)
     {
-        bool cellsMerged = false;
-        bool canMergeCell = false;
-        DiaryTextBox txt = GetCurrentCell();
-        var data = txt == null ? null : GetTableData(txt);
-        if (txt == null)
+        var txt = new DiaryTextBox()
         {
-            return new EditProperties() { EnableBar = false };
-        }
-        switch (CellsSelectionMode)
-        {
-            case TableCellsSelectionMode.None:
-                canMergeCell = true;
-                cellsMerged = data.RowSpan * data.ColumnSpan > 1;
-                break;
-            case TableCellsSelectionMode.Selecting:
-                break;
-            case TableCellsSelectionMode.Selected:
-                canMergeCell = true;
-                cellsMerged = false;
-                break;
-        }
-
-        return new EditProperties()
-        {
-            CanMergeCell = canMergeCell,
-            CellsMerged = cellsMerged,
-            Bold = txt.FontWeight > FontWeight.Normal,
-            Italic = txt.FontStyle == FontStyle.Italic,
-            FontSize = txt.FontSize,
+            CornerRadius = new CornerRadius(0),
+#if DEBUG
+            Text = $"{row},{column}",
+#else
+            Text = item.Text,
+#endif
+            FontWeight = item.Bold ? FontWeight.Bold : FontWeight.Normal,
+            FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal
         };
-    }
-
-    private DiaryTextBox GetCurrentCell()
-    {
-        var element = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
-        if (element is DiaryTextBox txt)
+        SetTableRow(txt, row);
+        SetTableColumn(txt, column);
+        SetTableData(txt, item);
+        txt.GotFocus += (s, e) =>
         {
-            if (txt.GetLogicalAncestors().Contains(this))
-            {
-                return txt;
-            }
-            return null;
-        }
-        return null;
-    }
-
-    enum TableCellsSelectionMode
-    {
-        None,
-        Selecting,
-        Selected
+            ClearCellsSelection();
+            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+        };
+        return txt;
     }
 }
