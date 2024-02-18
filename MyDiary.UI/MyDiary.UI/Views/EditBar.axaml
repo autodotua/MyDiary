@@ -7,15 +7,18 @@
     xmlns:system="using:System"
     xmlns:vm="using:MyDiary.UI.ViewModels"
     x:Name="bar"
+    Focusable="False"
     IsEnabled="{Binding $self.EditProperties, Converter={StaticResource NotNullConverter}}"
     mc:Ignorable="d">
     <StackPanel Orientation="Horizontal">
         <StackPanel.Styles>
             <Style Selector="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Focusable" Value="False" />
             </Style>
             <Style Selector="Button">
                 <Setter Property="Background" Value="Transparent" />
+              <Setter Property="Focusable" Value="False" />
             </Style>
             <Style Selector="ToggleButton:disabled  /template/ ContentPresenter#PART_ContentPresenter">
                 <Setter Property="Background" Value="Transparent" />
@@ -33,7 +36,7 @@
             <Button.Flyout>
                 <Flyout>
                     <Slider
-                        Height="108"
+                        Height="108" Focusable="False"
                         IsSnapToTickEnabled="True"
                         LargeChange="2"
                         Maximum="20"

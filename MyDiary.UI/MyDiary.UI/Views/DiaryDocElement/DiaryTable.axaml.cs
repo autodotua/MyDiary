@@ -94,8 +94,12 @@ public partial class DiaryTable : Grid, IDiaryElement
         get => cellsSelectionMode;
         set
         {
+            var oldValue = cellsSelectionMode;
             cellsSelectionMode = value;
-            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+            if (value != oldValue)
+            {
+                EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
     public static int GetTableColumn(DiaryTextBox element) => element.GetValue(TableColumnProperty);
@@ -112,20 +116,20 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     public EditProperties GetEditProperties()
     {
-        DiaryTextBox txt = GetCurrentCell();
-        var data = txt == null ? null : GetTableData(txt);
-        if (txt == null)
+        var txts = GetSelectedCells();
+        if (!txts.Any())
         {
             return null;
         }
+        var data = GetTableData(txts.First());
 
         var ep = new EditProperties()
         {
             CanMergeCell = CellsSelectionMode switch
             {
                 TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
-                TableCellsSelectionMode.Selecting=>false,
-                TableCellsSelectionMode.Selected=>true,
+                TableCellsSelectionMode.Selecting => false,
+                TableCellsSelectionMode.Selected => true,
                 _ => false
             },
             CellsMerged = CellsSelectionMode switch
@@ -133,9 +137,9 @@ public partial class DiaryTable : Grid, IDiaryElement
                 TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
                 _ => false
             },
-            Bold = txt.FontWeight > FontWeight.Normal,
-            Italic = txt.FontStyle == FontStyle.Italic,
-            FontSize = txt.FontSize,
+            Bold = txts.All(txt => txt.FontWeight > FontWeight.Normal),
+            Italic = txts.All(txt => txt.FontStyle == FontStyle.Italic),
+            FontSize = txts.Select(p => p.FontSize).Min(),
         };
 
         ep.PropertyChanged += (s, e) =>
@@ -143,13 +147,13 @@ public partial class DiaryTable : Grid, IDiaryElement
             switch (e.PropertyName)
             {
                 case nameof(EditProperties.Bold):
-                    txt.FontWeight = ep.Bold ? FontWeight.Bold : FontWeight.Normal;
+                    txts.ForEach(txt => txt.FontWeight = ep.Bold ? FontWeight.Bold : FontWeight.Normal);
                     break;
                 case nameof(EditProperties.Italic):
-                    txt.FontStyle = ep.Italic ? FontStyle.Italic : FontStyle.Normal;
+                    txts.ForEach(txt => txt.FontStyle = ep.Italic ? FontStyle.Italic : FontStyle.Normal);
                     break;
                 case nameof(EditProperties.FontSize):
-                    txt.FontSize = ep.FontSize;
+                    txts.ForEach(txt => txt.FontSize = ep.FontSize);
                     break;
                 case nameof(EditProperties.CellsMerged) when ep.CellsMerged == true:
                     if (CellsSelectionMode != TableCellsSelectionMode.Selected)
@@ -177,14 +181,15 @@ public partial class DiaryTable : Grid, IDiaryElement
                     ClearCellsSelection();
                     break;
                 case nameof(EditProperties.CellsMerged) when ep.CellsMerged == false:
-                    if (txt == null)
-                    {
-                        throw new Exception("欲分割单元格，但找不到当前单元格");
-                    }
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
+                    if (txts.Count() != 1)
+                    {
+                        throw new Exception($"查找到的TextBox数量错误");
+                    }
+                    var txt = txts.First();
                     bool first = true;
                     for (int r = GetTableRow(txt); r < GetTableRow(txt) + GetTableData(txt).RowSpan; r++)
                     {
@@ -409,7 +414,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    private DiaryTextBox GetCurrentCell()
+    private DiaryTextBox GetFocusedCell()
     {
         var element = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
         if (element is DiaryTextBox txt)
@@ -421,6 +426,42 @@ public partial class DiaryTable : Grid, IDiaryElement
             return null;
         }
         return null;
+    }
+
+    /// <summary>
+    /// 获取被选择的范围内的
+    /// </summary>
+    /// <param name="returnFocusedWhenNotSelecting">若开启，则在未选择状态会返回焦点所在文本框</param>
+    /// <returns></returns>
+    private IEnumerable<DiaryTextBox> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
+    {
+
+        if (CellsSelectionMode == TableCellsSelectionMode.None)
+        {
+            if (returnFocusedWhenNotSelecting)
+            {
+                var txt = GetFocusedCell();
+                if (txt != null)
+                {
+                    yield return txt;
+                }
+            }
+        }
+        else
+        {
+            HashSet<TextBox> set = new HashSet<TextBox>();
+            for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
+            {
+                for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
+                {
+                    if (!set.Contains(textBoxes[r, c]))
+                    {
+                        set.Add(textBoxes[r, c]);
+                        yield return textBoxes[r, c];
+                    }
+                }
+            }
+        }
     }
 
     private StringDataTableItem GetStringDataTableItem(DiaryTextBox textBox)
@@ -640,6 +681,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     private void SelectCells(PointerPoint point)
     {
         CellsSelectionMode = TableCellsSelectionMode.Selecting;
+
         //创建框选显示框
         if (selectionBorder == null)
         {
@@ -698,16 +740,12 @@ public partial class DiaryTable : Grid, IDiaryElement
                 bottomIndex = GID2TID(i);
             }
         }
-
-
-
-        if (leftIndex < 0 || rightIndex < 0 || topIndex < 0 || bottomIndex < 0 //没框到
-            || topIndex == bottomIndex && leftIndex == rightIndex) //只框了一个，此时认为在选择TextBox内的文字
+        //没框到
+        if (leftIndex < 0 || rightIndex < 0 || topIndex < 0 || bottomIndex < 0)
         {
             selectionBorder.IsVisible = false;
             return;
         }
-
 
         //确定最终范围。上述的范围可能会截断一些合并的单元格，需要确保框选范围内都是完整的单元格。
         selectionLeftIndex = leftIndex;
@@ -750,6 +788,13 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
         }
 
+        //如果只框到一个，那么认为是在内部选择文字，不处理
+        if (!GetSelectedCells(false).Skip(1).Any())
+        {
+            selectionBorder.IsVisible = false;
+            return;
+        }
+
         //设置框的位置
         selectionBorder.IsVisible = true;
         selectionBorder.Margin = new Thickness(
@@ -762,9 +807,18 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     private void StopSelectingCells()
     {
-        if (pointerDownPosition.HasValue)
+        if (selectionBorder != null && selectionBorder.IsVisible)
         {
             CellsSelectionMode = TableCellsSelectionMode.Selected;
+        }
+        else
+        {
+            CellsSelectionMode = TableCellsSelectionMode.None;
+            if (selectionBorder != null)
+            {
+                pnlSelection.Children.Remove(selectionBorder);
+                pointerDownPosition = null;
+            }
         }
     }
 }
