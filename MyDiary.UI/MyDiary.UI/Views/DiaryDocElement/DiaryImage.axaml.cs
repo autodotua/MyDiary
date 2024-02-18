@@ -23,6 +23,8 @@ public partial class DiaryImage : Grid, IDiaryElement
         return v;
     }));
 
+    public event EventHandler EditPropertiesUpdated;
+
     public IImage ImageSource
     {
         get => GetValue(ImageSourceProperty);
@@ -55,5 +57,10 @@ public partial class DiaryImage : Grid, IDiaryElement
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
+    }
+
+    public EditProperties GetEditProperties()
+    {
+        throw new NotImplementedException();
     }
 }

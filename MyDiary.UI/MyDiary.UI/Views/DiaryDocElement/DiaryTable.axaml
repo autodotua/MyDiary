@@ -46,11 +46,5 @@
     </StackPanel>
     <Panel
         x:Name="pnlSelection"
-        Grid.RowSpan="99">
-        <FlyoutBase.AttachedFlyout>
-            <Flyout>
-                <Button Click="MergeCellButton_Click">合并选中的单元格</Button>
-            </Flyout>
-        </FlyoutBase.AttachedFlyout>
-    </Panel>
+        Grid.RowSpan="99" />
 </Grid>

@@ -20,6 +20,9 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Collections.Generic;
 using Avalonia.Controls.Primitives;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Threading.Tasks;
+using Avalonia.Threading;
+using Avalonia.LogicalTree;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -58,6 +61,17 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     private Border selectionBorder = null;
 
+    private TableCellsSelectionMode cellsSelectionMode = TableCellsSelectionMode.None;
+    private TableCellsSelectionMode CellsSelectionMode
+    {
+        get => cellsSelectionMode;
+        set
+        {
+            cellsSelectionMode = value;
+            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     /// <summary>
     /// 选择后TextBox边界
     /// </summary>
@@ -68,8 +82,13 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     private DiaryTextBox[,] textBoxes;
 
+    private readonly DiaryTableVM viewModel;
+
+    public event EventHandler EditPropertiesUpdated;
+
     public DiaryTable()
     {
+        DataContext = viewModel = new DiaryTableVM();
         InitializeComponent();
     }
     public static int GetTableColumn(DiaryTextBox element) => element.GetValue(TableColumnProperty);
@@ -166,19 +185,32 @@ public partial class DiaryTable : Grid, IDiaryElement
         return (index - 2) / 2;
     }
 
-    private static DiaryTextBox StringDataTableItem2DiaryTextBox(int row, int column, StringDataTableItem item)
+    private DiaryTextBox StringDataTableItem2DiaryTextBox(int row, int column, StringDataTableItem item)
     {
         var txt = new DiaryTextBox()
         {
             CornerRadius = new CornerRadius(0),
+#if DEBUG
+            Text = $"{row},{column}",
+#else
             Text = item.Text,
+#endif
             FontWeight = item.Bold ? FontWeight.Bold : FontWeight.Normal,
             FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal
         };
         SetTableRow(txt, row);
         SetTableColumn(txt, column);
         SetTableData(txt, item);
+        txt.GotFocus += (s, e) => ClearCellsSelection();
         return txt;
+    }
+
+    private void ClearCellsSelection()
+    {
+        CellsSelectionMode = TableCellsSelectionMode.None;
+        selectionBorder = null;
+        pointerDownPosition = null;
+        pnlSelection.Children.Clear();
     }
 
     /// <summary>
@@ -271,13 +303,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                 grd.Children.Add(txt);
             }
         }
-    }
-    private void Flyout_Closed(object sender, EventArgs e)
-    {
-        (sender as Flyout).Closed -= Flyout_Closed;
-        pointerDownPosition = null;
-        selectionBorder = null;
-        pnlSelection.Children.Clear();
     }
 
     private StringDataTableItem[,] GetTableItems()
@@ -509,6 +534,7 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     private void SelectCells(PointerPoint point)
     {
+        CellsSelectionMode = TableCellsSelectionMode.Selecting;
         //创建框选显示框
         if (selectionBorder == null)
         {
@@ -569,6 +595,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
 
 
+
         if (leftIndex < 0 || rightIndex < 0 || topIndex < 0 || bottomIndex < 0 //没框到
             || topIndex == bottomIndex && leftIndex == rightIndex) //只框了一个，此时认为在选择TextBox内的文字
         {
@@ -576,23 +603,47 @@ public partial class DiaryTable : Grid, IDiaryElement
             return;
         }
 
+
         //确定最终范围。上述的范围可能会截断一些合并的单元格，需要确保框选范围内都是完整的单元格。
         selectionLeftIndex = leftIndex;
         selectionRightIndex = rightIndex;
         selectionTopIndex = topIndex;
         selectionBottomIndex = bottomIndex;
-        for (int i = leftIndex; i <= rightIndex; i++)
+        bool needCalculateRange = true;
+        while (needCalculateRange)
         {
-            for (int j = topIndex; j <= bottomIndex; j++)
+            for (int i = leftIndex; i <= rightIndex; i++)
             {
-                var txt = textBoxes[j, i];
-                selectionLeftIndex = Math.Min(selectionLeftIndex, GetTableColumn(txt));
-                selectionRightIndex = Math.Max(selectionRightIndex, GetTableColumn(txt) + GetTableData(txt).ColumnSpan - 1);
-                selectionTopIndex = Math.Min(selectionTopIndex, GetTableRow(txt));
-                selectionBottomIndex = Math.Max(selectionBottomIndex, GetTableRow(txt) + GetTableData(txt).RowSpan - 1);
+                for (int j = topIndex; j <= bottomIndex; j++)
+                {
+                    var txt = textBoxes[j, i];
+                    selectionLeftIndex = Math.Min(selectionLeftIndex, GetTableColumn(txt));
+                    selectionRightIndex = Math.Max(selectionRightIndex, GetTableColumn(txt) + GetTableData(txt).ColumnSpan - 1);
+                    selectionTopIndex = Math.Min(selectionTopIndex, GetTableRow(txt));
+                    selectionBottomIndex = Math.Max(selectionBottomIndex, GetTableRow(txt) + GetTableData(txt).RowSpan - 1);
+                }
+            }
+            Debug.WriteLine($"{selectionLeftIndex},{selectionRightIndex},{selectionTopIndex},{selectionBottomIndex}");
+
+            //在范围更新、保证了不截断合并的单元格后，
+            //新扩充的范围内可能又包含了新的被截断的合并单元格，
+            //因此需要再次进行判断更新。
+            if (selectionLeftIndex != leftIndex
+                || selectionRightIndex != rightIndex
+                || selectionTopIndex != topIndex
+                || selectionBottomIndex != bottomIndex)
+            {
+                leftIndex = selectionLeftIndex;
+                rightIndex = selectionRightIndex;
+                topIndex = selectionTopIndex;
+                bottomIndex = selectionBottomIndex;
+                needCalculateRange = true;
+            }
+            else
+            {
+                needCalculateRange = false;
             }
         }
-        Debug.WriteLine($"{selectionLeftIndex},{selectionRightIndex},{selectionTopIndex},{selectionBottomIndex}");
 
         //设置框的位置
         selectionBorder.IsVisible = true;
@@ -608,13 +659,62 @@ public partial class DiaryTable : Grid, IDiaryElement
     {
         if (pointerDownPosition.HasValue)
         {
-            var flyout = FlyoutBase.GetAttachedFlyout(pnlSelection);
-            if (flyout.IsOpen)
-            {
-                return;
-            }
-            flyout.Closed += Flyout_Closed;
-            FlyoutBase.ShowAttachedFlyout(pnlSelection);
+            CellsSelectionMode = TableCellsSelectionMode.Selected;
         }
+    }
+
+    public EditProperties GetEditProperties()
+    {
+        bool cellsMerged = false;
+        bool canMergeCell = false;
+        DiaryTextBox txt = GetCurrentCell();
+        var data = txt == null ? null : GetTableData(txt);
+        if (txt == null)
+        {
+            return new EditProperties() { EnableBar = false };
+        }
+        switch (CellsSelectionMode)
+        {
+            case TableCellsSelectionMode.None:
+                canMergeCell = true;
+                cellsMerged = data.RowSpan * data.ColumnSpan > 1;
+                break;
+            case TableCellsSelectionMode.Selecting:
+                break;
+            case TableCellsSelectionMode.Selected:
+                canMergeCell = true;
+                cellsMerged = false;
+                break;
+        }
+
+        return new EditProperties()
+        {
+            CanMergeCell = canMergeCell,
+            CellsMerged = cellsMerged,
+            Bold = txt.FontWeight > FontWeight.Normal,
+            Italic = txt.FontStyle == FontStyle.Italic,
+            FontSize = txt.FontSize,
+        };
+    }
+
+    private DiaryTextBox GetCurrentCell()
+    {
+        var element = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
+        if (element is DiaryTextBox txt)
+        {
+            if (txt.GetLogicalAncestors().Contains(this))
+            {
+                return txt;
+            }
+            return null;
+        }
+        return null;
+    }
+
+    enum TableCellsSelectionMode
+    {
+        None,
+        Selecting,
+        Selected
     }
 }

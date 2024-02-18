@@ -14,4 +14,11 @@ public partial class DiaryTextBox : TextBox, IDiaryElement
     {
         InitializeComponent();
     }
+
+    public event EventHandler EditPropertiesUpdated;
+
+    public EditProperties GetEditProperties()
+    {
+        throw new NotImplementedException();
+    }
 }

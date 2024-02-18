@@ -1,0 +1,49 @@
+<UserControl
+    x:Class="MyDiary.UI.Views.EditBar"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:system="using:System"
+    xmlns:vm="using:MyDiary.UI.ViewModels"
+    mc:Ignorable="d">
+    <Design.DataContext />
+    <StackPanel Orientation="Horizontal">
+        <StackPanel.Styles>
+            <Style Selector="ToggleButton">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+        </StackPanel.Styles>
+        <ToggleButton>
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="4">
+                <PathIcon Data="{StaticResource IconMergeCells}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="合并选中的单元格" />
+            </StackPanel>
+        </ToggleButton>
+        <ToggleButton>
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="4">
+                <PathIcon Data="{StaticResource IconBold}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="粗体" />
+            </StackPanel>
+        </ToggleButton>
+        <ToggleButton>
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="4">
+                <PathIcon Data="{StaticResource IconItalic}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="斜体" />
+            </StackPanel>
+        </ToggleButton>
+    </StackPanel>
+
+</UserControl>
