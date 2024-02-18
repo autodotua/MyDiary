@@ -8,6 +8,7 @@ using Avalonia.Platform;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,21 +16,27 @@ using System.Xml.Linq;
 
 namespace MyDiary.UI.Views;
 /// <summary>
-/// 
+/// 显示日记文章主体的Container
 /// </summary>
 /// <remarks>
 /// 相关内容介绍
 /// <br/>
 /// 一、<see cref="IDiaryElement"/>和<see cref="EditBar"/>的数据交换
 /// <br/>
-/// 数据交换通过<see cref="DiaryPad"/>作为中介进行中转。
-/// <br/>
 /// 1、<see cref="IDiaryElement"/>向<see cref="EditBar"/>传递
+/// <br/>
+/// 数据交换通过<see cref="DiaryPad"/>作为中介进行中转。
 /// 在文档属性发生变动时，通过<see cref="IDiaryElement.EditPropertiesUpdated"/>事件进行通知。
 /// <see cref="DiaryPad"/>会接收每个<see cref="IDiaryElement"/>的通知，
 /// 若发现发起通知的<see cref="IDiaryElement"/>被Focused，那么则进行处理。
 /// <see cref="EditBar"/>具有<see cref="EditBar.EditProperties"/>依赖属性
 /// 通过改变<see cref="EditBar.EditProperties"/>，实现通知到UI。
+/// <br/>
+/// 2、<see cref="EditBar"/>向传递<see cref="IDiaryElement"/>
+/// <br/>
+/// 这一部分很简单。在1中，<see cref="IDiaryElement"/>向<see cref="EditBar"/>发送了一个<see cref="EditBar.EditProperties"/>。
+/// 通过监听<see cref="EditBar.EditProperties"/>的<see cref="INotifyPropertyChanged.PropertyChanged"/>事件，
+/// 即可实现在<see cref="EditBar"/>的UI变化时，通知到<see cref="EditBar.EditProperties"/>，进而通知到<see cref="IDiaryElement"/>。
 /// </remarks>
 public partial class DiaryPad : UserControl
 {
@@ -58,6 +65,41 @@ public partial class DiaryPad : UserControl
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
     }
+    public static DiaryPad GetDiaryPad(Control control)
+    {
+        return control.GetLogicalAncestors().OfType<DiaryPad>().FirstOrDefault()
+            ?? throw new Exception($"提供的{nameof(control)}非{nameof(DiaryPad)}子元素");
+    }
+
+    public T CreateAndInsertElementAfter<T>(Control element) where T : Control, IDiaryElement, new()
+    {
+        int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
+        T newElement = new T();
+        newElement.EditPropertiesUpdated += DiaryElement_EditPropertiesUpdated;
+        stkBody.InsertDiaryPart(index + 1, newElement);
+        return newElement;
+    }
+
+    public void RemoveElement<T>(T element) where T : Control, IDiaryElement
+    {
+        element.EditPropertiesUpdated -= DiaryElement_EditPropertiesUpdated;
+        stkBody.Children.Remove(element.GetParentDiaryPart());
+    }
+
+    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
+    {
+        IDiaryElement element = sender as IDiaryElement;
+        var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
+        if (focusedElement is Control c && element is ILogical l)
+        {
+            if (c.GetLogicalAncestors().Contains(l))
+            {
+                Debug.WriteLine("Updated Edit Properties");
+                editBar.EditProperties = element.GetEditProperties();
+            }
+        }
+    }
+
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
     {
         StackPanel stkBody = this.stkBody;
@@ -159,40 +201,5 @@ public partial class DiaryPad : UserControl
     private void UserControl_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         stkBody.GetChild(0).GetControlContent().Focus();
-    }
-
-    public T CreateAndInsertElementAfter<T>(Control element) where T : Control, IDiaryElement, new()
-    {
-        int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
-        T newElement = new T();
-        newElement.EditPropertiesUpdated += DiaryElement_EditPropertiesUpdated;
-        stkBody.InsertDiaryPart(index + 1, newElement);
-        return newElement;
-    }
-
-    public void RemoveElement<T>(T element) where T : Control, IDiaryElement
-    {
-        element.EditPropertiesUpdated -= DiaryElement_EditPropertiesUpdated;
-        stkBody.Children.Remove(element.GetParentDiaryPart());
-    }
-
-    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
-    {
-        IDiaryElement element = sender as IDiaryElement;
-        var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
-        if (focusedElement is Control c && element is ILogical l)
-        {
-            if (c.GetLogicalAncestors().Contains(l))
-            {
-                Debug.WriteLine("Updated Edit Properties");
-                editBar.EditProperties = element.GetEditProperties();
-            }
-        }
-    }
-
-    public static DiaryPad GetDiaryPad(Control control)
-    {
-        return control.GetLogicalAncestors().OfType<DiaryPad>().FirstOrDefault()
-            ?? throw new Exception($"提供的{nameof(control)}非{nameof(DiaryPad)}子元素");
     }
 }

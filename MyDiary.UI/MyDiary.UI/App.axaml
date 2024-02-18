@@ -9,6 +9,9 @@
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -17,11 +20,6 @@
                 <ResourceInclude Source="avares://MyDiary.UI/Styles/Brushes.axaml" />
                 <ResourceInclude Source="avares://MyDiary.UI/Styles/ControlStyles.axaml" />
             </ResourceDictionary.MergedDictionaries>
-            <!--<FontFamily x:Key="ContentControlThemeFontFamily">avares://MyDiary.UI/Assets/FZXBS.TTF#FZXiaoBiaoSong-B05S</FontFamily>-->
-            <FontFamily x:Key="ContentControlThemeFontFamily">avares://MyDiary.UI/Assets#Microsoft YaHei</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
 </Application>

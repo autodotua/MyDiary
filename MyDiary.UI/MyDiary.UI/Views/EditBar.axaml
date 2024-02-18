@@ -7,27 +7,45 @@
     xmlns:system="using:System"
     xmlns:vm="using:MyDiary.UI.ViewModels"
     x:Name="bar"
-    IsEnabled="{Binding #bar.EditProperties.EnableBar}"
+    IsEnabled="{Binding $self.EditProperties, Converter={StaticResource NotNullConverter}}"
     mc:Ignorable="d">
-    <Design.DataContext />
     <StackPanel Orientation="Horizontal">
         <StackPanel.Styles>
             <Style Selector="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
             </Style>
+            <Style Selector="Button">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+            <Style Selector="ToggleButton:disabled  /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Opacity" Value="0.5" />
+            </Style>
+            <Style Selector="Button:disabled  /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Opacity" Value="0.5" />
+            </Style>
         </StackPanel.Styles>
-        <ToggleButton
-            IsChecked="{Binding #bar.EditProperties.CellsMerged}"
-            IsVisible="{Binding #bar.EditProperties.CanMergeCell}">
-            <StackPanel
-                Orientation="Horizontal"
-                Spacing="4">
-                <PathIcon Data="{StaticResource IconMergeCells}" />
-                <TextBlock
-                    VerticalAlignment="Center"
-                    Text="合并选中的单元格" />
-            </StackPanel>
-        </ToggleButton>
+        <Button
+            Width="96"
+            HorizontalContentAlignment="Center"
+            Content="{Binding #bar.EditProperties.FontSize, StringFormat='字号：{0}'}">
+            <Button.Flyout>
+                <Flyout>
+                    <Slider
+                        Height="108"
+                        IsSnapToTickEnabled="True"
+                        LargeChange="2"
+                        Maximum="20"
+                        Minimum="8"
+                        Orientation="Vertical"
+                        SmallChange="1"
+                        TickFrequency="1"
+                        TickPlacement="BottomRight"
+                        Value="{Binding #bar.EditProperties.FontSize}" />
+                </Flyout>
+            </Button.Flyout>
+        </Button>
         <ToggleButton IsChecked="{Binding #bar.EditProperties.Bold}">
             <StackPanel
                 Orientation="Horizontal"
@@ -48,6 +66,23 @@
                     Text="斜体" />
             </StackPanel>
         </ToggleButton>
+        <Rectangle
+            Width="2"
+            Margin="0,4"
+            Fill="{DynamicResource Background2}" />
+        <ToggleButton
+            IsChecked="{Binding #bar.EditProperties.CellsMerged}"
+            IsEnabled="{Binding #bar.EditProperties.CanMergeCell}">
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="4">
+                <PathIcon Data="{StaticResource IconMergeCells}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="合并选中的单元格" />
+            </StackPanel>
+        </ToggleButton>
+
     </StackPanel>
 
 </UserControl>

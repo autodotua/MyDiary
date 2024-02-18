@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Platform;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views;
 using System;
@@ -13,10 +14,14 @@ namespace MyDiary.UI
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
-            //if(OperatingSystem.IsWindows())
-            //{
-                //Resources.Add("ContentControlThemeFontFamily", new FontFamily("Î¢ÈíÑÅºÚ"));
-            //}
+            if (OperatingSystem.IsWindows())
+            {
+                Resources.Add("ContentControlThemeFontFamily", new FontFamily("Microsoft YaHei"));
+            }
+            else if (OperatingSystem.IsBrowser())
+            {
+                Resources.Add("ContentControlThemeFontFamily", new FontFamily("avares://MyDiary.UI/Assets#Microsoft YaHei"));
+            }
         }
 
         public override void OnFrameworkInitializationCompleted()

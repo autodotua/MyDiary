@@ -116,27 +116,99 @@ public partial class DiaryTable : Grid, IDiaryElement
         var data = txt == null ? null : GetTableData(txt);
         if (txt == null)
         {
-            return new EditProperties()
-            {
-                EnableBar = false,
-                CanMergeCell = true,
-            };
+            return null;
         }
-        bool cellsMerged = CellsSelectionMode switch
-        {
-            TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
-            _ => false
-        };
 
-
-        return new EditProperties()
+        var ep = new EditProperties()
         {
-            CanMergeCell = true,
-            CellsMerged = cellsMerged,
+            CanMergeCell = CellsSelectionMode switch
+            {
+                TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
+                TableCellsSelectionMode.Selecting=>false,
+                TableCellsSelectionMode.Selected=>true,
+                _ => false
+            },
+            CellsMerged = CellsSelectionMode switch
+            {
+                TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
+                _ => false
+            },
             Bold = txt.FontWeight > FontWeight.Normal,
             Italic = txt.FontStyle == FontStyle.Italic,
             FontSize = txt.FontSize,
         };
+
+        ep.PropertyChanged += (s, e) =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(EditProperties.Bold):
+                    txt.FontWeight = ep.Bold ? FontWeight.Bold : FontWeight.Normal;
+                    break;
+                case nameof(EditProperties.Italic):
+                    txt.FontStyle = ep.Italic ? FontStyle.Italic : FontStyle.Normal;
+                    break;
+                case nameof(EditProperties.FontSize):
+                    txt.FontSize = ep.FontSize;
+                    break;
+                case nameof(EditProperties.CellsMerged) when ep.CellsMerged == true:
+                    if (CellsSelectionMode != TableCellsSelectionMode.Selected)
+                    {
+                        throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
+                    }
+                    var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
+                    SetRowSpan(topLeftTextBox, (selectionBottomIndex - selectionTopIndex) * 2 + 1);
+                    SetColumnSpan(topLeftTextBox, (selectionRightIndex - selectionLeftIndex) * 2 + 1);
+                    GetTableData(topLeftTextBox).ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
+                    GetTableData(topLeftTextBox).RowSpan = selectionBottomIndex - selectionTopIndex + 1;
+                    for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
+                    {
+                        for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
+                        {
+                            if (textBoxes[r, c] != topLeftTextBox)
+                            {
+                                grd.Children.Remove(textBoxes[r, c]);
+                                textBoxes[r, c] = topLeftTextBox;
+                            }
+                        }
+                    }
+                    var data = GetTableItems();
+                    CreateTableStructure(data);
+                    ClearCellsSelection();
+                    break;
+                case nameof(EditProperties.CellsMerged) when ep.CellsMerged == false:
+                    if (txt == null)
+                    {
+                        throw new Exception("欲分割单元格，但找不到当前单元格");
+                    }
+                    if (CellsSelectionMode != TableCellsSelectionMode.None)
+                    {
+                        throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
+                    }
+                    bool first = true;
+                    for (int r = GetTableRow(txt); r < GetTableRow(txt) + GetTableData(txt).RowSpan; r++)
+                    {
+                        for (int c = GetTableColumn(txt); c < GetTableColumn(txt) + GetTableData(txt).ColumnSpan; c++)
+                        {
+                            if (first)
+                            {
+                                first = false;
+                                continue;
+                            }
+                            CreateAndInsetCellTextBox(r, c, new StringDataTableItem());
+                        }
+                    }
+                    SetRowSpan(txt, 1);
+                    SetColumnSpan(txt, 1);
+                    GetTableData(txt).ColumnSpan = 1;
+                    GetTableData(txt).RowSpan = 1;
+
+                    var data2 = GetTableItems();
+                    CreateTableStructure(data2);
+                    break;
+            }
+        };
+        return ep;
     }
 
     public void MakeEmptyTable(int row, int column)
@@ -252,6 +324,53 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
+    private DiaryTextBox CreateAndInsetCellTextBox(int row, int column, StringDataTableItem item)
+    {
+        var txt = new DiaryTextBox()
+        {
+            CornerRadius = new CornerRadius(0),
+#if DEBUG
+            Text = $"{row},{column}",
+#else
+            Text = item.Text,
+#endif
+            FontWeight = item.Bold ? FontWeight.Bold : FontWeight.Normal,
+            FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal
+        };
+        SetTableRow(txt, row);
+        SetTableColumn(txt, column);
+        SetTableData(txt, item);
+        txt.GotFocus += (s, e) =>
+        {
+            ClearCellsSelection();
+            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+        };
+
+        textBoxes[row, column] = txt;
+        SetRow(txt, TID2GID(row));
+        SetColumn(txt, TID2GID(column));
+
+        //合并单元格
+        if (item.RowSpan * item.ColumnSpan > 1)
+        {
+            //TextBox跨行列
+            SetRowSpan(txt, item.RowSpan * 2 - 1);
+            SetColumnSpan(txt, item.ColumnSpan * 2 - 1);
+
+            //标记已创建
+            for (int a = row; a < row + item.RowSpan; a++)
+            {
+                for (int b = column; b < column + item.ColumnSpan; b++)
+                {
+                    textBoxes[a, b] = txt;
+                }
+            }
+
+        }
+        grd.Children.Add(txt);
+        return txt;
+    }
+
     private void CreateTableStructure(StringDataTableItem[,] data)
     {
         int row = data.GetLength(0);
@@ -269,57 +388,23 @@ public partial class DiaryTable : Grid, IDiaryElement
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
     }
 
-    private StringDataTableItem DiaryTextBox2StringDataTableItem(DiaryTextBox textBox)
-    {
-        StringDataTableItem item = GetTableData(textBox);
-        item.Text = textBox.Text;
-        item.Bold = textBox.FontWeight > FontWeight.Bold;
-        item.Italic = textBox.FontStyle == FontStyle.Italic;
-        return item;
-    }
-
     private void FillTextBoxes(StringDataTableItem[,] data)
     {
         int row = data.GetLength(0);
         int column = data.GetLength(1);
-        bool[,] cellCreated = new bool[row, column];
         textBoxes = new DiaryTextBox[row, column];
-        for (int i = 0; i < row; i++)
+        for (int r = 0; r < row; r++)
         {
-            for (int j = 0; j < column; j++)
+            for (int c = 0; c < column; c++)
             {
                 //对于已经合并的单元格不需要再添加
-                if (cellCreated[i, j])
+                if (textBoxes[r, c] != null)
                 {
                     continue;
                 }
-                cellCreated[i, j] = true;
-                var item = data[i, j];
-                DiaryTextBox txt = StringDataTableItem2DiaryTextBox(i, j, item);
+                var item = data[r, c];
+                CreateAndInsetCellTextBox(r, c, item);
 
-                textBoxes[i, j] = txt;
-                SetRow(txt, TID2GID(i));
-                SetColumn(txt, TID2GID(j));
-
-                //合并单元格
-                if (item.RowSpan * item.ColumnSpan > 1)
-                {
-                    //TextBox跨行列
-                    SetRowSpan(txt, item.RowSpan * 2 - 1);
-                    SetColumnSpan(txt, item.ColumnSpan * 2 - 1);
-
-                    //标记已创建
-                    for (int a = i; a < i + item.RowSpan; a++)
-                    {
-                        for (int b = j; b < j + item.ColumnSpan; b++)
-                        {
-                            cellCreated[a, b] = true;
-                            textBoxes[a, b] = txt;
-                        }
-                    }
-
-                }
-                grd.Children.Add(txt);
             }
         }
     }
@@ -338,6 +423,14 @@ public partial class DiaryTable : Grid, IDiaryElement
         return null;
     }
 
+    private StringDataTableItem GetStringDataTableItem(DiaryTextBox textBox)
+    {
+        StringDataTableItem item = GetTableData(textBox);
+        item.Text = textBox.Text;
+        item.Bold = textBox.FontWeight > FontWeight.Bold;
+        item.Italic = textBox.FontStyle == FontStyle.Italic;
+        return item;
+    }
     private StringDataTableItem[,] GetTableItems()
     {
         bool[,] visited = new bool[textBoxes.GetLength(0), textBoxes.GetLength(1)];
@@ -350,7 +443,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                 {
                     continue;
                 }
-                StringDataTableItem item = DiaryTextBox2StringDataTableItem(textBoxes[r, c]);
+                StringDataTableItem item = GetStringDataTableItem(textBoxes[r, c]);
                 items[r, c] = item;
                 for (int rr = 0; rr < item.RowSpan; rr++)
                 {
@@ -437,28 +530,6 @@ public partial class DiaryTable : Grid, IDiaryElement
             horizontalLines[i] = rect;
         }
         grd.RowDefinitions.Add(new RowDefinition(10, GridUnitType.Pixel));
-    }
-
-    private void MergeCellButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
-        SetRowSpan(topLeftTextBox, (selectionBottomIndex - selectionTopIndex) * 2 + 1);
-        SetColumnSpan(topLeftTextBox, (selectionRightIndex - selectionLeftIndex) * 2 + 1);
-        GetTableData(topLeftTextBox).ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
-        GetTableData(topLeftTextBox).RowSpan = selectionBottomIndex - selectionTopIndex + 1;
-        for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
-        {
-            for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
-            {
-                if (textBoxes[r, c] != topLeftTextBox)
-                {
-                    grd.Children.Remove(textBoxes[r, c]);
-                    textBoxes[r, c] = topLeftTextBox;
-                }
-            }
-        }
-        var data = GetTableItems();
-        CreateTableStructure(data);
     }
 
     private bool[,] MergeCells(StringDataTableItem[,] data, int row, int column, Panel[] horizontalLines, Panel[] verticalLines)
@@ -695,29 +766,5 @@ public partial class DiaryTable : Grid, IDiaryElement
         {
             CellsSelectionMode = TableCellsSelectionMode.Selected;
         }
-    }
-
-    private DiaryTextBox StringDataTableItem2DiaryTextBox(int row, int column, StringDataTableItem item)
-    {
-        var txt = new DiaryTextBox()
-        {
-            CornerRadius = new CornerRadius(0),
-#if DEBUG
-            Text = $"{row},{column}",
-#else
-            Text = item.Text,
-#endif
-            FontWeight = item.Bold ? FontWeight.Bold : FontWeight.Normal,
-            FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal
-        };
-        SetTableRow(txt, row);
-        SetTableColumn(txt, column);
-        SetTableData(txt, item);
-        txt.GotFocus += (s, e) =>
-        {
-            ClearCellsSelection();
-            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
-        };
-        return txt;
     }
 }

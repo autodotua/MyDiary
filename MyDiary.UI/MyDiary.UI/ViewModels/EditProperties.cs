@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Controls.Primitives;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,7 +25,5 @@ namespace MyDiary.UI.ViewModels
         private bool cellsMerged;
         [ObservableProperty]
         private bool canMergeCell;
-        [ObservableProperty]
-        private bool enableBar = true;
     }
 }
