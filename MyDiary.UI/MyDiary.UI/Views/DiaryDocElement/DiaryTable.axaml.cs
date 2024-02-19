@@ -30,6 +30,8 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     private const double InnerBorderWidth = 2;
 
+    private const double DefaultColumnWidth = 64;
+
     private readonly DiaryTableVM viewModel;
 
     public DiaryTable()
@@ -129,7 +131,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                                 first = false;
                                 continue;
                             }
-                            CreateAndInsetCellTextBox(r, c, new StringDataTableItem());
+                            CreateAndInsertCellTextBox(r, c, new StringDataTableItem());
                         }
                     }
                     GetTableData(txt).ColumnSpan = 1;
@@ -215,7 +217,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         {
             if (c > 0)
             {
-                grd.ColumnDefinitions.Add(new ColumnDefinition(64, GridUnitType.Pixel));
+                grd.ColumnDefinitions.Add(new ColumnDefinition(DefaultColumnWidth, GridUnitType.Pixel));
             }
             grd.ColumnDefinitions.Add(new ColumnDefinition(InnerBorderWidth, GridUnitType.Pixel));
 
@@ -598,11 +600,48 @@ public partial class DiaryTable : Grid, IDiaryElement
         //在上方插入
         items[0].Click += (s, e) =>
         {
-            //需要处理掉，不然会重复触发Click事件
             e.Handled = true;
+            InsertRow(s, true);
+        };
+        //在下方插入
+        items[1].Click += (s, e) =>
+        {
+            e.Handled = true;
+            InsertRow(s, false);
+        };
+        //在左侧插入
+        items[2].Click += (s, e) =>
+        {
+            e.Handled = true;
+            InsertColumn(s, true);
+        };
+        //在右侧插入
+        items[3].Click += (s, e) =>
+        {
+            e.Handled = true;
+            InsertColumn(s, false);
+        };
+        //删除行
+        items[4].Click += (s, e) =>
+        {
+            e.Handled = true;
+            throw new NotImplementedException();
+        };
+        //删除列
+        items[5].Click += (s, e) =>
+        {
+            e.Handled = true;
+            throw new NotImplementedException();
+        };
 
+        void InsertRow(object sender, bool up)
+        {
             //如果直接拿上面的txt，永远都是[0,0]那个，不确定是什么原因，可能是闭包相关问题
-            LoadData(s, out StringDataTableItem[,] data, out int insertRow, out _, out int height, out int width);
+            LoadData(sender, out StringDataTableItem[,] data, out int insertRow, out int insertColumn, out int height, out int width);
+            if (!up)
+            {
+                insertRow += GetTableData(textBoxes[insertRow, insertColumn]).RowSpan;
+            }
 
             //网格加两行，一行内容一行边框
             grd.RowDefinitions.Insert(grd.RowDefinitions.Count - 2, new RowDefinition(InnerBorderWidth, GridUnitType.Pixel));
@@ -651,7 +690,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             {
                 if (textBoxes[insertRow, i] == null)
                 {
-                    CreateAndInsetCellTextBox(insertRow, i, new StringDataTableItem()
+                    CreateAndInsertCellTextBox(insertRow, i, new StringDataTableItem()
                     {
 #if DEBUG
                         Text = "Insert"
@@ -659,7 +698,71 @@ public partial class DiaryTable : Grid, IDiaryElement
                     });
                 }
             }
-        };
+        }
+
+        void InsertColumn(object sender, bool left)
+        {
+            LoadData(sender, out StringDataTableItem[,] data, out int insertRow, out int insertColumn, out int height, out int width);
+
+            if (!left)
+            {
+                insertColumn += GetTableData(textBoxes[insertRow, insertColumn]).ColumnSpan;
+            }
+
+            grd.ColumnDefinitions.Insert(grd.ColumnDefinitions.Count - 2, new ColumnDefinition(InnerBorderWidth, GridUnitType.Pixel));
+            grd.ColumnDefinitions.Insert(grd.ColumnDefinitions.Count - 2, new ColumnDefinition(DefaultColumnWidth, GridUnitType.Pixel));
+
+            var newTextBoxes = new TextBox[height, width + 1];
+
+            for (int r = 0; r < height; r++)
+            {
+                for (int c = 0; c < width; c++)
+                {
+                    var d = data[r, c];
+                    var t = textBoxes[r, c];
+
+                    if (d == null)
+                    {
+                        continue;
+                    }
+
+                    if (c >= insertColumn)
+                    {
+                        SetColumn(t, GetColumn(t) + 2);
+                        SetTableColumn(t, c + 1);
+                    }
+                    else if (c + d.ColumnSpan > insertColumn)
+                    {
+                        d.ColumnSpan++;
+                    }
+
+                    int newC = c >= insertColumn ? c + 1 : c;
+
+                    for (int cc = newC; cc < newC + d.ColumnSpan; cc++)
+                    {
+                        for (int rr = r; rr < r + d.RowSpan; rr++)
+                        {
+                            newTextBoxes[rr, cc] = t;
+                        }
+                    }
+                }
+            }
+
+            textBoxes = newTextBoxes;
+
+            for (int i = 0; i < height; i++)
+            {
+                if (textBoxes[i, insertColumn] == null)
+                {
+                    CreateAndInsertCellTextBox(i, insertColumn, new StringDataTableItem()
+                    {
+#if DEBUG
+                        Text = "Insert"
+#endif
+                    });
+                }
+            }
+        }
 
         void LoadData(object s, out StringDataTableItem[,] data, out int r, out int c, out int rr, out int cc)
         {
@@ -670,20 +773,10 @@ public partial class DiaryTable : Grid, IDiaryElement
             rr = data.GetLength(0);
             cc = data.GetLength(1);
         }
-        static void CopySubArray<T>(T[,] source, int sourceStartRow, int sourceStartCol, int numRows, int numCols, T[,] target, int targetStartRow, int targetStartCol)
-        {
-            for (int i = 0; i < numRows; i++)
-            {
-                for (int j = 0; j < numCols; j++)
-                {
-                    target[targetStartRow + i, targetStartCol + j] = source[sourceStartRow + i, sourceStartCol + j];
-                }
-            }
-        }
     }
 
 
-    private TextBox CreateAndInsetCellTextBox(int row, int column, StringDataTableItem item)
+    private TextBox CreateAndInsertCellTextBox(int row, int column, StringDataTableItem item)
     {
         var txt = new TextBox
         {
@@ -781,7 +874,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     continue;
                 }
                 var item = data[r, c];
-                CreateAndInsetCellTextBox(r, c, item);
+                CreateAndInsertCellTextBox(r, c, item);
 
             }
         }
