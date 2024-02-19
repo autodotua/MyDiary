@@ -67,7 +67,50 @@
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="InnerRightContent" Value="{x:Null}" />
-
+        <Setter Property="ContextFlyout">
+            <Setter.Value>
+                <MenuFlyout Placement="Bottom">
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutCutItem"
+                        Command="{Binding $parent[TextBox].Cut}"
+                        Header="剪切"
+                        InputGesture="{x:Static TextBox.CutGesture}"
+                        IsEnabled="{Binding $parent[TextBox].CanCut}" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutCopyItem"
+                        Command="{Binding $parent[TextBox].Copy}"
+                        Header="复制"
+                        InputGesture="{x:Static TextBox.CopyGesture}"
+                        IsEnabled="{Binding $parent[TextBox].CanCopy}" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutPasteItem"
+                        Command="{Binding $parent[TextBox].Paste}"
+                        Header="粘贴"
+                        InputGesture="{x:Static TextBox.PasteGesture}"
+                        IsEnabled="{Binding $parent[TextBox].CanPaste}" />
+                    <MenuItem Header="-" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutInsertUpItem"
+                        Header="上方插入一行" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutInsertDownItem"
+                        Header="下方插入一行" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutInsertLeftItem"
+                        Header="左侧插入一列" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutInsertRightItem"
+                        Header="右侧插入一列" />
+                    <MenuItem Header="-" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutDeleteRowItem"
+                        Header="删除本行" />
+                    <MenuItem
+                        x:Name="TextBoxContextFlyoutDeleteColumnItem"
+                        Header="删除本列" />
+                </MenuFlyout>
+            </Setter.Value>
+        </Setter>
         <Style Selector="^:focus">
             <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
 
