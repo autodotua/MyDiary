@@ -625,13 +625,13 @@ public partial class DiaryTable : Grid, IDiaryElement
         items[4].Click += (s, e) =>
         {
             e.Handled = true;
-            throw new NotImplementedException();
+            DeleteRow(s);
         };
         //删除列
         items[5].Click += (s, e) =>
         {
             e.Handled = true;
-            throw new NotImplementedException();
+            DeleteColumn(s);
         };
 
         void InsertRow(object sender, bool up)
@@ -700,6 +700,80 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
         }
 
+        void DeleteRow(object sender)
+        {
+            //如果直接拿上面的txt，永远都是[0,0]那个，不确定是什么原因，可能是闭包相关问题
+            var txt = LoadData(sender, out StringDataTableItem[,] data, out int deleteRow, out int deleteColumn, out int height, out int width);
+            int rowSpan = GetTableData(txt).RowSpan; //选中的如果是合并的单元格，可以同时删除多行
+            grd.RowDefinitions.RemoveRange(2, rowSpan * 2);
+            //新的文本框数组
+            var newTextBoxes = new TextBox[height - rowSpan, width];
+            var newTextBoxesSet = new HashSet<TextBox>(); //用来保存需要保留的TextBox
+            for (int r = 0; r < height; r++)
+            {
+                for (int c = 0; c < width; c++)
+                {
+                    var d = data[r, c];
+                    var t = textBoxes[r, c];
+                    if (d == null)
+                    {
+                        continue;
+                    }
+                    int newR = -1;
+                    if (r >= deleteRow + rowSpan) //在删除行下方
+                    {
+                        //那么整体上移一格
+                        SetRow(t, GetRow(t) - 2 * rowSpan);
+                        SetTableRow(t, r - rowSpan);
+                        newR = r - rowSpan;
+                    }
+                    else if (r >= deleteRow && r < deleteRow + rowSpan) //就是要删除的那一行
+                    {
+                        if (d.RowSpan > rowSpan + deleteRow - r) //如果周围某一个已合并单元格的一部分在要删除的行中
+                        {
+                            d.RowSpan -= rowSpan + deleteRow - r; //计算新的行号，rowSpan + deleteRow - r指的是从要删除的n行中与当前合并单元格不重叠的行数
+                                                                  //设置新行，在这种情况下，一定是欲删除的行
+                            SetRow(t, TID2GID(deleteRow));
+                            SetTableRow(t, deleteRow);
+                            newR = deleteRow;
+                        }
+                        else//其他情况，则准备删除单元格
+                        {
+                            continue;
+                        }
+                    }
+                    else//在插入线上方
+                    {
+                        if (r + d.RowSpan > deleteRow) //如果这个合并的单元格跨越了插入线
+                        {
+                            //这个合并单元格跨越的行需要多n行
+                            d.RowSpan -= rowSpan;
+                        }
+                        newR = r;
+                    }
+
+                    //更新文本框数组
+                    for (int rr = newR; rr < newR + d.RowSpan; rr++)
+                    {
+                        for (int cc = c; cc < c + d.ColumnSpan; cc++)
+                        {
+                            newTextBoxes[rr, cc] = t;
+                        }
+                    }
+                    newTextBoxesSet.Add(t);
+                }
+            }
+            //删除不再使用的TextBox
+            foreach (var t in textBoxes)
+            {
+                if (!newTextBoxesSet.Contains(t))
+                {
+                    grd.Children.Remove(t);
+                }
+            }
+            textBoxes = newTextBoxes;
+        }
+
         void InsertColumn(object sender, bool left)
         {
             LoadData(sender, out StringDataTableItem[,] data, out int insertRow, out int insertColumn, out int height, out int width);
@@ -764,7 +838,81 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
         }
 
-        void LoadData(object s, out StringDataTableItem[,] data, out int r, out int c, out int rr, out int cc)
+        void DeleteColumn(object sender)
+        {
+            var txt = LoadData(sender, out StringDataTableItem[,] data, out int deleteRow, out int deleteColumn, out int height, out int width);
+            int columnSpan = GetTableData(txt).ColumnSpan;
+            grd.ColumnDefinitions.RemoveRange(2, columnSpan * 2);
+
+            var newTextBoxes = new TextBox[height, width - columnSpan];
+            var newTextBoxesSet = new HashSet<TextBox>(); 
+
+            for (int r = 0; r < height; r++)
+            {
+                for (int c = 0; c < width; c++)
+                {
+                    var d = data[r, c];
+                    var t = textBoxes[r, c];
+
+                    if (d == null)
+                    {
+                        continue;
+                    }
+
+                    int newC = -1;
+
+                    if (c >= deleteColumn + columnSpan) 
+                    {
+                        SetColumn(t, GetColumn(t) - 2 * columnSpan);
+                        SetTableColumn(t, c - columnSpan);
+                        newC = c - columnSpan;
+                    }
+                    else if (c >= deleteColumn && c < deleteColumn + columnSpan) // The column to be deleted
+                    {
+                        if (d.ColumnSpan > columnSpan + deleteColumn - c)
+                        {
+                            d.ColumnSpan -= columnSpan + deleteColumn - c;
+                            SetColumn(t, TID2GID(deleteColumn));
+                            SetTableColumn(t, deleteColumn);
+                            newC = deleteColumn;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else 
+                    {
+                        if (c + d.ColumnSpan > deleteColumn)
+                        {
+                            d.ColumnSpan -= columnSpan;
+                        }
+                        newC = c;
+                    }
+
+                    for (int cc = newC; cc < newC + d.ColumnSpan; cc++)
+                    {
+                        for (int rr = r; rr < r + d.RowSpan; rr++)
+                        {
+                            newTextBoxes[rr, cc] = t;
+                        }
+                    }
+                    newTextBoxesSet.Add(t);
+                }
+            }
+
+            foreach (var t in textBoxes)
+            {
+                if (!newTextBoxesSet.Contains(t))
+                {
+                    grd.Children.Remove(t);
+                }
+            }
+
+            textBoxes = newTextBoxes;
+        }
+
+        TextBox LoadData(object s, out StringDataTableItem[,] data, out int r, out int c, out int rr, out int cc)
         {
             var txt = (s as Visual).GetLogicalAncestors().OfType<TextBox>().First();
             data = GetTableItems();
@@ -772,6 +920,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             c = GetTableColumn(txt);
             rr = data.GetLength(0);
             cc = data.GetLength(1);
+            return txt;
         }
     }
 
