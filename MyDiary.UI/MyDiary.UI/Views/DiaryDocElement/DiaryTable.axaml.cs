@@ -1,30 +1,18 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
+using Avalonia.Data;
+using Avalonia.Input;
+using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform.Storage;
+using Avalonia.Styling;
+using FzLib;
 using MyDiary.UI.ViewModels;
 using System;
-using System.Linq.Expressions;
-using Avalonia.Layout;
-using System.Diagnostics;
-using Avalonia.Controls.Shapes;
-using Avalonia.Input;
-using System.Linq;
-using FzLib;
-using static System.Net.Mime.MediaTypeNames;
 using System.Collections.Generic;
-using Avalonia.Controls.Primitives;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Threading.Tasks;
-using Avalonia.Threading;
-using Avalonia.LogicalTree;
-using Avalonia.Styling;
-using Avalonia.Data;
-using FzLib.Avalonia.Dialogs;
+using System.Diagnostics;
+using System.Linq;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -32,13 +20,13 @@ public partial class DiaryTable : Grid, IDiaryElement
 {
 
     /**
-     * GridµÄColumnDefinitions/RowDefinitions£º
-     * 10                                                  4           64               4        ¡­¡­         4           10
-     * ÓÃÀ´Ö§³Öµ÷Õû´óĞ¡µÄ¶àÓà¿Õ¼ä    ±ß¿ò      TextBox       ±ß¿ò    ¡­¡­       ±ß¿ò     ÓÃÀ´Ö§³Öµ÷Õû´óĞ¡µÄ¶àÓà¿Õ¼ä
+     * Gridçš„ColumnDefinitions/RowDefinitionsï¼š
+     * 10                                                  4           64               4        â€¦â€¦         4           10
+     * ç”¨æ¥æ”¯æŒè°ƒæ•´å¤§å°çš„å¤šä½™ç©ºé—´    è¾¹æ¡†      TextBox       è¾¹æ¡†    â€¦â€¦       è¾¹æ¡†     ç”¨æ¥æ”¯æŒè°ƒæ•´å¤§å°çš„å¤šä½™ç©ºé—´
      */
 
     /// <summary>
-    /// ±ß¿òÊµ¼Ê£¨µ÷ÕûÇø£©´ÖÏ¸
+    /// è¾¹æ¡†å®é™…ï¼ˆè°ƒæ•´åŒºï¼‰ç²—ç»†
     /// </summary>
     private const double InnerBorderWidth = 2;
 
@@ -50,7 +38,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         InitializeComponent();
     }
 
-    #region ºÍEditBarµÄÊı¾İ½»»»
+    #region å’ŒEditBarçš„æ•°æ®äº¤æ¢
 
     public event EventHandler EditPropertiesUpdated;
 
@@ -98,7 +86,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                 case nameof(EditProperties.CellsMerged) when ep.CellsMerged == true:
                     if (CellsSelectionMode != TableCellsSelectionMode.Selected)
                     {
-                        throw new Exception($"{nameof(CellsSelectionMode)}×´Ì¬´íÎó");
+                        throw new Exception($"{nameof(CellsSelectionMode)}çŠ¶æ€é”™è¯¯");
                     }
                     var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
                     //SetRowSpan(topLeftTextBox, (selectionBottomIndex - selectionTopIndex) * 2 + 1);
@@ -124,11 +112,11 @@ public partial class DiaryTable : Grid, IDiaryElement
                 case nameof(EditProperties.CellsMerged) when ep.CellsMerged == false:
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
                     {
-                        throw new Exception($"{nameof(CellsSelectionMode)}×´Ì¬´íÎó");
+                        throw new Exception($"{nameof(CellsSelectionMode)}çŠ¶æ€é”™è¯¯");
                     }
                     if (txts.Count != 1)
                     {
-                        throw new Exception($"²éÕÒµ½µÄTextBoxÊıÁ¿´íÎó");
+                        throw new Exception($"æŸ¥æ‰¾åˆ°çš„TextBoxæ•°é‡é”™è¯¯");
                     }
                     var txt = txts[0];
                     bool first = true;
@@ -157,7 +145,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
     #endregion
 
-    #region ¸½¼ÓÊôĞÔ
+    #region é™„åŠ å±æ€§
 
 
     public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Column");
@@ -180,7 +168,7 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     #endregion
 
-    #region ½¨Á¢±í¸ñ
+    #region å»ºç«‹è¡¨æ ¼
     public void MakeEmptyTable(int row, int column)
     {
         StringDataTableItem[,] data = new StringDataTableItem[row, column];
@@ -202,7 +190,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     public void MakeTable(StringDataTableItem[,] data)
     {
         CreateTableStructure(data);
-        //Ïòµ¥Ôª¸ñÖĞÌî³äTextBox
+        //å‘å•å…ƒæ ¼ä¸­å¡«å……TextBox
         FillTextBoxes(data);
     }
 
@@ -213,7 +201,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         int row = data.GetLength(0);
         int column = data.GetLength(1);
 
-        //Çå³ı±ß¿ò½á¹¹
+        //æ¸…é™¤è¾¹æ¡†ç»“æ„
         grd.ColumnDefinitions.Clear();
         grd.RowDefinitions.Clear();
         foreach (var child in grd.Children.OfType<GridSplitter>().ToList())
@@ -221,7 +209,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             grd.Children.Remove(child);
         }
 
-        //×İÏò
+        //çºµå‘
         grd.ColumnDefinitions.Add(new ColumnDefinition(10, GridUnitType.Pixel));
         for (int c = 0; c <= column; c++)
         {
@@ -244,7 +232,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
         grd.ColumnDefinitions.Add(new ColumnDefinition(10, GridUnitType.Pixel));
 
-        //ºáÏò
+        //æ¨ªå‘
         grd.RowDefinitions.Add(new RowDefinition(10, GridUnitType.Pixel));
         for (int r = 0; r <= row; r++)
         {
@@ -266,7 +254,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
     #endregion
 
-    #region ¿òÑ¡
+    #region æ¡†é€‰
 
     enum TableCellsSelectionMode
     {
@@ -278,17 +266,17 @@ public partial class DiaryTable : Grid, IDiaryElement
     private TableCellsSelectionMode cellsSelectionMode = TableCellsSelectionMode.None;
 
     /// <summary>
-    /// Êó±êÊ×´Î°´ÏÂÊ±µÄÎ»ÖÃ
+    /// é¼ æ ‡é¦–æ¬¡æŒ‰ä¸‹æ—¶çš„ä½ç½®
     /// </summary>
     private Point? pointerDownPosition;
 
     /// <summary>
-    /// ºìÉ«µÄÑ¡Ôñµ¥Ôª¸ñµÄ¿ò
+    /// çº¢è‰²çš„é€‰æ‹©å•å…ƒæ ¼çš„æ¡†
     /// </summary>
     private Border selectionBorder = null;
 
     /// <summary>
-    /// Ñ¡ÔñºóTextBox±ß½ç
+    /// é€‰æ‹©åTextBoxè¾¹ç•Œ
     /// </summary>
     private int selectionLeftIndex, selectionRightIndex, selectionTopIndex, selectionBottomIndex;
 
@@ -318,27 +306,27 @@ public partial class DiaryTable : Grid, IDiaryElement
         base.OnPointerMoved(e);
         var point = e.GetCurrentPoint(pnlSelection);
 
-        //×ó¼üÃ»ÓĞ°´ÏÂ£¬²»Ö´ĞĞ²Ù×÷£¬ÈôÖ®Ç°ÔÚÑ¡Ôñ×´Ì¬£¬ÔòÇå³ı
+        //å·¦é”®æ²¡æœ‰æŒ‰ä¸‹ï¼Œä¸æ‰§è¡Œæ“ä½œï¼Œè‹¥ä¹‹å‰åœ¨é€‰æ‹©çŠ¶æ€ï¼Œåˆ™æ¸…é™¤
         if (!point.Properties.IsLeftButtonPressed)
         {
             StopSelectingCells();
             return;
         }
 
-        //Èô½¹µã²»ÔÚTextBox£¨ÀıÈçÔÚµ÷Õû±ß¿ò£©£¬Ôò²»Ö´ĞĞ²Ù×÷
+        //è‹¥ç„¦ç‚¹ä¸åœ¨TextBoxï¼ˆä¾‹å¦‚åœ¨è°ƒæ•´è¾¹æ¡†ï¼‰ï¼Œåˆ™ä¸æ‰§è¡Œæ“ä½œ
         if (TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is GridSplitter)
         {
             return;
         }
-        //Ê×´Î°´ÏÂ£¬¼ÇÂ¼
+        //é¦–æ¬¡æŒ‰ä¸‹ï¼Œè®°å½•
         if (pointerDownPosition == null)
         {
-            //ÓÉÓÚÎŞ·¨Ê¹ÓÃOnPointerPressed»ñÈ¡Î»ÖÃ£¬ËùÒÔÔÚMovedÖĞ»ñÈ¡
+            //ç”±äºæ— æ³•ä½¿ç”¨OnPointerPressedè·å–ä½ç½®ï¼Œæ‰€ä»¥åœ¨Movedä¸­è·å–
             pointerDownPosition = point.Position;
             return;
         }
 
-        //¿ªÊ¼¿òÑ¡
+        //å¼€å§‹æ¡†é€‰
         SelectCells(point);
     }
 
@@ -368,9 +356,9 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
 
     /// <summary>
-    /// »ñÈ¡±»Ñ¡ÔñµÄ·¶Î§ÄÚµÄ
+    /// è·å–è¢«é€‰æ‹©çš„èŒƒå›´å†…çš„
     /// </summary>
-    /// <param name="returnFocusedWhenNotSelecting">Èô¿ªÆô£¬ÔòÔÚÎ´Ñ¡Ôñ×´Ì¬»á·µ»Ø½¹µãËùÔÚÎÄ±¾¿ò</param>
+    /// <param name="returnFocusedWhenNotSelecting">è‹¥å¼€å¯ï¼Œåˆ™åœ¨æœªé€‰æ‹©çŠ¶æ€ä¼šè¿”å›ç„¦ç‚¹æ‰€åœ¨æ–‡æœ¬æ¡†</param>
     /// <returns></returns>
     private IEnumerable<TextBox> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
     {
@@ -407,7 +395,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     {
         CellsSelectionMode = TableCellsSelectionMode.Selecting;
 
-        //´´½¨¿òÑ¡ÏÔÊ¾¿ò
+        //åˆ›å»ºæ¡†é€‰æ˜¾ç¤ºæ¡†
         if (selectionBorder == null)
         {
             selectionBorder = new Border()
@@ -421,7 +409,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             pnlSelection.Children.Add(selectionBorder);
         }
 
-        //ÕûÀíGridµÄÃ¿¸öĞĞÁĞ¾àÀë¶¥²¿ºÍ×ó²àµÄÀÛ¼Æ¾àÀë
+        //æ•´ç†Gridçš„æ¯ä¸ªè¡Œåˆ—è·ç¦»é¡¶éƒ¨å’Œå·¦ä¾§çš„ç´¯è®¡è·ç¦»
         var gridLefts = grd.ColumnDefinitions.Select(p => p.ActualWidth).ToList();
         gridLefts[0] = grd.Bounds.Left;
         for (int i = 1; i < gridLefts.Count; i++)
@@ -435,13 +423,13 @@ public partial class DiaryTable : Grid, IDiaryElement
             gridTops[i] = gridTops[i] + gridTops[i - 1];
         }
 
-        //¼ÆËãÊó±ê¿òÑ¡Êµ¼Ê·¶Î§µÄ±ß½ç
+        //è®¡ç®—é¼ æ ‡æ¡†é€‰å®é™…èŒƒå›´çš„è¾¹ç•Œ
         var left = Math.Min(pointerDownPosition.Value.X, point.Position.X);
         var right = Math.Max(pointerDownPosition.Value.X, point.Position.X);
         var top = Math.Min(pointerDownPosition.Value.Y, point.Position.Y);
         var bottom = Math.Max(pointerDownPosition.Value.Y, point.Position.Y);
 
-        //¼ÆËãÓëÊó±êÊµ¼Ê¿òÑ¡·¶Î§Ïà½»µÄµ¥Ôª¸ñ
+        //è®¡ç®—ä¸é¼ æ ‡å®é™…æ¡†é€‰èŒƒå›´ç›¸äº¤çš„å•å…ƒæ ¼
         int leftIndex = -1, rightIndex = -1, topIndex = -1, bottomIndex = -1;
         for (int i = 2; i <= gridLefts.Count - 2; i += 2)
         {
@@ -465,14 +453,14 @@ public partial class DiaryTable : Grid, IDiaryElement
                 bottomIndex = GID2TID(i);
             }
         }
-        //Ã»¿òµ½
+        //æ²¡æ¡†åˆ°
         if (leftIndex < 0 || rightIndex < 0 || topIndex < 0 || bottomIndex < 0)
         {
             selectionBorder.IsVisible = false;
             return;
         }
 
-        //È·¶¨×îÖÕ·¶Î§¡£ÉÏÊöµÄ·¶Î§¿ÉÄÜ»á½Ø¶ÏÒ»Ğ©ºÏ²¢µÄµ¥Ôª¸ñ£¬ĞèÒªÈ·±£¿òÑ¡·¶Î§ÄÚ¶¼ÊÇÍêÕûµÄµ¥Ôª¸ñ¡£
+        //ç¡®å®šæœ€ç»ˆèŒƒå›´ã€‚ä¸Šè¿°çš„èŒƒå›´å¯èƒ½ä¼šæˆªæ–­ä¸€äº›åˆå¹¶çš„å•å…ƒæ ¼ï¼Œéœ€è¦ç¡®ä¿æ¡†é€‰èŒƒå›´å†…éƒ½æ˜¯å®Œæ•´çš„å•å…ƒæ ¼ã€‚
         selectionLeftIndex = leftIndex;
         selectionRightIndex = rightIndex;
         selectionTopIndex = topIndex;
@@ -493,9 +481,9 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
             Debug.WriteLine($"{selectionLeftIndex},{selectionRightIndex},{selectionTopIndex},{selectionBottomIndex}");
 
-            //ÔÚ·¶Î§¸üĞÂ¡¢±£Ö¤ÁË²»½Ø¶ÏºÏ²¢µÄµ¥Ôª¸ñºó£¬
-            //ĞÂÀ©³äµÄ·¶Î§ÄÚ¿ÉÄÜÓÖ°üº¬ÁËĞÂµÄ±»½Ø¶ÏµÄºÏ²¢µ¥Ôª¸ñ£¬
-            //Òò´ËĞèÒªÔÙ´Î½øĞĞÅĞ¶Ï¸üĞÂ¡£
+            //åœ¨èŒƒå›´æ›´æ–°ã€ä¿è¯äº†ä¸æˆªæ–­åˆå¹¶çš„å•å…ƒæ ¼åï¼Œ
+            //æ–°æ‰©å……çš„èŒƒå›´å†…å¯èƒ½åˆåŒ…å«äº†æ–°çš„è¢«æˆªæ–­çš„åˆå¹¶å•å…ƒæ ¼ï¼Œ
+            //å› æ­¤éœ€è¦å†æ¬¡è¿›è¡Œåˆ¤æ–­æ›´æ–°ã€‚
             if (selectionLeftIndex != leftIndex
                 || selectionRightIndex != rightIndex
                 || selectionTopIndex != topIndex
@@ -513,14 +501,14 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
         }
 
-        //Èç¹ûÖ»¿òµ½Ò»¸ö£¬ÄÇÃ´ÈÏÎªÊÇÔÚÄÚ²¿Ñ¡ÔñÎÄ×Ö£¬²»´¦Àí
+        //å¦‚æœåªæ¡†åˆ°ä¸€ä¸ªï¼Œé‚£ä¹ˆè®¤ä¸ºæ˜¯åœ¨å†…éƒ¨é€‰æ‹©æ–‡å­—ï¼Œä¸å¤„ç†
         if (!GetSelectedCells(false).Skip(1).Any())
         {
             selectionBorder.IsVisible = false;
             return;
         }
 
-        //ÉèÖÃ¿òµÄÎ»ÖÃ
+        //è®¾ç½®æ¡†çš„ä½ç½®
         selectionBorder.IsVisible = true;
         selectionBorder.Margin = new Thickness(
             grd.Bounds.Left + textBoxes[selectionTopIndex, selectionLeftIndex].Bounds.Left - InnerBorderWidth,
@@ -548,10 +536,10 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
     #endregion
 
-    #region Ë÷Òı×ª»»
+    #region ç´¢å¼•è½¬æ¢
 
     /// <summary>
-    /// Border (GridSplitter/Rectangle) Row/Column ×ª Grid Row/Column
+    /// Border (GridSplitter/Rectangle) Row/Column è½¬ Grid Row/Column
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
@@ -573,7 +561,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
 
     /// <summary>
-    /// TextBox Row/Column ×ª Grid Row/Column
+    /// TextBox Row/Column è½¬ Grid Row/Column
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
@@ -584,11 +572,20 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     #endregion
 
-    #region ÎÄ±¾¿ò´¦Àí
+    #region æ–‡æœ¬æ¡†å¤„ç†
 
     /// <summary>
-    /// Íø¸ñ¶ÔÓ¦µÄTextBox[ĞĞºÅ,ÁĞºÅ]
+    /// ç½‘æ ¼å¯¹åº”çš„TextBox[è¡Œå·,åˆ—å·]ã€‚
     /// </summary>
+    /// <remarks>
+    /// ç¨‹åºä¸­æœ‰ä¸¤ä¸ªä¸è¡¨æ ¼å¯¹åº”çš„æ•°ç»„ï¼Œåˆ†åˆ«æ˜¯<see cref="TextBox"/>[]å’Œ<see cref="StringDataTableItem"/>[]ã€‚
+    /// å‰è€…é€šè¿‡<see cref="textBoxes"/>ä¿å­˜åœ¨å¯¹è±¡ä¸­ï¼Œä¿æŒä¸å®é™…æ˜¾ç¤ºçš„ä¸€è‡´ï¼Œ
+    /// è€Œåè€…éœ€è¦æ—¶é€šè¿‡<see cref="GetTableItems"/>è¿›è¡Œè·å–ã€‚
+    /// <br/>
+    /// ä¸¤è€…æœ‰ä¸€ä¸ªä¸åŒç‚¹ï¼Œå¯¹äºåˆå¹¶å•å…ƒæ ¼ï¼Œ
+    /// <see cref="textBoxes"/>çš„æ¯ä¸ªå­å•å…ƒæ ¼éƒ½ä¸ºç›¸åŒå€¼ï¼Œå³åˆå¹¶çš„å•å…ƒæ ¼ï¼›
+    /// è€Œ<see cref="StringDataTableItem"/>[]ä»…å·¦ä¸Šè§’ä¿å­˜å€¼ï¼Œå…¶ä½™å‡è®¾ç½®ä¸ºnullã€‚
+    /// </remarks>
     private TextBox[,] textBoxes;
 
     private void AddTextBoxMenuEvents(TextBox txt)
@@ -598,45 +595,70 @@ public partial class DiaryTable : Grid, IDiaryElement
         Debug.Assert(menu != null);
         var items = menu.Items.Cast<MenuItem>().Skip(3).Where(p => !p.Header.Equals("-")).ToList();
 
-        //ÔÚÉÏ·½²åÈë
-        items[0].Click += async (s, e) =>
+        //åœ¨ä¸Šæ–¹æ’å…¥
+        items[0].Click += (s, e) =>
         {
-            //ĞèÒª´¦Àíµô£¬²»È»»áÖØ¸´´¥·¢ClickÊÂ¼ş
+            //éœ€è¦å¤„ç†æ‰ï¼Œä¸ç„¶ä¼šé‡å¤è§¦å‘Clickäº‹ä»¶
             e.Handled = true;
-            
-            //Èç¹ûÖ±½ÓÄÃÉÏÃæµÄtxt£¬ÓÀÔ¶¶¼ÊÇ[0,0]ÄÇ¸ö£¬²»È·¶¨ÊÇÊ²Ã´Ô­Òò£¬¿ÉÄÜÊÇ±Õ°üÏà¹ØÎÊÌâ
-            LoadData(s, out StringDataTableItem[,] data, out int r, out _, out int rr, out int cc);
-           
-            //¼ì²éºÏ²¢µ¥Ôª¸ñ¡£ÀíÂÛÉÏ¿ÉÒÔÖ±½Ó½«ºÏ²¢µ¥Ôª¸ñÀ­ÉìµÄ£¬µ«ÊÇÎÒÀÁµÃÕâÃ´´¦ÀíÁË£¬Òò´ËÈôÓöµ½ºÏ²¢µ¥Ôª¸ñÖ±½Ó±¨´í
-            for (int i = 0; i < cc;)
+
+            //å¦‚æœç›´æ¥æ‹¿ä¸Šé¢çš„txtï¼Œæ°¸è¿œéƒ½æ˜¯[0,0]é‚£ä¸ªï¼Œä¸ç¡®å®šæ˜¯ä»€ä¹ˆåŸå› ï¼Œå¯èƒ½æ˜¯é—­åŒ…ç›¸å…³é—®é¢˜
+            LoadData(s, out StringDataTableItem[,] data, out int insertRow, out _, out int height, out int width);
+
+            //ç½‘æ ¼åŠ ä¸¤è¡Œï¼Œä¸€è¡Œå†…å®¹ä¸€è¡Œè¾¹æ¡†
+            grd.RowDefinitions.Insert(grd.RowDefinitions.Count - 2, new RowDefinition(InnerBorderWidth, GridUnitType.Pixel));
+            grd.RowDefinitions.Insert(grd.RowDefinitions.Count - 2, new RowDefinition(1, GridUnitType.Auto));
+            //æ–°çš„æ–‡æœ¬æ¡†æ•°ç»„
+            var newTextBoxes = new TextBox[height + 1, width];
+            for (int r = 0; r < height; r++)
             {
-                //µ±Ç°ÉèÖÃÖĞ£¬ºÏ²¢µ¥Ôª¸ñÖ»ÓĞ×óÉÏ½ÇÓĞÖµ£¬ÆäËü¶¼ÊÇnull¡£
-                //Òò´ËÅöµ½null¼´ÒâÎ¶×ÅĞèÒª²ğ·ÖºÏ²¢µ¥Ôª¸ñ¡£
-                if (data[r, i] == null)
+                for (int c = 0; c < width; c++)
                 {
-                    await this.ShowErrorDialogAsync("ÎŞ·¨²åÈë", "ĞèÒªÀ©³äµÄĞĞ´æÔÚºÏ²¢µ¥Ôª¸ñ");
-                    return;
+                    var d = data[r, c];
+                    var t = textBoxes[r, c];
+                    if (d == null)
+                    {
+                        continue;
+                    }
+                    if (r >= insertRow) //åœ¨æ’å…¥çº¿ä¸‹æ–¹
+                    {
+                        //é‚£ä¹ˆæ•´ä½“ä¸‹ç§»ä¸€æ ¼
+                        SetRow(t, GetRow(t) + 2);
+                        SetTableRow(t, r + 1);
+                    }
+                    else //åœ¨æ’å…¥çº¿ä¸Šæ–¹
+                     if (r + d.RowSpan > insertRow) //å¦‚æœè¿™ä¸ªåˆå¹¶çš„å•å…ƒæ ¼è·¨è¶Šäº†æ’å…¥çº¿
+                    {
+                        //è¿™ä¸ªåˆå¹¶å•å…ƒæ ¼è·¨è¶Šçš„è¡Œéœ€è¦å¤šä¸€è¡Œ
+                        d.RowSpan++;
+                    }
+                    //æ–°çš„è¡Œå·
+                    int newR = r >= insertRow ? r + 1 : r;
+
+                    //æ›´æ–°æ–‡æœ¬æ¡†æ•°ç»„
+                    for (int rr = newR; rr < newR + d.RowSpan; rr++)
+                    {
+                        for (int cc = c; cc < c + d.ColumnSpan; cc++)
+                        {
+                            newTextBoxes[rr, cc] = t;
+                        }
+                    }
+
                 }
-                //ÒòÎªµ±Ç°ÊÇ²åÈëĞĞ£¬Òò´ËºáÏòºÏ²¢²»¹Ø×¢¡£
-                //Òò´ËÃ¿¸ö¼ì²éºó£¬¸ù¾İ¿çÁĞµÄÊıÁ¿½øĞĞÌøÔ¾
-                i += data[r, i].ColumnSpan;
             }
-            var newData = new StringDataTableItem[rr + 1, cc];
-            //¸´ÖÆĞÂÔöĞĞ
-            for (int i = 0; i < cc; i++)
+            textBoxes = newTextBoxes;
+            //å¤åˆ¶æ–°å¢è¡Œï¼Œå¡«å……æ²¡æœ‰è¢«åˆå¹¶å•å…ƒæ ¼å æ®çš„å•å…ƒæ ¼
+            for (int i = 0; i < width; i++)
             {
-                newData[r, i] = new StringDataTableItem()
+                if (textBoxes[insertRow, i] == null)
+                {
+                    CreateAndInsetCellTextBox(insertRow, i, new StringDataTableItem()
+                    {
 #if DEBUG
-                { Text = "add" }
+                        Text = "Insert"
 #endif
-                ;
+                    });
+                }
             }
-            //¸´ÖÆÉÏ°ë²¿·Ö
-            CopySubArray(data, 0, 0, r, cc, newData, 0, 0);
-            //¸´ÖÆÏÂ°ë²¿·Ö
-            CopySubArray(data, r, 0, rr - r, cc, newData, r + 1, 0);
-            //ÖØ½¨
-            MakeTable(newData);
         };
 
         void LoadData(object s, out StringDataTableItem[,] data, out int r, out int c, out int rr, out int cc)
@@ -726,10 +748,10 @@ public partial class DiaryTable : Grid, IDiaryElement
         SetRow(txt, TID2GID(row));
         SetColumn(txt, TID2GID(column));
 
-        //ºÏ²¢µ¥Ôª¸ñ
+        //åˆå¹¶å•å…ƒæ ¼
         if (item.RowSpan * item.ColumnSpan > 1)
         {
-            //±ê¼ÇÒÑ´´½¨
+            //æ ‡è®°å·²åˆ›å»º
             for (int r = row; r < row + item.RowSpan; r++)
             {
                 for (int c = column; c < column + item.ColumnSpan; c++)
@@ -753,7 +775,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         {
             for (int c = 0; c < column; c++)
             {
-                //¶ÔÓÚÒÑ¾­ºÏ²¢µÄµ¥Ôª¸ñ²»ĞèÒªÔÙÌí¼Ó
+                //å¯¹äºå·²ç»åˆå¹¶çš„å•å…ƒæ ¼ä¸éœ€è¦å†æ·»åŠ 
                 if (textBoxes[r, c] != null)
                 {
                     continue;
@@ -792,7 +814,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
     #endregion
 
-    #region °´Å¥²Ù×÷
+    #region æŒ‰é’®æ“ä½œ
     private void ChangeSourceButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         //var files = await TopLevel.GetTopLevel(this).StorageProvider.OpenFilePickerAsync(
