@@ -8,5 +8,5 @@
     xmlns:system="using:System"
     xmlns:v="using:MyDiary.UI.Views"
     xmlns:vm="using:MyDiary.UI.ViewModels"
-    Theme="{StaticResource TransparentTextBox}"
+    Theme="{StaticResource DiaryTextBoxTheme}"
     mc:Ignorable="d" />

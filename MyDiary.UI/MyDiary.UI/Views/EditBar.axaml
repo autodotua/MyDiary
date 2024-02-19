@@ -82,7 +82,7 @@
                 <PathIcon Data="{StaticResource IconMergeCells}" />
                 <TextBlock
                     VerticalAlignment="Center"
-                    Text="合并选中的单元格" />
+                    Text="合并单元格" />
             </StackPanel>
         </ToggleButton>
 

@@ -22,8 +22,8 @@
             <Setter Property="BorderBrush" Value="{DynamicResource Foreground0}" />
             <Setter Property="Background" Value="{DynamicResource Accent0}" />
             <Setter Property="BorderThickness" Value="1" />
-        </Style>   
-      <Style Selector="^:flyout-open /template/ ContentPresenter#PART_ContentPresenter">
+        </Style>
+        <Style Selector="^:flyout-open /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="BorderBrush" Value="{DynamicResource Foreground0}" />
             <Setter Property="Background" Value="{DynamicResource Accent0}" />
             <Setter Property="BorderThickness" Value="1" />
@@ -31,7 +31,7 @@
     </ControlTheme>
 
     <ControlTheme
-        x:Key="TransparentTextBox"
+        x:Key="DiaryTextBoxTheme"
         BasedOn="{StaticResource {x:Type TextBox}}"
         TargetType="TextBox">
 
@@ -53,6 +53,33 @@
             <Style Selector="^ /template/ Border#PART_BorderElement">
                 <Setter Property="Background" Value="{DynamicResource Background1}" />
                 <Setter Property="BorderThickness" Value="0" />
+            </Style>
+        </Style>
+
+    </ControlTheme>
+
+    <ControlTheme
+        x:Key="TableTextBoxTheme"
+        BasedOn="{StaticResource {x:Type TextBox}}"
+        TargetType="TextBox">
+
+        <Setter Property="Background" Value="{DynamicResource Background0}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="InnerRightContent" Value="{x:Null}" />
+
+        <Style Selector="^:focus">
+            <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
+
+            <Style Selector="^ /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="{DynamicResource Background1}" />
+            </Style>
+        </Style>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
+
+            <Style Selector="^ /template/ Border#PART_BorderElement">
+                <Setter Property="Background" Value="{DynamicResource Background1}" />
             </Style>
         </Style>
 

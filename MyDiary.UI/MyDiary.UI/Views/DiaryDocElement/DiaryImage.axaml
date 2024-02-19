@@ -24,7 +24,7 @@
         HorizontalAlignment="Center"
         Text="图名"
         TextAlignment="Center"
-        Theme="{StaticResource TransparentTextBox}" />
+        Theme="{StaticResource DiaryTextBoxTheme}" />
 
     <StackPanel
         HorizontalAlignment="Right"

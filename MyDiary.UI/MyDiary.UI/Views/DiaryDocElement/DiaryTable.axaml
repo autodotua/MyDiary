@@ -20,12 +20,28 @@
         HorizontalAlignment="Center"
         Text="表名"
         TextAlignment="Center"
-        Theme="{StaticResource TransparentTextBox}" />
+        Theme="{StaticResource DiaryTextBoxTheme}" />
 
     <Grid
         x:Name="grd"
         Grid.Row="2"
-        HorizontalAlignment="Center" />
+        HorizontalAlignment="Center"
+        Background="{DynamicResource Foreground0}">
+        <Rectangle
+            Grid.RowSpan="9999"
+            Fill="{DynamicResource Background0}" />
+        <Rectangle
+            Grid.RowSpan="9999"
+            Grid.Column="9999"
+            Fill="{DynamicResource Background0}" />
+        <Rectangle
+            Grid.Row="9999"
+            Grid.ColumnSpan="9999"
+            Fill="{DynamicResource Background0}" />
+        <Rectangle
+            Grid.ColumnSpan="9999"
+            Fill="{DynamicResource Background0}" />
+    </Grid>
 
     <StackPanel
         HorizontalAlignment="Right"

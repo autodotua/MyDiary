@@ -23,6 +23,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Avalonia.LogicalTree;
+using Avalonia.Styling;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -35,21 +36,17 @@ public partial class DiaryTable : Grid, IDiaryElement
      * 用来支持调整大小的多余空间    边框      TextBox       边框    ……       边框     用来支持调整大小的多余空间
      */
 
-    public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, DiaryTextBox, int>("Column");
+    public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Column");
 
-    public static readonly AttachedProperty<StringDataTableItem> TableDataProperty = AvaloniaProperty.RegisterAttached<DiaryTable, DiaryTextBox, StringDataTableItem>("RowSpan");
+    public static readonly AttachedProperty<StringDataTableItem> TableDataProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, StringDataTableItem>("RowSpan");
 
-    public static readonly AttachedProperty<int> TableRowProperty = AvaloniaProperty.RegisterAttached<DiaryTable, DiaryTextBox, int>("Row");
+    public static readonly AttachedProperty<int> TableRowProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Row");
 
     /// <summary>
     /// 边框实际（调整区）粗细
     /// </summary>
-    private const double InnerBorderWidth = 4;
+    private const double InnerBorderWidth = 2;
 
-    /// <summary>
-    /// 边框线条粗细
-    /// </summary>
-    private const double InnerLineWidth = 1;
 
     private readonly DiaryTableVM viewModel;
 
@@ -72,7 +69,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// <summary>
     /// 网格对应的TextBox[行号,列号]
     /// </summary>
-    private DiaryTextBox[,] textBoxes;
+    private TextBox[,] textBoxes;
 
     public DiaryTable()
     {
@@ -98,31 +95,33 @@ public partial class DiaryTable : Grid, IDiaryElement
             cellsSelectionMode = value;
             if (value != oldValue)
             {
+                grd.Children.OfType<GridSplitter>()
+                    .ForEach(p => p.IsEnabled = value == TableCellsSelectionMode.None);
                 EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
             }
         }
     }
-    public static int GetTableColumn(DiaryTextBox element) => element.GetValue(TableColumnProperty);
+    public static int GetTableColumn(TextBox element) => element.GetValue(TableColumnProperty);
 
-    public static StringDataTableItem GetTableData(DiaryTextBox element) => element.GetValue(TableDataProperty);
+    public static StringDataTableItem GetTableData(TextBox element) => element.GetValue(TableDataProperty);
 
-    public static int GetTableRow(DiaryTextBox element) => element.GetValue(TableRowProperty);
+    public static int GetTableRow(TextBox element) => element.GetValue(TableRowProperty);
 
-    public static void SetTableColumn(DiaryTextBox element, int value) => element.SetValue(TableColumnProperty, value);
+    public static void SetTableColumn(TextBox element, int value) => element.SetValue(TableColumnProperty, value);
 
-    public static void SetTableData(DiaryTextBox element, StringDataTableItem value) => element.SetValue(TableDataProperty, value);
+    public static void SetTableData(TextBox element, StringDataTableItem value) => element.SetValue(TableDataProperty, value);
 
-    public static void SetTableRow(DiaryTextBox element, int value) => element.SetValue(TableRowProperty, value);
+    public static void SetTableRow(TextBox element, int value) => element.SetValue(TableRowProperty, value);
 
     public EditProperties GetEditProperties()
     {
-        var txts = GetSelectedCells();
-        if (!txts.Any())
+        var txts = GetSelectedCells().ToList();
+        if (txts.Count == 0)
         {
             return null;
         }
-        var data = GetTableData(txts.First());
-
+        var data = GetTableData(txts[0]);
+        Debug.WriteLine(data);
         var ep = new EditProperties()
         {
             CanMergeCell = CellsSelectionMode switch
@@ -179,17 +178,18 @@ public partial class DiaryTable : Grid, IDiaryElement
                     var data = GetTableItems();
                     CreateTableStructure(data);
                     ClearCellsSelection();
+                    topLeftTextBox.Focus();
                     break;
                 case nameof(EditProperties.CellsMerged) when ep.CellsMerged == false:
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
-                    if (txts.Count() != 1)
+                    if (txts.Count != 1)
                     {
                         throw new Exception($"查找到的TextBox数量错误");
                     }
-                    var txt = txts.First();
+                    var txt = txts[0];
                     bool first = true;
                     for (int r = GetTableRow(txt); r < GetTableRow(txt) + GetTableData(txt).RowSpan; r++)
                     {
@@ -210,6 +210,7 @@ public partial class DiaryTable : Grid, IDiaryElement
 
                     var data2 = GetTableItems();
                     CreateTableStructure(data2);
+                    EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
                     break;
             }
         };
@@ -260,7 +261,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
 
         //若焦点不在TextBox（例如在调整边框），则不执行操作
-        if (TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is not TextBox)
+        if (TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is GridSplitter)
         {
             return;
         }
@@ -317,7 +318,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         // });
 
     }
-
+    private int currentZIndex = 100;
     private void ClearCellsSelection()
     {
         if (CellsSelectionMode != TableCellsSelectionMode.None)
@@ -329,9 +330,9 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    private DiaryTextBox CreateAndInsetCellTextBox(int row, int column, StringDataTableItem item)
+    private TextBox CreateAndInsetCellTextBox(int row, int column, StringDataTableItem item)
     {
-        var txt = new DiaryTextBox()
+        var txt = new TextBox
         {
             CornerRadius = new CornerRadius(0),
 #if DEBUG
@@ -340,14 +341,23 @@ public partial class DiaryTable : Grid, IDiaryElement
             Text = item.Text,
 #endif
             FontWeight = item.Bold ? FontWeight.Bold : FontWeight.Normal,
-            FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal
+            FontStyle = item.Italic ? FontStyle.Italic : FontStyle.Normal,
+            ZIndex = 100,
+            Theme = App.Current.FindResource("TableTextBoxTheme") as ControlTheme
         };
+        txt[!TextBox.BorderBrushProperty] = new DynamicResourceExtension("Foreground0");
         SetTableRow(txt, row);
         SetTableColumn(txt, column);
         SetTableData(txt, item);
+
         txt.GotFocus += (s, e) =>
         {
             ClearCellsSelection();
+            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+            (s as Visual).ZIndex = ++currentZIndex;
+        };
+        txt.LostFocus += (s, e) =>
+        {
             EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
         };
 
@@ -383,9 +393,9 @@ public partial class DiaryTable : Grid, IDiaryElement
         Panel[] horizontalLines = new Panel[row + 1];
         Panel[] verticalLines = new Panel[column + 1];
         //创建网格结构，包括绘制线
-        MakeBorders(row, column, horizontalLines, verticalLines);
+        MakeBorders(row, column);
         //处理合并单元格
-        MergeCells(data, row, column, horizontalLines, verticalLines);
+        //MergeCells(data, row, column, horizontalLines, verticalLines);
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -397,7 +407,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     {
         int row = data.GetLength(0);
         int column = data.GetLength(1);
-        textBoxes = new DiaryTextBox[row, column];
+        textBoxes = new TextBox[row, column];
         for (int r = 0; r < row; r++)
         {
             for (int c = 0; c < column; c++)
@@ -414,10 +424,10 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    private DiaryTextBox GetFocusedCell()
+    private TextBox GetFocusedCell()
     {
         var element = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
-        if (element is DiaryTextBox txt)
+        if (element is TextBox txt)
         {
             if (txt.GetLogicalAncestors().Contains(this))
             {
@@ -433,7 +443,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     /// <param name="returnFocusedWhenNotSelecting">若开启，则在未选择状态会返回焦点所在文本框</param>
     /// <returns></returns>
-    private IEnumerable<DiaryTextBox> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
+    private IEnumerable<TextBox> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
     {
 
         if (CellsSelectionMode == TableCellsSelectionMode.None)
@@ -464,7 +474,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    private StringDataTableItem GetStringDataTableItem(DiaryTextBox textBox)
+    private StringDataTableItem GetStringDataTableItem(TextBox textBox)
     {
         StringDataTableItem item = GetTableData(textBox);
         item.Text = textBox.Text;
@@ -472,6 +482,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         item.Italic = textBox.FontStyle == FontStyle.Italic;
         return item;
     }
+
     private StringDataTableItem[,] GetTableItems()
     {
         bool[,] visited = new bool[textBoxes.GetLength(0), textBoxes.GetLength(1)];
@@ -498,7 +509,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         return items;
     }
 
-    private void MakeBorders(int row, int column, Panel[] horizontalLines, Panel[] verticalLines)
+    private void MakeBorders(int row, int column)
     {
         grd.ColumnDefinitions.Clear();
         grd.RowDefinitions.Clear();
@@ -508,175 +519,48 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
 
         grd.ColumnDefinitions.Add(new ColumnDefinition(10, GridUnitType.Pixel));
-        for (int j = 0; j <= column; j++)
+        for (int c = 0; c <= column; c++)
         {
-            if (j > 0)
+            if (c > 0)
             {
                 grd.ColumnDefinitions.Add(new ColumnDefinition(64, GridUnitType.Pixel));
             }
+            grd.ColumnDefinitions.Add(new ColumnDefinition(InnerBorderWidth, GridUnitType.Pixel));
 
-            grd.ColumnDefinitions.Add(new ColumnDefinition(4, GridUnitType.Pixel));
 
-            var splitter = new GridSplitter() { Background = Brushes.Transparent };
+            var splitter = new GridSplitter()
+            {
+                Background = Brushes.Transparent,
+                ZIndex = 1,
+            };
             SetRowSpan(splitter, int.MaxValue);
-            SetColumn(splitter, BID2GID(j));
-            //if (j == 0 || j == column)
-            //{
-            //    splitter[!BackgroundProperty] = new DynamicResourceExtension("Foreground0");
-            //}
+            SetColumn(splitter, BID2GID(c));
             grd.Children.Add(splitter);
 
-            var rect = new Panel()
-            {
-                Width = 1,
-                HorizontalAlignment = j == 0 ? HorizontalAlignment.Left : (j == column ? HorizontalAlignment.Right : HorizontalAlignment.Center),
-                VerticalAlignment = VerticalAlignment.Stretch,
-                Margin = new Thickness(0, (InnerBorderWidth - InnerLineWidth) / 2, 0, (InnerBorderWidth - InnerLineWidth) / 2)
-            };
-            rect[!BackgroundProperty] = new DynamicResourceExtension("Foreground0");
-            SetRow(rect, 1);
-            SetRowSpan(rect, BID2GID(row));
-            SetColumn(rect, BID2GID(j));
-            grd.Children.Add(rect);
-            verticalLines[j] = rect;
         }
         grd.ColumnDefinitions.Add(new ColumnDefinition(10, GridUnitType.Pixel));
 
 
         grd.RowDefinitions.Add(new RowDefinition(10, GridUnitType.Pixel));
-        for (int i = 0; i <= row; i++)
+        for (int r = 0; r <= row; r++)
         {
-            if (i > 0)
+            if (r > 0)
             {
                 grd.RowDefinitions.Add(new RowDefinition(1, GridUnitType.Auto));
             }
-            grd.RowDefinitions.Add(new RowDefinition(4, GridUnitType.Pixel));
-
-            var splitter = new GridSplitter() { Background = Brushes.Transparent };
-            SetRow(splitter, BID2GID(i));
+            grd.RowDefinitions.Add(new RowDefinition(InnerBorderWidth, GridUnitType.Pixel));
+            var splitter = new GridSplitter()
+            {
+                Background = Brushes.Transparent,
+                ZIndex = 1
+            };
+            SetRow(splitter, BID2GID(r));
             grd.Children.Add(splitter);
 
-            var rect = new Panel()
-            {
-                Height = 1,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = i == 0 ? VerticalAlignment.Top : (i == row ? VerticalAlignment.Bottom : VerticalAlignment.Center),
-                Margin = new Thickness((InnerBorderWidth - InnerLineWidth) / 2, 0, (InnerBorderWidth - InnerLineWidth) / 2, 0)
-            };
-            SetRow(rect, BID2GID(i));
-            SetColumn(rect, 1);
-            SetColumnSpan(rect, BID2GID(column));
-            rect[!BackgroundProperty] = new DynamicResourceExtension("Foreground0");
-            grd.Children.Add(rect);
-            horizontalLines[i] = rect;
         }
         grd.RowDefinitions.Add(new RowDefinition(10, GridUnitType.Pixel));
     }
 
-    private bool[,] MergeCells(StringDataTableItem[,] data, int row, int column, Panel[] horizontalLines, Panel[] verticalLines)
-    {
-        bool[,] cellProcessed = new bool[row, column];
-        for (int i = 0; i < row; i++)
-        {
-            for (int j = 0; j < column; j++)
-            {
-                //对于已经合并的单元格不需要再添加
-                if (cellProcessed[i, j])
-                {
-                    continue;
-                }
-                cellProcessed[i, j] = true;
-                var item = data[i, j];
-
-
-                //合并单元格
-                if (item.RowSpan * item.ColumnSpan > 1)
-                {
-                    //标记已创建
-                    for (int a = i; a < i + item.RowSpan; a++)
-                    {
-                        for (int b = j; b < j + item.ColumnSpan; b++)
-                        {
-                            cellProcessed[a, b] = true;
-                        }
-                    }
-
-                    //处理边框
-                    //水平
-                    for (int k = i + 1; k <= i + item.RowSpan - 1; k++)
-                    {
-                        //将原来的线截短到TextBox左侧。如果该单元格在最左侧，则删除左侧线。
-                        if (j > 0)
-                        {
-                            SetColumnSpan(horizontalLines[k], TID2GID(j) - GetColumn(horizontalLines[k]));
-                        }
-                        else
-                        {
-                            grd.Children.Remove(horizontalLines[k]);
-                        }
-                        //TextBox右侧新线的长度
-                        int newLineLong = TID2GID(column) - TID2GID(j + item.ColumnSpan) + 1;
-                        //如果长度<1，说明已经到了最右端，那么右侧不再需要画线。同时为了检测错误，设置horizontalLines[k]为空。
-                        if (newLineLong <= 1)
-                        {
-                            horizontalLines[k] = null;
-                            continue;
-                        }
-                        //右侧新线
-                        var rect = new Panel()
-                        {
-                            Height = 1,
-                            HorizontalAlignment = HorizontalAlignment.Stretch,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness((InnerBorderWidth - InnerLineWidth) / 2, 0, (InnerBorderWidth - InnerLineWidth) / 2, 0)
-                        };
-                        //设置行列
-                        SetRow(rect, BID2GID(k));
-                        SetColumn(rect, BID2GID(j + item.ColumnSpan));
-                        SetColumnSpan(rect, newLineLong);
-                        rect[!BackgroundProperty] = new DynamicResourceExtension("Foreground0");
-                        grd.Children.Add(rect);
-                        //将horizontalLines[k]的值设置为最新的线。由于遍历的时候是从小到大，因此已经被截短的线可以保证不会再用到。而新增的线可能被再次截短。
-                        horizontalLines[k] = rect;
-                    }
-                    //垂直
-                    for (int k = j + 1; k <= j + item.ColumnSpan - 1; k++)
-                    {
-                        if (i > 0)
-                        {
-                            SetRowSpan(verticalLines[k], TID2GID(i) - GetRow(verticalLines[k]));
-                        }
-                        else
-                        {
-                            grd.Children.Remove(verticalLines[k]);
-                        }
-
-                        int newLineLong = TID2GID(row) - TID2GID(i + item.RowSpan) + 1;
-                        if (newLineLong <= 1)
-                        {
-                            verticalLines[k] = null;
-                            continue;
-                        }
-                        var rect = new Panel()
-                        {
-                            Width = 1,
-                            HorizontalAlignment = HorizontalAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Stretch,
-                            Margin = new Thickness(0, (InnerBorderWidth - InnerLineWidth) / 2, 0, (InnerBorderWidth - InnerLineWidth) / 2)
-                        };
-                        SetColumn(rect, BID2GID(k));
-                        SetRow(rect, BID2GID(i + item.RowSpan));
-                        SetRowSpan(rect, newLineLong);
-                        rect[!BackgroundProperty] = new DynamicResourceExtension("Foreground0");
-                        grd.Children.Add(rect);
-                        verticalLines[k] = rect;
-                    }
-                }
-            }
-        }
-
-        return cellProcessed;
-    }
 
     private void SelectCells(PointerPoint point)
     {
@@ -687,12 +571,12 @@ public partial class DiaryTable : Grid, IDiaryElement
         {
             selectionBorder = new Border()
             {
-                BorderBrush = Brushes.Red,
                 BorderThickness = new Thickness(4),
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
                 IsVisible = false
             };
+            selectionBorder[!Border.BorderBrushProperty] = new DynamicResourceExtension("Accent0");
             pnlSelection.Children.Add(selectionBorder);
         }
 
