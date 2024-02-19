@@ -8,13 +8,14 @@
     xmlns:system="using:System"
     xmlns:v="using:MyDiary.UI.Views"
     xmlns:vm="using:MyDiary.UI.ViewModels"
+    ClipToBounds="False"
     mc:Ignorable="d">
     <ContentControl.Template>
         <ControlTemplate>
             <StackPanel Orientation="Vertical">
                 <!--<dde:AddPartBar/>-->
                 <ContentPresenter Content="{TemplateBinding Content}" />
-                <dde:AddPartBar />
+                <dde:AddPartBar Margin="8,-8" />
             </StackPanel>
         </ControlTemplate>
     </ContentControl.Template>

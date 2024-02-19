@@ -20,8 +20,7 @@
     <Grid
         Margin="4"
         RowDefinitions="Auto,8,Auto,4,*">
-        <v:EditBar
-            x:Name="editBar"/>
+        <v:EditBar x:Name="editBar" />
         <TextBlock
             Grid.Row="2"
             Margin="16"
@@ -35,8 +34,7 @@
             <StackPanel
                 x:Name="stkBody"
                 Margin="4,4,16,4"
-                Orientation="Vertical"
-                Spacing="8" />
+                Orientation="Vertical" />
         </ScrollViewer>
     </Grid>
 </UserControl>

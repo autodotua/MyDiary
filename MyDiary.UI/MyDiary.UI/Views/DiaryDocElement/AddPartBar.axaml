@@ -9,7 +9,6 @@
     xmlns:v="using:MyDiary.UI.Views"
     xmlns:vm="using:MyDiary.UI.ViewModels"
     x:Name="pad"
-    Margin="8,0"
     d:DesignHeight="600"
     d:DesignWidth="800"
     x:DataType="vm:AddPartBarVM"
@@ -53,8 +52,7 @@
                 Data="{StaticResource IconImage}"
                 Foreground="{DynamicResource Foreground3}" />
         </Button>
-        <Button
-            Theme="{StaticResource RoundButton}">
+        <Button Theme="{StaticResource RoundButton}">
             <PathIcon
                 Width="17"
                 Height="17"

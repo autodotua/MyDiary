@@ -17,7 +17,7 @@ public partial class EditBar : UserControl
             return n;
         });
 
-    EditProperties viewModel = new EditProperties();
+    EditBarVM viewModel = new EditBarVM();
     public EditBar()
     {
         DataContext = viewModel;
@@ -32,14 +32,5 @@ public partial class EditBar : UserControl
     {
         get => GetValue(EditPropertiesProperty);
         set => SetValue(EditPropertiesProperty, value);
-    }
-
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-        if(change.Property==EditPropertiesProperty)
-        {
-            //viewModel.EditProperties = change.NewValue as EditBarVM;
-        }
     }
 }

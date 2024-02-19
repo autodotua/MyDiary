@@ -49,12 +49,12 @@ public partial class DiaryPad : UserControl
     {
         DataContext = viewModel;
         InitializeComponent();
-        var txt = CreateAndInsertElementAfter<DiaryTextBox>(null);
+        var txt = CreateAndInsertElementBelow<DiaryTextBox>(null);
         stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
 #if DEBUG
-        var table = CreateAndInsertElementAfter<DiaryTable>(txt);
+        var table = CreateAndInsertElementBelow<DiaryTable>(txt);
         table.MakeEmptyTable(6, 6);
-        var image = CreateAndInsertElementAfter<DiaryImage>(table);
+        var image = CreateAndInsertElementBelow<DiaryImage>(table);
         image.ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico")));
 
 #endif
@@ -71,7 +71,7 @@ public partial class DiaryPad : UserControl
             ?? throw new Exception($"提供的{nameof(control)}非{nameof(DiaryPad)}子元素");
     }
 
-    public T CreateAndInsertElementAfter<T>(Control element) where T : Control, IDiaryElement, new()
+    public T CreateAndInsertElementBelow<T>(Control element) where T : Control, IDiaryElement, new()
     {
         int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
         T newElement = new T();
@@ -92,7 +92,7 @@ public partial class DiaryPad : UserControl
         var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
         if (focusedElement is Control c && element is ILogical l)
         {
-            if (c.GetLogicalAncestors().Contains(l))
+            if (c.GetLogicalAncestors().Contains(l) || c == l)
             {
                 Debug.WriteLine("Updated Edit Properties");
                 editBar.EditProperties = element.GetEditProperties();
@@ -111,9 +111,8 @@ public partial class DiaryPad : UserControl
         switch (e.Key)
         {
             case Avalonia.Input.Key.Enter when !string.IsNullOrEmpty(text):
-                newTextBox = CreateAndInsertElementAfter<DiaryTextBox>(oldTextBox);
+                newTextBox = CreateAndInsertElementBelow<DiaryTextBox>(oldTextBox);
                 newTextBox.KeyDown += TextBox_KeyDown;
-                stkBody.InsertDiaryPart(textBoxIndex + 1, newTextBox);
                 if (oldTextBox.SelectionEnd != text.Length)
                 {
                     newTextBox.Text = text[oldTextBox.SelectionEnd..];
