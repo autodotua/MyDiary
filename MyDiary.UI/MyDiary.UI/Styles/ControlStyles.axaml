@@ -60,7 +60,6 @@
     </ControlTheme>
 
     <ControlTheme
-        x:Class="MyDiary.UI.Views.DiaryDocElement.DiaryTableCell"
         x:Key="TableCellTheme"
         BasedOn="{StaticResource {x:Type TextBox}}"
         TargetType="TextBox">
@@ -68,6 +67,7 @@
         <Setter Property="Background" Value="{DynamicResource Background0}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="InnerRightContent" Value="{x:Null}" />
         <Setter Property="ContextFlyout">
@@ -91,17 +91,6 @@
                         Header="粘贴"
                         InputGesture="Ctrl+V"
                         IsEnabled="{Binding $parent[TextBox].CanPaste}" />
-                    <MenuItem Header="-" />
-                    <MenuItem
-                        x:Name="Bold"
-                        Command="{Binding $parent[dde:DiaryTableCell].SetBold}"
-                        Header="粗体"
-                        InputGesture="Ctrl+B" />
-                    <MenuItem
-                        x:Name="Italic"
-                        Command="{Binding $parent[dde:DiaryTableCell].SetItalic}"
-                        Header="斜体"
-                        InputGesture="Ctrl+I"/>
                     <MenuItem Header="-" />
                     <MenuItem
                         x:Name="InsertUp"

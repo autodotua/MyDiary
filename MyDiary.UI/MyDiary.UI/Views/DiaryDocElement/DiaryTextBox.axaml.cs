@@ -10,7 +10,7 @@ using MyDiary.UI.ViewModels;
 using System;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
-public partial class DiaryTextBox : TextBox, IDiaryElement
+public partial class DiaryTextBox : DiaryTextBoxBase, IDiaryElement
 {
     public DiaryTextBox()
     {
@@ -20,12 +20,10 @@ public partial class DiaryTextBox : TextBox, IDiaryElement
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
         base.OnGotFocus(e);
-        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+        RaiseEditBarInfoUpdated();
     }
 
-    public event EventHandler EditBarInfoUpdated;
-
-    public EditBarInfo GetEditBarInfo()
+    public override EditBarInfo GetEditBarInfo()
     {
         var ep = new EditBarInfo()
         {
@@ -56,4 +54,5 @@ public partial class DiaryTextBox : TextBox, IDiaryElement
 
         return ep;
     }
+
 }

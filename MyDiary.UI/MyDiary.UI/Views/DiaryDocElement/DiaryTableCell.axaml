@@ -1,4 +1,4 @@
-<TextBox
+<dde:DiaryTextBoxBase
     x:Class="MyDiary.UI.Views.DiaryDocElement.DiaryTableCell"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

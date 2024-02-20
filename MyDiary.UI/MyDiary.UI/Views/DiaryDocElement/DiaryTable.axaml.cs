@@ -75,7 +75,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             Bold = datas.All(p => p.Bold),
             Italic = datas.All(p => p.Italic),
             FontSize = datas.Min(p => p.FontSize),
-            Alignment=datas.Min(p => p.Alignment),
+            Alignment = datas.Min(p => p.Alignment),
         };
 
         ep.PropertyChanged += (s, e) =>
@@ -83,7 +83,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             switch (e.PropertyName)
             {
                 case nameof(EditBarInfo.Bold):
-                    datas.ForEach(d => d.Bold=ep.Bold);
+                    datas.ForEach(d => d.Bold = ep.Bold);
                     break;
                 case nameof(EditBarInfo.Italic):
                     datas.ForEach(d => d.Italic = ep.Italic);
@@ -602,39 +602,49 @@ public partial class DiaryTable : Grid, IDiaryElement
                          InsertRow(s, true);
                      };
                     break;
+                //在下方插入
+                case "InsertDown":
+                    item.Click += (s, e) =>
+                     {
+                         e.Handled = true;
+                         InsertRow(s, false);
+                     };
+                    break;
+                //在左侧插入
+                case "InsertLeft":
+                    item.Click += (s, e) =>
+                     {
+                         e.Handled = true;
+                         InsertColumn(s, true);
+                     };
+                    break;
+                //在右侧插入
+                case "InsertRight":
+                    item.Click += (s, e) =>
+                     {
+                         e.Handled = true;
+                         InsertColumn(s, false);
+                     };
+                    break;
+                //删除行
+                case "DeleteRow":
+                    item.Click += (s, e) =>
+                     {
+                         e.Handled = true;
+                         DeleteRow(s);
+                     };
+                    break;
+                //删除列
+                case "DeleteColumn":
+                    item.Click += (s, e) =>
+                     {
+                         e.Handled = true;
+                         DeleteColumn(s);
+                     };
+                    break;
             }
         }
 
-        //在下方插入
-        items[1].Click += (s, e) =>
-        {
-            e.Handled = true;
-            InsertRow(s, false);
-        };
-        //在左侧插入
-        items[2].Click += (s, e) =>
-        {
-            e.Handled = true;
-            InsertColumn(s, true);
-        };
-        //在右侧插入
-        items[3].Click += (s, e) =>
-        {
-            e.Handled = true;
-            InsertColumn(s, false);
-        };
-        //删除行
-        items[4].Click += (s, e) =>
-        {
-            e.Handled = true;
-            DeleteRow(s);
-        };
-        //删除列
-        items[5].Click += (s, e) =>
-        {
-            e.Handled = true;
-            DeleteColumn(s);
-        };
 
         void InsertRow(object sender, bool up)
         {
@@ -745,8 +755,8 @@ public partial class DiaryTable : Grid, IDiaryElement
                     {
                         if (r + d.RowSpan > deleteRow) //如果这个合并的单元格跨越了插入线
                         {
-                            //这个合并单元格跨越的行需要多n行
-                            d.RowSpan -= rowSpan;
+                            //删除的行数等于这个单元格和要删除的行重叠的行数
+                            d.RowSpan -= r + d.RowSpan - deleteRow;
                         }
                         newR = r;
                     }
@@ -881,7 +891,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     {
                         if (c + d.ColumnSpan > deleteColumn)
                         {
-                            d.ColumnSpan -= columnSpan;
+                            d.ColumnSpan -= c + d.ColumnSpan - deleteRow;
                         }
                         newC = c;
                     }
@@ -947,21 +957,13 @@ public partial class DiaryTable : Grid, IDiaryElement
         };
         txt.EditBarInfoUpdated += (s, e) => EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
 
-        textBoxes[row, column] = txt;
-
-
-        //合并单元格
-        if (item.RowSpan * item.ColumnSpan > 1)
+        //标记已创建
+        for (int r = row; r < row + item.RowSpan; r++)
         {
-            //标记已创建
-            for (int r = row; r < row + item.RowSpan; r++)
+            for (int c = column; c < column + item.ColumnSpan; c++)
             {
-                for (int c = column; c < column + item.ColumnSpan; c++)
-                {
-                    textBoxes[r, c] = txt;
-                }
+                textBoxes[r, c] = txt;
             }
-
         }
         grd.Children.Add(txt);
         return txt;

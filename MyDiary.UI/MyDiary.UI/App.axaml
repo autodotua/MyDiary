@@ -9,9 +9,9 @@
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
-  <Application.Styles>
-    <FluentTheme />
-  </Application.Styles>
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -21,7 +21,7 @@
                 <ResourceInclude Source="avares://MyDiary.UI/Styles/ControlStyles.axaml" />
             </ResourceDictionary.MergedDictionaries>
 
-          <Thickness x:Key="TextControlThemePadding">5,6,6,5</Thickness>
+            <Thickness x:Key="TextControlThemePadding">5,6,6,5</Thickness>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
