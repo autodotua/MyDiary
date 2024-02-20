@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
@@ -12,6 +13,7 @@ using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
@@ -37,6 +39,16 @@ public partial class DiaryTable : Grid, IDiaryElement
     public DiaryTable()
     {
         DataContext = viewModel = new DiaryTableVM();
+        //设置从TableRow/Column到Grid.Row/Column的单向绑定。
+        //注意，需要设置TableRow/Column的默认值为<0，来防止设置的值与默认值相同导致不通知
+        TableRowProperty.Changed.AddClassHandler<TextBox>((s, e) =>
+        {
+            SetRow(s, TID2GID((int)e.NewValue));
+        });
+        TableColumnProperty.Changed.AddClassHandler<TextBox>((s, e) =>
+        {
+            SetColumn(s, TID2GID((int)e.NewValue));
+        });
         InitializeComponent();
     }
 
@@ -91,8 +103,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
                     var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
-                    //SetRowSpan(topLeftTextBox, (selectionBottomIndex - selectionTopIndex) * 2 + 1);
-                    //SetColumnSpan(topLeftTextBox, (selectionRightIndex - selectionLeftIndex) * 2 + 1);
                     GetTableData(topLeftTextBox).ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
                     GetTableData(topLeftTextBox).RowSpan = selectionBottomIndex - selectionTopIndex + 1;
                     for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
@@ -150,11 +160,11 @@ public partial class DiaryTable : Grid, IDiaryElement
     #region 附加属性
 
 
-    public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Column");
+    public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Column", -1);
 
     public static readonly AttachedProperty<StringDataTableItem> TableDataProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, StringDataTableItem>("RowSpan");
 
-    public static readonly AttachedProperty<int> TableRowProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Row");
+    public static readonly AttachedProperty<int> TableRowProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Row", -1);
 
     public static int GetTableColumn(TextBox element) => element.GetValue(TableColumnProperty);
 
@@ -545,18 +555,18 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    private static int BID2GID(int index)
+    internal static int BID2GID(int index)
     {
         return index * 2 + 1;
     }
 
-    private static int GID2BID(int index)
+    internal static int GID2BID(int index)
     {
         Debug.Assert(index % 2 == 1);
         return (index - 1) / 2;
     }
 
-    private static int GID2TID(int index)
+    internal static int GID2TID(int index)
     {
         Debug.Assert(index % 2 == 0);
         return (index - 2) / 2;
@@ -567,7 +577,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    private static int TID2GID(int index)
+    internal static int TID2GID(int index)
     {
         return index * 2 + 2;
     }
@@ -661,7 +671,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                     if (r >= insertRow) //在插入线下方
                     {
                         //那么整体下移一格
-                        SetRow(t, GetRow(t) + 2);
                         SetTableRow(t, r + 1);
                     }
                     else //在插入线上方
@@ -723,7 +732,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                     if (r >= deleteRow + rowSpan) //在删除行下方
                     {
                         //那么整体上移一格
-                        SetRow(t, GetRow(t) - 2 * rowSpan);
                         SetTableRow(t, r - rowSpan);
                         newR = r - rowSpan;
                     }
@@ -733,7 +741,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                         {
                             d.RowSpan -= rowSpan + deleteRow - r; //计算新的行号，rowSpan + deleteRow - r指的是从要删除的n行中与当前合并单元格不重叠的行数
                                                                   //设置新行，在这种情况下，一定是欲删除的行
-                            SetRow(t, TID2GID(deleteRow));
                             SetTableRow(t, deleteRow);
                             newR = deleteRow;
                         }
@@ -802,7 +809,6 @@ public partial class DiaryTable : Grid, IDiaryElement
 
                     if (c >= insertColumn)
                     {
-                        SetColumn(t, GetColumn(t) + 2);
                         SetTableColumn(t, c + 1);
                     }
                     else if (c + d.ColumnSpan > insertColumn)
@@ -845,7 +851,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             grd.ColumnDefinitions.RemoveRange(2, columnSpan * 2);
 
             var newTextBoxes = new TextBox[height, width - columnSpan];
-            var newTextBoxesSet = new HashSet<TextBox>(); 
+            var newTextBoxesSet = new HashSet<TextBox>();
 
             for (int r = 0; r < height; r++)
             {
@@ -861,18 +867,16 @@ public partial class DiaryTable : Grid, IDiaryElement
 
                     int newC = -1;
 
-                    if (c >= deleteColumn + columnSpan) 
+                    if (c >= deleteColumn + columnSpan)
                     {
-                        SetColumn(t, GetColumn(t) - 2 * columnSpan);
                         SetTableColumn(t, c - columnSpan);
                         newC = c - columnSpan;
                     }
-                    else if (c >= deleteColumn && c < deleteColumn + columnSpan) // The column to be deleted
+                    else if (c >= deleteColumn && c < deleteColumn + columnSpan)
                     {
                         if (d.ColumnSpan > columnSpan + deleteColumn - c)
                         {
                             d.ColumnSpan -= columnSpan + deleteColumn - c;
-                            SetColumn(t, TID2GID(deleteColumn));
                             SetTableColumn(t, deleteColumn);
                             newC = deleteColumn;
                         }
@@ -881,7 +885,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                             continue;
                         }
                     }
-                    else 
+                    else
                     {
                         if (c + d.ColumnSpan > deleteColumn)
                         {
@@ -966,6 +970,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             Source = item,
             Path = nameof(item.VisualColumnSpan)
         });
+
         txt[!TextBox.BorderBrushProperty] = new DynamicResourceExtension("Foreground0");
         SetTableRow(txt, row);
         SetTableColumn(txt, column);
@@ -987,8 +992,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         };
 
         textBoxes[row, column] = txt;
-        SetRow(txt, TID2GID(row));
-        SetColumn(txt, TID2GID(column));
+
 
         //合并单元格
         if (item.RowSpan * item.ColumnSpan > 1)
