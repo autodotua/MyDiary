@@ -19,14 +19,14 @@ public partial class DiaryTextBox : TextBox, IDiaryElement
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
         base.OnGotFocus(e);
-        EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler EditPropertiesUpdated;
+    public event EventHandler EditBarInfoUpdated;
 
-    public EditProperties GetEditProperties()
+    public EditBarInfo GetEditBarInfo()
     {
-        var ep = new EditProperties()
+        var ep = new EditBarInfo()
         {
             CanMergeCell = false,
             Bold = FontWeight > FontWeight.Normal,

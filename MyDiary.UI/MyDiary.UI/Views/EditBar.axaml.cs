@@ -11,8 +11,8 @@ public partial class EditBar : UserControl
     /// <summary>
     /// EditProperties StyledProperty definition
     /// </summary>
-    public static readonly StyledProperty<EditProperties> EditPropertiesProperty =
-        AvaloniaProperty.Register<EditBar, EditProperties>(nameof(EditProperties), coerce: (s, n) =>
+    public static readonly StyledProperty<EditBarInfo> EditInfoProperty =
+        AvaloniaProperty.Register<EditBar, EditBarInfo>(nameof(EditInfo), coerce: (s, n) =>
         {
             return n;
         });
@@ -28,9 +28,9 @@ public partial class EditBar : UserControl
     /// Gets or sets the EditProperties property. This StyledProperty
     /// indicates ....
     /// </summary>
-    public EditProperties EditProperties
+    public EditBarInfo EditInfo
     {
-        get => GetValue(EditPropertiesProperty);
-        set => SetValue(EditPropertiesProperty, value);
+        get => GetValue(EditInfoProperty);
+        set => SetValue(EditInfoProperty, value);
     }
 }

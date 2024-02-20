@@ -24,7 +24,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     /**
      * Grid的ColumnDefinitions/RowDefinitions：
      * 10                                                  4           64               4        ……         4           10
-     * 用来支持调整大小的多余空间    边框      TextBox       边框    ……       边框     用来支持调整大小的多余空间
+     * 用来支持调整大小的多余空间    边框      DiaryTableCell       边框    ……       边框     用来支持调整大小的多余空间
      */
 
     /// <summary>
@@ -39,33 +39,26 @@ public partial class DiaryTable : Grid, IDiaryElement
     public DiaryTable()
     {
         DataContext = viewModel = new DiaryTableVM();
-        //设置从TableRow/Column到Grid.Row/Column的单向绑定。
-        //注意，需要设置TableRow/Column的默认值为<0，来防止设置的值与默认值相同导致不通知
-        TableRowProperty.Changed.AddClassHandler<TextBox>((s, e) =>
-        {
-            SetRow(s, TID2GID((int)e.NewValue));
-        });
-        TableColumnProperty.Changed.AddClassHandler<TextBox>((s, e) =>
-        {
-            SetColumn(s, TID2GID((int)e.NewValue));
-        });
+
         InitializeComponent();
     }
 
     #region 和EditBar的数据交换
 
-    public event EventHandler EditPropertiesUpdated;
+    public event EventHandler EditBarInfoUpdated;
 
-    public EditProperties GetEditProperties()
+    public EditBarInfo GetEditBarInfo()
     {
         var txts = GetSelectedCells().ToList();
         if (txts.Count == 0)
         {
             return null;
         }
-        var data = GetTableData(txts[0]);
+        var data = txts[0].CellData;
+        var datas = txts.Select(p => p.CellData).ToHashSet();
+
         Debug.WriteLine(data);
-        var ep = new EditProperties()
+        var ep = new EditBarInfo()
         {
             CanMergeCell = CellsSelectionMode switch
             {
@@ -79,32 +72,32 @@ public partial class DiaryTable : Grid, IDiaryElement
                 TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
                 _ => false
             },
-            Bold = txts.All(txt => txt.FontWeight > FontWeight.Normal),
-            Italic = txts.All(txt => txt.FontStyle == FontStyle.Italic),
-            FontSize = txts.Select(p => p.FontSize).Min(),
+            Bold = datas.All(p => p.Bold),
+            Italic = datas.All(p => p.Italic),
+            FontSize = datas.Min(p => p.FontSize),
         };
 
         ep.PropertyChanged += (s, e) =>
         {
             switch (e.PropertyName)
             {
-                case nameof(EditProperties.Bold):
-                    txts.ForEach(txt => txt.FontWeight = ep.Bold ? FontWeight.Bold : FontWeight.Normal);
+                case nameof(EditBarInfo.Bold):
+                    datas.ForEach(d => d.Bold=ep.Bold);
                     break;
-                case nameof(EditProperties.Italic):
-                    txts.ForEach(txt => txt.FontStyle = ep.Italic ? FontStyle.Italic : FontStyle.Normal);
+                case nameof(EditBarInfo.Italic):
+                    datas.ForEach(d => d.Italic = ep.Italic);
                     break;
-                case nameof(EditProperties.FontSize):
-                    txts.ForEach(txt => txt.FontSize = ep.FontSize);
+                case nameof(EditBarInfo.FontSize):
+                    datas.ForEach(d => d.FontSize = ep.FontSize);
                     break;
-                case nameof(EditProperties.CellsMerged) when ep.CellsMerged == true:
+                case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == true:
                     if (CellsSelectionMode != TableCellsSelectionMode.Selected)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
                     var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
-                    GetTableData(topLeftTextBox).ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
-                    GetTableData(topLeftTextBox).RowSpan = selectionBottomIndex - selectionTopIndex + 1;
+                    topLeftTextBox.CellData.ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
+                    topLeftTextBox.CellData.RowSpan = selectionBottomIndex - selectionTopIndex + 1;
                     for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
                     {
                         for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
@@ -116,40 +109,40 @@ public partial class DiaryTable : Grid, IDiaryElement
                             }
                         }
                     }
-                    var data = GetTableItems();
+                    var data = GetCellsData();
                     CreateTableStructure(data);
                     ClearCellsSelection();
                     topLeftTextBox.Focus();
                     break;
-                case nameof(EditProperties.CellsMerged) when ep.CellsMerged == false:
+                case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == false:
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
                     if (txts.Count != 1)
                     {
-                        throw new Exception($"查找到的TextBox数量错误");
+                        throw new Exception($"查找到的DiaryTableCell数量错误");
                     }
                     var txt = txts[0];
                     bool first = true;
-                    for (int r = GetTableRow(txt); r < GetTableRow(txt) + GetTableData(txt).RowSpan; r++)
+                    for (int r = txt.TableRow; r < txt.TableRow + txt.CellData.RowSpan; r++)
                     {
-                        for (int c = GetTableColumn(txt); c < GetTableColumn(txt) + GetTableData(txt).ColumnSpan; c++)
+                        for (int c = txt.TableColumn; c < txt.TableColumn + txt.CellData.ColumnSpan; c++)
                         {
                             if (first)
                             {
                                 first = false;
                                 continue;
                             }
-                            CreateAndInsertCellTextBox(r, c, new StringDataTableItem());
+                            CreateAndInsertCellTextBox(r, c, new TableCellInfo());
                         }
                     }
-                    GetTableData(txt).ColumnSpan = 1;
-                    GetTableData(txt).RowSpan = 1;
+                    txt.CellData.ColumnSpan = 1;
+                    txt.CellData.RowSpan = 1;
 
-                    var data2 = GetTableItems();
+                    var data2 = GetCellsData();
                     CreateTableStructure(data2);
-                    EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+                    EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
                     break;
             }
         };
@@ -157,58 +150,36 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
     #endregion
 
-    #region 附加属性
-
-
-    public static readonly AttachedProperty<int> TableColumnProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Column", -1);
-
-    public static readonly AttachedProperty<StringDataTableItem> TableDataProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, StringDataTableItem>("RowSpan");
-
-    public static readonly AttachedProperty<int> TableRowProperty = AvaloniaProperty.RegisterAttached<DiaryTable, TextBox, int>("Row", -1);
-
-    public static int GetTableColumn(TextBox element) => element.GetValue(TableColumnProperty);
-
-    public static StringDataTableItem GetTableData(TextBox element) => element.GetValue(TableDataProperty);
-
-    public static int GetTableRow(TextBox element) => element.GetValue(TableRowProperty);
-
-    public static void SetTableColumn(TextBox element, int value) => element.SetValue(TableColumnProperty, value);
-
-    public static void SetTableData(TextBox element, StringDataTableItem value) => element.SetValue(TableDataProperty, value);
-
-    public static void SetTableRow(TextBox element, int value) => element.SetValue(TableRowProperty, value);
-
-    #endregion
 
     #region 建立表格
     public void MakeEmptyTable(int row, int column)
     {
-        StringDataTableItem[,] data = new StringDataTableItem[row, column];
+        TableCellInfo[,] data = new TableCellInfo[row, column];
         for (int i = 0; i < row; i++)
         {
             for (int j = 0; j < column; j++)
             {
-                data[i, j] = new StringDataTableItem();
+                data[i, j] = new TableCellInfo();
             }
         }
 #if DEBUG
-        data[1, 1] = new StringDataTableItem(2, 2, null);
-        data[4, 0] = new StringDataTableItem(2, 3, null);
-        data[2, 3] = new StringDataTableItem(2, 3, null);
+        data[1, 1] = new TableCellInfo(2, 2, null);
+        data[4, 0] = new TableCellInfo(2, 3, null);
+        data[2, 3] = new TableCellInfo(2, 3, null);
 #endif
         MakeTable(data);
     }
 
-    public void MakeTable(StringDataTableItem[,] data)
+    public void MakeTable(TableCellInfo[,] data)
     {
         CreateTableStructure(data);
-        //向单元格中填充TextBox
+        //向单元格中填充DiaryTableCell
         FillTextBoxes(data);
     }
 
 
 
-    private void CreateTableStructure(StringDataTableItem[,] data)
+    private void CreateTableStructure(TableCellInfo[,] data)
     {
         int row = data.GetLength(0);
         int column = data.GetLength(1);
@@ -288,7 +259,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     private Border selectionBorder = null;
 
     /// <summary>
-    /// 选择后TextBox边界
+    /// 选择后DiaryTableCell边界
     /// </summary>
     private int selectionLeftIndex, selectionRightIndex, selectionTopIndex, selectionBottomIndex;
 
@@ -303,7 +274,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             {
                 grd.Children.OfType<GridSplitter>()
                     .ForEach(p => p.IsEnabled = value == TableCellsSelectionMode.None);
-                EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
+                EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
             }
         }
     }
@@ -325,7 +296,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             return;
         }
 
-        //若焦点不在TextBox（例如在调整边框），则不执行操作
+        //若焦点不在DiaryTableCell（例如在调整边框），则不执行操作
         if (TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is GridSplitter)
         {
             return;
@@ -353,10 +324,10 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    private TextBox GetFocusedCell()
+    private DiaryTableCell GetFocusedCell()
     {
         var element = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
-        if (element is TextBox txt)
+        if (element is DiaryTableCell txt)
         {
             if (txt.GetLogicalAncestors().Contains(this))
             {
@@ -372,7 +343,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     /// <param name="returnFocusedWhenNotSelecting">若开启，则在未选择状态会返回焦点所在文本框</param>
     /// <returns></returns>
-    private IEnumerable<TextBox> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
+    private IEnumerable<DiaryTableCell> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
     {
 
         if (CellsSelectionMode == TableCellsSelectionMode.None)
@@ -388,7 +359,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
         else
         {
-            HashSet<TextBox> set = new HashSet<TextBox>();
+            HashSet<DiaryTableCell> set = new HashSet<DiaryTableCell>();
             for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
             {
                 for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
@@ -485,10 +456,10 @@ public partial class DiaryTable : Grid, IDiaryElement
                 for (int j = topIndex; j <= bottomIndex; j++)
                 {
                     var txt = textBoxes[j, i];
-                    selectionLeftIndex = Math.Min(selectionLeftIndex, GetTableColumn(txt));
-                    selectionRightIndex = Math.Max(selectionRightIndex, GetTableColumn(txt) + GetTableData(txt).ColumnSpan - 1);
-                    selectionTopIndex = Math.Min(selectionTopIndex, GetTableRow(txt));
-                    selectionBottomIndex = Math.Max(selectionBottomIndex, GetTableRow(txt) + GetTableData(txt).RowSpan - 1);
+                    selectionLeftIndex = Math.Min(selectionLeftIndex, txt.TableColumn);
+                    selectionRightIndex = Math.Max(selectionRightIndex, txt.TableColumn + txt.CellData.ColumnSpan - 1);
+                    selectionTopIndex = Math.Min(selectionTopIndex, txt.TableRow);
+                    selectionBottomIndex = Math.Max(selectionBottomIndex, txt.TableRow + txt.CellData.RowSpan - 1);
                 }
             }
             Debug.WriteLine($"{selectionLeftIndex},{selectionRightIndex},{selectionTopIndex},{selectionBottomIndex}");
@@ -573,7 +544,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
 
     /// <summary>
-    /// TextBox Row/Column 转 Grid Row/Column
+    /// DiaryTableCell Row/Column 转 Grid Row/Column
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
@@ -587,32 +558,40 @@ public partial class DiaryTable : Grid, IDiaryElement
     #region 文本框处理
 
     /// <summary>
-    /// 网格对应的TextBox[行号,列号]。
+    /// 网格对应的DiaryTableCell[行号,列号]。
     /// </summary>
     /// <remarks>
-    /// 程序中有两个与表格对应的数组，分别是<see cref="TextBox"/>[]和<see cref="StringDataTableItem"/>[]。
+    /// 程序中有两个与表格对应的数组，分别是<see cref="DiaryTableCell"/>[]和<see cref="TableCellInfo"/>[]。
     /// 前者通过<see cref="textBoxes"/>保存在对象中，保持与实际显示的一致，
-    /// 而后者需要时通过<see cref="GetTableItems"/>进行获取。
+    /// 而后者需要时通过<see cref="GetCellsData"/>进行获取。
     /// <br/>
     /// 两者有一个不同点，对于合并单元格，
     /// <see cref="textBoxes"/>的每个子单元格都为相同值，即合并的单元格；
-    /// 而<see cref="StringDataTableItem"/>[]仅左上角保存值，其余均设置为null。
+    /// 而<see cref="TableCellInfo"/>[]仅左上角保存值，其余均设置为null。
     /// </remarks>
-    private TextBox[,] textBoxes;
+    private DiaryTableCell[,] textBoxes;
 
-    private void AddTextBoxMenuEvents(TextBox txt)
+    private void AddTextBoxMenuEvents(DiaryTableCell txt)
     {
         var menu = txt.ContextFlyout as MenuFlyout;
 
         Debug.Assert(menu != null);
         var items = menu.Items.Cast<MenuItem>().Skip(3).Where(p => !p.Header.Equals("-")).ToList();
-
-        //在上方插入
-        items[0].Click += (s, e) =>
+        foreach (var item in items)
         {
-            e.Handled = true;
-            InsertRow(s, true);
-        };
+            switch (item.Name)
+            {
+                //在上方插入
+                case "InsertUp":
+                    item.Click += (s, e) =>
+                     {
+                         e.Handled = true;
+                         InsertRow(s, true);
+                     };
+                    break;
+            }
+        }
+
         //在下方插入
         items[1].Click += (s, e) =>
         {
@@ -647,17 +626,17 @@ public partial class DiaryTable : Grid, IDiaryElement
         void InsertRow(object sender, bool up)
         {
             //如果直接拿上面的txt，永远都是[0,0]那个，不确定是什么原因，可能是闭包相关问题
-            LoadData(sender, out StringDataTableItem[,] data, out int insertRow, out int insertColumn, out int height, out int width);
+            LoadData(sender, out TableCellInfo[,] data, out int insertRow, out int insertColumn, out int height, out int width);
             if (!up)
             {
-                insertRow += GetTableData(textBoxes[insertRow, insertColumn]).RowSpan;
+                insertRow += textBoxes[insertRow, insertColumn].CellData.RowSpan;
             }
 
             //网格加两行，一行内容一行边框
             grd.RowDefinitions.Insert(grd.RowDefinitions.Count - 2, new RowDefinition(InnerBorderWidth, GridUnitType.Pixel));
             grd.RowDefinitions.Insert(grd.RowDefinitions.Count - 2, new RowDefinition(1, GridUnitType.Auto));
             //新的文本框数组
-            var newTextBoxes = new TextBox[height + 1, width];
+            var newTextBoxes = new DiaryTableCell[height + 1, width];
             for (int r = 0; r < height; r++)
             {
                 for (int c = 0; c < width; c++)
@@ -671,7 +650,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     if (r >= insertRow) //在插入线下方
                     {
                         //那么整体下移一格
-                        SetTableRow(t, r + 1);
+                        t.TableRow = r + 1;
                     }
                     else //在插入线上方
                      if (r + d.RowSpan > insertRow) //如果这个合并的单元格跨越了插入线
@@ -699,7 +678,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             {
                 if (textBoxes[insertRow, i] == null)
                 {
-                    CreateAndInsertCellTextBox(insertRow, i, new StringDataTableItem()
+                    CreateAndInsertCellTextBox(insertRow, i, new TableCellInfo()
                     {
 #if DEBUG
                         Text = "Insert"
@@ -712,12 +691,12 @@ public partial class DiaryTable : Grid, IDiaryElement
         void DeleteRow(object sender)
         {
             //如果直接拿上面的txt，永远都是[0,0]那个，不确定是什么原因，可能是闭包相关问题
-            var txt = LoadData(sender, out StringDataTableItem[,] data, out int deleteRow, out int deleteColumn, out int height, out int width);
-            int rowSpan = GetTableData(txt).RowSpan; //选中的如果是合并的单元格，可以同时删除多行
+            var txt = LoadData(sender, out TableCellInfo[,] data, out int deleteRow, out int deleteColumn, out int height, out int width);
+            int rowSpan = txt.CellData.RowSpan; //选中的如果是合并的单元格，可以同时删除多行
             grd.RowDefinitions.RemoveRange(2, rowSpan * 2);
             //新的文本框数组
-            var newTextBoxes = new TextBox[height - rowSpan, width];
-            var newTextBoxesSet = new HashSet<TextBox>(); //用来保存需要保留的TextBox
+            var newTextBoxes = new DiaryTableCell[height - rowSpan, width];
+            var newTextBoxesSet = new HashSet<DiaryTableCell>(); //用来保存需要保留的DiaryTableCell
             for (int r = 0; r < height; r++)
             {
                 for (int c = 0; c < width; c++)
@@ -732,7 +711,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     if (r >= deleteRow + rowSpan) //在删除行下方
                     {
                         //那么整体上移一格
-                        SetTableRow(t, r - rowSpan);
+                        t.TableRow = r - rowSpan;
                         newR = r - rowSpan;
                     }
                     else if (r >= deleteRow && r < deleteRow + rowSpan) //就是要删除的那一行
@@ -741,7 +720,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                         {
                             d.RowSpan -= rowSpan + deleteRow - r; //计算新的行号，rowSpan + deleteRow - r指的是从要删除的n行中与当前合并单元格不重叠的行数
                                                                   //设置新行，在这种情况下，一定是欲删除的行
-                            SetTableRow(t, deleteRow);
+                            t.TableRow = deleteRow;
                             newR = deleteRow;
                         }
                         else//其他情况，则准备删除单元格
@@ -770,7 +749,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     newTextBoxesSet.Add(t);
                 }
             }
-            //删除不再使用的TextBox
+            //删除不再使用的DiaryTableCell
             foreach (var t in textBoxes)
             {
                 if (!newTextBoxesSet.Contains(t))
@@ -783,17 +762,17 @@ public partial class DiaryTable : Grid, IDiaryElement
 
         void InsertColumn(object sender, bool left)
         {
-            LoadData(sender, out StringDataTableItem[,] data, out int insertRow, out int insertColumn, out int height, out int width);
+            LoadData(sender, out TableCellInfo[,] data, out int insertRow, out int insertColumn, out int height, out int width);
 
             if (!left)
             {
-                insertColumn += GetTableData(textBoxes[insertRow, insertColumn]).ColumnSpan;
+                insertColumn += textBoxes[insertRow, insertColumn].CellData.ColumnSpan;
             }
 
             grd.ColumnDefinitions.Insert(grd.ColumnDefinitions.Count - 2, new ColumnDefinition(InnerBorderWidth, GridUnitType.Pixel));
             grd.ColumnDefinitions.Insert(grd.ColumnDefinitions.Count - 2, new ColumnDefinition(DefaultColumnWidth, GridUnitType.Pixel));
 
-            var newTextBoxes = new TextBox[height, width + 1];
+            var newTextBoxes = new DiaryTableCell[height, width + 1];
 
             for (int r = 0; r < height; r++)
             {
@@ -809,7 +788,7 @@ public partial class DiaryTable : Grid, IDiaryElement
 
                     if (c >= insertColumn)
                     {
-                        SetTableColumn(t, c + 1);
+                        t.TableColumn = c + 1;
                     }
                     else if (c + d.ColumnSpan > insertColumn)
                     {
@@ -834,7 +813,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             {
                 if (textBoxes[i, insertColumn] == null)
                 {
-                    CreateAndInsertCellTextBox(i, insertColumn, new StringDataTableItem()
+                    CreateAndInsertCellTextBox(i, insertColumn, new TableCellInfo()
                     {
 #if DEBUG
                         Text = "Insert"
@@ -846,12 +825,12 @@ public partial class DiaryTable : Grid, IDiaryElement
 
         void DeleteColumn(object sender)
         {
-            var txt = LoadData(sender, out StringDataTableItem[,] data, out int deleteRow, out int deleteColumn, out int height, out int width);
-            int columnSpan = GetTableData(txt).ColumnSpan;
+            var txt = LoadData(sender, out TableCellInfo[,] data, out int deleteRow, out int deleteColumn, out int height, out int width);
+            int columnSpan = txt.CellData.ColumnSpan;
             grd.ColumnDefinitions.RemoveRange(2, columnSpan * 2);
 
-            var newTextBoxes = new TextBox[height, width - columnSpan];
-            var newTextBoxesSet = new HashSet<TextBox>();
+            var newTextBoxes = new DiaryTableCell[height, width - columnSpan];
+            var newTextBoxesSet = new HashSet<DiaryTableCell>();
 
             for (int r = 0; r < height; r++)
             {
@@ -869,7 +848,7 @@ public partial class DiaryTable : Grid, IDiaryElement
 
                     if (c >= deleteColumn + columnSpan)
                     {
-                        SetTableColumn(t, c - columnSpan);
+                        t.TableColumn = c - columnSpan;
                         newC = c - columnSpan;
                     }
                     else if (c >= deleteColumn && c < deleteColumn + columnSpan)
@@ -877,7 +856,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                         if (d.ColumnSpan > columnSpan + deleteColumn - c)
                         {
                             d.ColumnSpan -= columnSpan + deleteColumn - c;
-                            SetTableColumn(t, deleteColumn);
+                            t.TableColumn = deleteColumn;
                             newC = deleteColumn;
                         }
                         else
@@ -916,12 +895,12 @@ public partial class DiaryTable : Grid, IDiaryElement
             textBoxes = newTextBoxes;
         }
 
-        TextBox LoadData(object s, out StringDataTableItem[,] data, out int r, out int c, out int rr, out int cc)
+        DiaryTableCell LoadData(object s, out TableCellInfo[,] data, out int r, out int c, out int rr, out int cc)
         {
-            var txt = (s as Visual).GetLogicalAncestors().OfType<TextBox>().First();
-            data = GetTableItems();
-            r = GetTableRow(txt);
-            c = GetTableColumn(txt);
+            var txt = (s as Visual).GetLogicalAncestors().OfType<DiaryTableCell>().First();
+            data = GetCellsData();
+            r = txt.TableRow;
+            c = txt.TableColumn;
             rr = data.GetLength(0);
             cc = data.GetLength(1);
             return txt;
@@ -929,67 +908,31 @@ public partial class DiaryTable : Grid, IDiaryElement
     }
 
 
-    private TextBox CreateAndInsertCellTextBox(int row, int column, StringDataTableItem item)
+    private DiaryTableCell CreateAndInsertCellTextBox(int row, int column, TableCellInfo item)
     {
-        var txt = new TextBox
+        var txt = new DiaryTableCell
         {
-            CornerRadius = new CornerRadius(0),
             ZIndex = 100,
-            Theme = App.Current.FindResource("TableTextBoxTheme") as ControlTheme
         };
 #if DEBUG
         item.Text ??= $"{row},{column}";
 #endif
-        txt.Bind(TextBox.TextProperty, new Binding
-        {
-            Source = item,
-            Path = nameof(item.Text)
-        });
-        txt.Bind(TextBox.FontSizeProperty, new Binding
-        {
-            Source = item,
-            Path = nameof(item.FontSize)
-        });
-        txt.Bind(TextBox.FontWeightProperty, new Binding
-        {
-            Source = item,
-            Path = nameof(item.FontWeight)
-        });
-        txt.Bind(TextBox.FontStyleProperty, new Binding
-        {
-            Source = item,
-            Path = nameof(item.FontStyle)
-        });
-        txt.Bind(RowSpanProperty, new Binding
-        {
-            Source = item,
-            Path = nameof(item.VisualRowSpan)
-        });
-        txt.Bind(ColumnSpanProperty, new Binding
-        {
-            Source = item,
-            Path = nameof(item.VisualColumnSpan)
-        });
 
-        txt[!TextBox.BorderBrushProperty] = new DynamicResourceExtension("Foreground0");
-        SetTableRow(txt, row);
-        SetTableColumn(txt, column);
-        SetTableData(txt, item);
+        txt.TableRow = row;
+        txt.TableColumn = column;
+        txt.CellData = item;
 
 
         txt.GotFocus += (s, e) =>
         {
             ClearCellsSelection();
-            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
         };
-        txt.LostFocus += (s, e) =>
-        {
-            EditPropertiesUpdated?.Invoke(this, EventArgs.Empty);
-        };
+
         txt.Loaded += (s, e) =>
         {
-            AddTextBoxMenuEvents(s as TextBox);
+            AddTextBoxMenuEvents(s as DiaryTableCell);
         };
+        txt.EditBarInfoUpdated += (s, e) => EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
 
         textBoxes[row, column] = txt;
 
@@ -1011,12 +954,12 @@ public partial class DiaryTable : Grid, IDiaryElement
         return txt;
     }
 
-    private void FillTextBoxes(StringDataTableItem[,] data)
+    private void FillTextBoxes(TableCellInfo[,] data)
     {
-        grd.Children.OfType<TextBox>().ToList().ForEach(p => grd.Children.Remove(p));
+        grd.Children.OfType<DiaryTableCell>().ToList().ForEach(p => grd.Children.Remove(p));
         int row = data.GetLength(0);
         int column = data.GetLength(1);
-        textBoxes = new TextBox[row, column];
+        textBoxes = new DiaryTableCell[row, column];
         for (int r = 0; r < row; r++)
         {
             for (int c = 0; c < column; c++)
@@ -1033,10 +976,10 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-    private StringDataTableItem[,] GetTableItems()
+    private TableCellInfo[,] GetCellsData()
     {
         bool[,] visited = new bool[textBoxes.GetLength(0), textBoxes.GetLength(1)];
-        StringDataTableItem[,] items = new StringDataTableItem[textBoxes.GetLength(0), textBoxes.GetLength(1)];
+        TableCellInfo[,] items = new TableCellInfo[textBoxes.GetLength(0), textBoxes.GetLength(1)];
         for (int r = 0; r < visited.GetLength(0); r++)
         {
             for (int c = 0; c < visited.GetLength(1); c++)
@@ -1045,7 +988,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                 {
                     continue;
                 }
-                StringDataTableItem item = GetTableData(textBoxes[r, c]);
+                TableCellInfo item = textBoxes[r, c].CellData;
                 items[r, c] = item;
                 for (int rr = 0; rr < item.RowSpan; rr++)
                 {

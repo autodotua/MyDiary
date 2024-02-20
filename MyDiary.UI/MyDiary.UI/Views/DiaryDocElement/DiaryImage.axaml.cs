@@ -23,7 +23,7 @@ public partial class DiaryImage : Grid, IDiaryElement
         return v;
     }));
 
-    public event EventHandler EditPropertiesUpdated;
+    public event EventHandler EditBarInfoUpdated;
 
     public IImage ImageSource
     {
@@ -59,7 +59,7 @@ public partial class DiaryImage : Grid, IDiaryElement
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
     }
 
-    public EditProperties GetEditProperties()
+    public EditBarInfo GetEditBarInfo()
     {
         throw new NotImplementedException();
     }

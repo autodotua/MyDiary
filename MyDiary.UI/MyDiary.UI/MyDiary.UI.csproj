@@ -40,6 +40,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\DiaryDocElement\DiaryTableCell.axaml.cs">
+      <DependentUpon>DiaryTableCell.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\EditBar.axaml.cs">
       <DependentUpon>EditBar.axaml</DependentUpon>
     </Compile>
