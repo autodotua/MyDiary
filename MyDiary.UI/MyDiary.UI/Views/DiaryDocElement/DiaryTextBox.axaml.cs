@@ -15,6 +15,7 @@ public partial class DiaryTextBox : TextBox, IDiaryElement
     public DiaryTextBox()
     {
         InitializeComponent();
+     
     }
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
@@ -46,6 +47,9 @@ public partial class DiaryTextBox : TextBox, IDiaryElement
                     break;
                 case nameof(ep.FontSize):
                     FontSize = ep.FontSize;
+                    break;
+                case nameof(ep.Alignment):
+                    TextAlignment = ep.TextAlignment;
                     break;
             }
         };

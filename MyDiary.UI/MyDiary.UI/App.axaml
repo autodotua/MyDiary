@@ -20,6 +20,8 @@
                 <ResourceInclude Source="avares://MyDiary.UI/Styles/Brushes.axaml" />
                 <ResourceInclude Source="avares://MyDiary.UI/Styles/ControlStyles.axaml" />
             </ResourceDictionary.MergedDictionaries>
+
+          <Thickness x:Key="TextControlThemePadding">5,6,6,5</Thickness>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

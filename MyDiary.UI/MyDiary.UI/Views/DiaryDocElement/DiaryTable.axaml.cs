@@ -75,6 +75,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             Bold = datas.All(p => p.Bold),
             Italic = datas.All(p => p.Italic),
             FontSize = datas.Min(p => p.FontSize),
+            Alignment=datas.Min(p => p.Alignment),
         };
 
         ep.PropertyChanged += (s, e) =>
@@ -90,29 +91,15 @@ public partial class DiaryTable : Grid, IDiaryElement
                 case nameof(EditBarInfo.FontSize):
                     datas.ForEach(d => d.FontSize = ep.FontSize);
                     break;
+                case nameof(EditBarInfo.Alignment):
+                    datas.ForEach(d => d.Alignment = ep.Alignment);
+                    break;
                 case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == true:
                     if (CellsSelectionMode != TableCellsSelectionMode.Selected)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
-                    var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
-                    topLeftTextBox.CellData.ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
-                    topLeftTextBox.CellData.RowSpan = selectionBottomIndex - selectionTopIndex + 1;
-                    for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
-                    {
-                        for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
-                        {
-                            if (textBoxes[r, c] != topLeftTextBox)
-                            {
-                                grd.Children.Remove(textBoxes[r, c]);
-                                textBoxes[r, c] = topLeftTextBox;
-                            }
-                        }
-                    }
-                    var data = GetCellsData();
-                    CreateTableStructure(data);
-                    ClearCellsSelection();
-                    topLeftTextBox.Focus();
+                    MergeCells();
                     break;
                 case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == false:
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
@@ -123,30 +110,56 @@ public partial class DiaryTable : Grid, IDiaryElement
                     {
                         throw new Exception($"查找到的DiaryTableCell数量错误");
                     }
-                    var txt = txts[0];
-                    bool first = true;
-                    for (int r = txt.TableRow; r < txt.TableRow + txt.CellData.RowSpan; r++)
-                    {
-                        for (int c = txt.TableColumn; c < txt.TableColumn + txt.CellData.ColumnSpan; c++)
-                        {
-                            if (first)
-                            {
-                                first = false;
-                                continue;
-                            }
-                            CreateAndInsertCellTextBox(r, c, new TableCellInfo());
-                        }
-                    }
-                    txt.CellData.ColumnSpan = 1;
-                    txt.CellData.RowSpan = 1;
-
-                    var data2 = GetCellsData();
-                    CreateTableStructure(data2);
-                    EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+                    SplitMergedCell(txts[0]);
                     break;
             }
         };
         return ep;
+    }
+
+    private void SplitMergedCell(DiaryTableCell txt)
+    {
+        bool first = true;
+        for (int r = txt.TableRow; r < txt.TableRow + txt.CellData.RowSpan; r++)
+        {
+            for (int c = txt.TableColumn; c < txt.TableColumn + txt.CellData.ColumnSpan; c++)
+            {
+                if (first)
+                {
+                    first = false;
+                    continue;
+                }
+                CreateAndInsertCellTextBox(r, c, new TableCellInfo());
+            }
+        }
+        txt.CellData.ColumnSpan = 1;
+        txt.CellData.RowSpan = 1;
+
+        var data2 = GetCellsData();
+        CreateTableStructure(data2);
+        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void MergeCells()
+    {
+        var topLeftTextBox = textBoxes[selectionTopIndex, selectionLeftIndex];
+        topLeftTextBox.CellData.ColumnSpan = selectionRightIndex - selectionLeftIndex + 1;
+        topLeftTextBox.CellData.RowSpan = selectionBottomIndex - selectionTopIndex + 1;
+        for (int r = selectionTopIndex; r <= selectionBottomIndex; r++)
+        {
+            for (int c = selectionLeftIndex; c <= selectionRightIndex; c++)
+            {
+                if (textBoxes[r, c] != topLeftTextBox)
+                {
+                    grd.Children.Remove(textBoxes[r, c]);
+                    textBoxes[r, c] = topLeftTextBox;
+                }
+            }
+        }
+        var data = GetCellsData();
+        CreateTableStructure(data);
+        ClearCellsSelection();
+        topLeftTextBox.Focus();
     }
     #endregion
 

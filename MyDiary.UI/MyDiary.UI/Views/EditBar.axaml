@@ -74,6 +74,41 @@
                     Text="斜体" />
             </StackPanel>
         </ToggleButton>
+        <ListBox
+            Background="Transparent"
+            Focusable="False"
+            ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+            SelectedIndex="{Binding #bar.EditInfo.Alignment}">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="4,0" />
+                    <Setter Property="Focusable" Value="False" />
+                    <Setter Property="Height" Value="32" />
+                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+                    <Style Selector="^:selected /template/ ContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Background" Value="{DynamicResource ToggleButtonBackgroundChecked}" />
+
+                    </Style>
+                </Style>
+            </ListBox.Styles>
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.Items>
+                <ListBoxItem>
+                    <PathIcon Data="{StaticResource IconLeftAlignment}" />
+                </ListBoxItem>
+                <ListBoxItem>
+                    <PathIcon Data="{StaticResource IconCenterAlignment}" />
+                </ListBoxItem>
+                <ListBoxItem>
+                    <PathIcon Data="{StaticResource IconRightAlignment}" />
+                </ListBoxItem>
+            </ListBox.Items>
+        </ListBox>
         <Rectangle
             Width="2"
             Margin="0,4"

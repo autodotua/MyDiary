@@ -26,6 +26,9 @@ namespace MyDiary.UI.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(FontStyle))]
         private bool italic;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(TextAlignment))]
+        private int alignment;
 
         public FontStyle FontStyle
         {
@@ -37,6 +40,15 @@ namespace MyDiary.UI.ViewModels
             get => Bold ? FontWeight.Bold : FontWeight.Normal;
             set => Bold = value > FontWeight.Normal;
         }
-
+        public TextAlignment TextAlignment
+        {
+            get => Alignment switch
+            {
+                0 => TextAlignment.Left,
+                1 => TextAlignment.Center,
+                2 => TextAlignment.Right,
+                _=>throw new NotImplementedException()
+            };
+        }
     }
 }

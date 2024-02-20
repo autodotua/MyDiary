@@ -110,6 +110,7 @@ public partial class DiaryTableCell : TextBox
             BindToData(FontSizeProperty, nameof(item.FontSize));
             BindToData(FontWeightProperty, nameof(item.FontWeight));
             BindToData(FontStyleProperty, nameof(item.FontStyle));
+            BindToData(TextAlignmentProperty, nameof(item.TextAlignment));
             BindToData(Grid.RowSpanProperty, nameof(item.VisualRowSpan));
             BindToData(Grid.ColumnSpanProperty, nameof(item.VisualColumnSpan));
 
