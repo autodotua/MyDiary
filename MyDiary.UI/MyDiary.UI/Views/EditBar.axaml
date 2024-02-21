@@ -14,7 +14,9 @@
     <Design.DataContext>
         <vm:EditBarVM />
     </Design.DataContext>
-    <StackPanel Orientation="Horizontal">
+    <StackPanel
+        Orientation="Horizontal"
+        Spacing="4">
         <StackPanel.Styles>
             <Style Selector="ToggleButton">
                 <Setter Property="Background" Value="Transparent" />
@@ -54,6 +56,17 @@
                 </Flyout>
             </Button.Flyout>
         </Button>
+        <TextBlock
+            VerticalAlignment="Center"
+            Text="文字" />
+        <ColorPicker Color="{Binding #bar.EditInfo.TextColor}" />
+        <TextBlock
+            Margin="8,0,0,0"
+            VerticalAlignment="Center"
+            Text="背景" />
+        <ColorPicker
+            IsAlphaVisible="False"
+            Color="{Binding #bar.EditInfo.BackColor}" />
         <ToggleButton IsChecked="{Binding #bar.EditInfo.Bold}">
             <StackPanel
                 Orientation="Horizontal"
@@ -64,6 +77,7 @@
                     Text="粗体" />
             </StackPanel>
         </ToggleButton>
+
         <ToggleButton IsChecked="{Binding #bar.EditInfo.Italic}">
             <StackPanel
                 Orientation="Horizontal"
@@ -88,7 +102,6 @@
                     <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
                     <Style Selector="^:selected /template/ ContentPresenter#PART_ContentPresenter">
                         <Setter Property="Background" Value="{DynamicResource ToggleButtonBackgroundChecked}" />
-
                     </Style>
                 </Style>
             </ListBox.Styles>

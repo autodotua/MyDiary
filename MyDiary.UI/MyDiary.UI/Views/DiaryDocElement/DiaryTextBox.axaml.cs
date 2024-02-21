@@ -14,6 +14,7 @@ public partial class DiaryTextBox : DiaryTextBoxBase, IDiaryElement
 {
     public DiaryTextBox()
     {
+        TextData = new TextElementInfo();
         InitializeComponent();
      
     }
@@ -30,7 +31,7 @@ public partial class DiaryTextBox : DiaryTextBoxBase, IDiaryElement
             CanMergeCell = false,
             Bold = FontWeight > FontWeight.Normal,
             FontSize = FontSize,
-            Italic = FontStyle == FontStyle.Italic
+            Italic = FontStyle == FontStyle.Italic,
         };
 
         ep.PropertyChanged += (s, e) =>

@@ -118,14 +118,14 @@
             <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
 
             <Style Selector="^ /template/ Border#PART_BorderElement">
-                <Setter Property="Background" Value="{DynamicResource Background1}" />
+                <Setter Property="Background" Value="{TemplateBinding Background}" />
             </Style>
         </Style>
         <Style Selector="^:pointerover">
             <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
 
             <Style Selector="^ /template/ Border#PART_BorderElement">
-                <Setter Property="Background" Value="{DynamicResource Background1}" />
+                <Setter Property="Background" Value="{TemplateBinding Background}" />
             </Style>
         </Style>
 

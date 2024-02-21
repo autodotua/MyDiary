@@ -76,6 +76,8 @@ public partial class DiaryTable : Grid, IDiaryElement
             Italic = datas.All(p => p.Italic),
             FontSize = datas.Min(p => p.FontSize),
             Alignment = datas.Min(p => p.Alignment),
+            TextColor = datas.First().TextColor,
+            BackColor = datas.First().BackColor
         };
 
         ep.PropertyChanged += (s, e) =>
@@ -93,6 +95,12 @@ public partial class DiaryTable : Grid, IDiaryElement
                     break;
                 case nameof(EditBarInfo.Alignment):
                     datas.ForEach(d => d.Alignment = ep.Alignment);
+                    break;
+                case nameof(EditBarInfo.TextColor):
+                    datas.ForEach(d => d.TextColor = ep.TextColor);
+                    break; 
+                case nameof(EditBarInfo.BackColor):
+                    datas.ForEach(d => d.BackColor = ep.BackColor);
                     break;
                 case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == true:
                     if (CellsSelectionMode != TableCellsSelectionMode.Selected)

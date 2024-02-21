@@ -3,8 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using MyDiary.UI.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -56,32 +60,34 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
         set => SetValue(TextDataProperty, value);
     }
 
-    public abstract EditBarInfo GetEditBarInfo(); protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    public abstract EditBarInfo GetEditBarInfo();
+    private List<IDisposable> bindings = new List<IDisposable>();
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == TextDataProperty)
         {
-            if (change.OldValue != null)
+            foreach (var b in bindings)
             {
-                throw new InvalidOperationException($"{nameof(TextData)}只可设置一次");
+                b.Dispose();
             }
-            var item = change.NewValue as TextElementInfo;
-            BindToData(TextProperty, nameof(item.Text));
-            BindToData(FontSizeProperty, nameof(item.FontSize));
-            BindToData(FontWeightProperty, nameof(item.FontWeight));
-            BindToData(FontStyleProperty, nameof(item.FontStyle));
-            BindToData(TextAlignmentProperty, nameof(item.TextAlignment));
-
-
+            bindings.Clear();
+            BindToData(TextProperty, nameof(TextElementInfo.Text));
+            BindToData(FontSizeProperty, nameof(TextElementInfo.FontSize));
+            BindToData(FontWeightProperty, nameof(TextElementInfo.FontWeight));
+            BindToData(FontStyleProperty, nameof(TextElementInfo.FontStyle));
+            BindToData(TextAlignmentProperty, nameof(TextElementInfo.TextAlignment));
+            BindToData(ForegroundProperty, nameof(TextElementInfo.Foreground));
+            BindToData(BackgroundProperty, nameof(TextElementInfo.Background));
         }
     }
     protected void BindToData(AvaloniaProperty property, string propertyName)
     {
-        this.Bind(property, new Binding
+        bindings.Add(this.Bind(property, new Binding
         {
             Source = TextData,
             Path = propertyName
-        });
+        }));
     }
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
@@ -90,9 +96,14 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
     }
     protected override void OnLostFocus(RoutedEventArgs e)
     {
+        //if(TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is not DiaryTextBoxBase)
+        //{
+        //    this.Focus();
+        //    e.Handled = true;
+        //    return;
+        //}
         base.OnLostFocus(e);
         EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
     }
-
 
 }

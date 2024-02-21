@@ -29,7 +29,23 @@ namespace MyDiary.UI.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(TextAlignment))]
         private int alignment;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Foreground))]
+        private Color textColor = Colors.White;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Background))]
+        private Color backColor = Colors.Black;
 
+        public SolidColorBrush Foreground
+        {
+            get => new SolidColorBrush(TextColor);
+            set => TextColor = value.Color;
+        }
+        public SolidColorBrush Background
+        {
+            get => new SolidColorBrush(BackColor);
+            set => BackColor = value.Color;
+        }
         public FontStyle FontStyle
         {
             get => Italic ? FontStyle.Italic : FontStyle.Normal;
@@ -47,7 +63,7 @@ namespace MyDiary.UI.ViewModels
                 0 => TextAlignment.Left,
                 1 => TextAlignment.Center,
                 2 => TextAlignment.Right,
-                _=>throw new NotImplementedException()
+                _ => throw new NotImplementedException()
             };
         }
     }
