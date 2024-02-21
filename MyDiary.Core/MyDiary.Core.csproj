@@ -12,13 +12,19 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>..\Publish\Release</OutputPath>
+    <OutputPath>$(Temp)\MyDiary_Release\$(AssemblyName)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="obj\**" />
     <EmbeddedResource Remove="obj\**" />
     <None Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FzLib">
+      <HintPath>..\libs\FzLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

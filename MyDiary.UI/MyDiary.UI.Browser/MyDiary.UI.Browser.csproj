@@ -4,6 +4,14 @@
     <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
     <WasmMainJSPath>AppBundle\main.js</WasmMainJSPath>
     <OutputType>Exe</OutputType>
+<!--
+在我的Latptop3中运行，不加下面这段的话，会报错：
+A fatal error was encountered. The library 'hostpolicy.dll' required to execute the application was not found in 'C:\Users\autod\AppData\Local\Temp\MyDiary\MyDiary.UI.Browser\net8.0\browser-wasm\'.
+Failed to run as a self-contained app.
+  - The application was run as a self-contained app because 'C:\Users\autod\AppData\Local\Temp\MyDiary\MyDiary.UI.Browser\net8.0\browser-wasm\MyDiary.UI.Browser.runtimeconfig.json' did not specify a framework.
+  - If this should be a framework-dependent app, specify the appropriate framework in 'C:\Users\autod\AppData\Local\Temp\MyDiary\MyDiary.UI.Browser\net8.0\browser-wasm\MyDiary.UI.Browser.runtimeconfig.json'.
+-->
+    <GenerateRuntimeConfigDevFile>true</GenerateRuntimeConfigDevFile>
     <BaseIntermediateOutputPath>$(Temp)\MyDiary\obj\$(AssemblyName)</BaseIntermediateOutputPath>
   </PropertyGroup>
 
@@ -12,7 +20,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>..\Publish\Release</OutputPath>
+    <OutputPath>$(Temp)\MyDiary_Release\$(AssemblyName)</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
