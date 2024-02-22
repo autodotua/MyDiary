@@ -1,5 +1,8 @@
-﻿using Avalonia.Controls.Primitives;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
@@ -33,28 +36,39 @@ namespace MyDiary.UI.ViewModels
         [NotifyPropertyChangedFor(nameof(Foreground))]
         private Color textColor = Colors.White;
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Foreground))]
+        private bool useDefaultTextColor = true;
+        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Background))]
         private Color backColor = Colors.Black;
+        [ObservableProperty]
+        private bool canBackColorChange = true;
 
-        public SolidColorBrush Foreground
+        public IBrush Foreground
         {
-            get => new SolidColorBrush(TextColor);
-            set => TextColor = value.Color;
+            get
+            {
+                if (UseDefaultTextColor)
+                {
+                    return Application.Current.FindResource("Foreground0") as IBrush;
+                }
+                else
+                {
+                    return new ImmutableSolidColorBrush(TextColor);
+                }
+            }
         }
         public SolidColorBrush Background
         {
             get => new SolidColorBrush(BackColor);
-            set => BackColor = value.Color;
         }
         public FontStyle FontStyle
         {
             get => Italic ? FontStyle.Italic : FontStyle.Normal;
-            set => Italic = value == FontStyle.Italic;
         }
         public FontWeight FontWeight
         {
             get => Bold ? FontWeight.Bold : FontWeight.Normal;
-            set => Bold = value > FontWeight.Normal;
         }
         public TextAlignment TextAlignment
         {

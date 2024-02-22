@@ -9,7 +9,7 @@
     x:Name="bar"
     x:DataType="vm:EditBarVM"
     Focusable="False"
-    IsEnabled="{Binding $self.EditInfo, Converter={StaticResource NotNullConverter}}"
+    IsEnabled="{Binding TextData, Converter={StaticResource NotNullConverter}}"
     mc:Ignorable="d">
     <Design.DataContext>
         <vm:EditBarVM />
@@ -38,7 +38,7 @@
         <Button
             Width="96"
             HorizontalContentAlignment="Center"
-            Content="{Binding #bar.EditInfo.FontSize, StringFormat='字号：{0}'}">
+            Content="{Binding TextData.FontSize, StringFormat='字号：{0}'}">
             <Button.Flyout>
                 <Flyout>
                     <Slider
@@ -52,22 +52,19 @@
                         SmallChange="1"
                         TickFrequency="1"
                         TickPlacement="BottomRight"
-                        Value="{Binding #bar.EditInfo.FontSize}" />
+                        Value="{Binding TextData.FontSize}" />
                 </Flyout>
             </Button.Flyout>
         </Button>
-        <TextBlock
+        <CheckBox
             VerticalAlignment="Center"
-            Text="文字" />
-        <ColorPicker Color="{Binding #bar.EditInfo.TextColor}" />
-        <TextBlock
-            Margin="8,0,0,0"
-            VerticalAlignment="Center"
-            Text="背景" />
+            Content="默认"
+            Focusable="False"
+            IsChecked="{Binding TextData.UseDefaultTextColor}" />
         <ColorPicker
-            IsAlphaVisible="False"
-            Color="{Binding #bar.EditInfo.BackColor}" />
-        <ToggleButton IsChecked="{Binding #bar.EditInfo.Bold}">
+            IsEnabled="{Binding !TextData.UseDefaultTextColor}"
+            Color="{Binding TextData.TextColor}" />
+        <ToggleButton IsChecked="{Binding TextData.Bold}">
             <StackPanel
                 Orientation="Horizontal"
                 Spacing="4">
@@ -78,7 +75,7 @@
             </StackPanel>
         </ToggleButton>
 
-        <ToggleButton IsChecked="{Binding #bar.EditInfo.Italic}">
+        <ToggleButton IsChecked="{Binding TextData.Italic}">
             <StackPanel
                 Orientation="Horizontal"
                 Spacing="4">
@@ -92,7 +89,7 @@
             Background="Transparent"
             Focusable="False"
             ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-            SelectedIndex="{Binding #bar.EditInfo.Alignment}">
+            SelectedIndex="{Binding TextData.Alignment}">
             <ListBox.Styles>
                 <Style Selector="ListBoxItem">
                     <Setter Property="Padding" Value="4,0" />
@@ -127,8 +124,8 @@
             Margin="0,4"
             Fill="{DynamicResource Background2}" />
         <ToggleButton
-            IsChecked="{Binding #bar.EditInfo.CellsMerged}"
-            IsEnabled="{Binding #bar.EditInfo.CanMergeCell}">
+            IsChecked="{Binding CellsMerged}"
+            IsEnabled="{Binding CanMergeCell}">
             <StackPanel
                 Orientation="Horizontal"
                 Spacing="4">

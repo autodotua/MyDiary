@@ -2,12 +2,4 @@
     <PropertyGroup>
         <BaseIntermediateOutputPath>$(Temp)\MyDiary\obj\$(AssemblyName)\</BaseIntermediateOutputPath>
     </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="FzLib">
-      <HintPath>..\..\..\模块\Publish\Release\net8.0\FzLib.dll</HintPath>
-    </Reference>
-    <Reference Include="FzLib.Avalonia">
-      <HintPath>..\..\..\模块\Publish\Release\net8.0\FzLib.Avalonia.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

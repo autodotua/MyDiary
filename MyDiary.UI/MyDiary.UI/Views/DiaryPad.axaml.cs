@@ -26,17 +26,14 @@ namespace MyDiary.UI.Views;
 /// 1、<see cref="IDiaryElement"/>向<see cref="EditBar"/>传递
 /// <br/>
 /// 数据交换通过<see cref="DiaryPad"/>作为中介进行中转。
-/// 在文档属性发生变动时，通过<see cref="IDiaryElement.EditBarInfoUpdated"/>事件进行通知。
+/// 在文档属性发生变动时，通过<see cref="IDiaryElement.NotifyEditDataUpdated"/>事件进行通知。
 /// <see cref="DiaryPad"/>会接收每个<see cref="IDiaryElement"/>的通知，
-/// 若发现发起通知的<see cref="IDiaryElement"/>被Focused，那么则进行处理。
-/// <see cref="EditBar"/>具有<see cref="EditBar.EditInfo"/>依赖属性
-/// 通过改变<see cref="EditBar.EditInfo"/>，实现通知到UI。
+/// 将提供的<see cref="EditBarVM"/>作为<see cref="EditBar"/>的DataContext
 /// <br/>
 /// 2、<see cref="EditBar"/>向传递<see cref="IDiaryElement"/>
 /// <br/>
-/// 这一部分很简单。在1中，<see cref="IDiaryElement"/>向<see cref="EditBar"/>发送了一个<see cref="EditBar.EditInfo"/>。
-/// 通过监听<see cref="EditBar.EditInfo"/>的<see cref="INotifyPropertyChanged.PropertyChanged"/>事件，
-/// 即可实现在<see cref="EditBar"/>的UI变化时，通知到<see cref="EditBar.EditInfo"/>，进而通知到<see cref="IDiaryElement"/>。
+/// 这一部分很简单。<see cref="EditBar"/>的操作会同步到绑定的<see cref="EditBarVM"/>中的<see cref="TextElementInfo"/>，
+/// 而这其中的属性与相关的<see cref="DiaryTextBoxBase"/>进行了绑定，能够同步反映。
 /// </remarks>
 public partial class DiaryPad : UserControl
 {
@@ -75,29 +72,31 @@ public partial class DiaryPad : UserControl
     {
         int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
         T newElement = new T();
-        newElement.EditBarInfoUpdated += DiaryElement_EditPropertiesUpdated;
+        newElement.NotifyEditDataUpdated += DiaryElement_EditPropertiesUpdated;
         stkBody.InsertDiaryPart(index + 1, newElement);
         return newElement;
     }
 
     public void RemoveElement<T>(T element) where T : Control, IDiaryElement
     {
-        element.EditBarInfoUpdated -= DiaryElement_EditPropertiesUpdated;
+        element.NotifyEditDataUpdated -= DiaryElement_EditPropertiesUpdated;
         stkBody.Children.Remove(element.GetParentDiaryPart());
     }
 
     private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
     {
         IDiaryElement element = sender as IDiaryElement;
-        var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
-        if (focusedElement is Control c && element is ILogical l)
-        {
-            if (c.GetLogicalAncestors().Contains(l) || c == l)
-            {
-                Debug.WriteLine("Updated Edit Properties");
-                editBar.EditInfo = element.GetEditBarInfo();
-            }
-        }
+        editBar.DataContext = element.GetEditData();
+        //editBar.UpdateViewModel(element.GetEditData());
+        //var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
+        //if (focusedElement is Control c && element is ILogical l)
+        //{
+        //    if (c.GetLogicalAncestors().Contains(l) || c == l)
+        //    {
+        //        Debug.WriteLine("Updated Edit Properties");
+        //        editBar.DataContext = element.GetEditData();
+        //    }
+        //}
     }
 
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
@@ -197,7 +196,7 @@ public partial class DiaryPad : UserControl
         }
     }
 
-    private void UserControl_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         stkBody.GetChild(0).GetControlContent().Focus();
     }

@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -9,16 +10,17 @@ using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
 public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
 {
-    public event EventHandler EditBarInfoUpdated;
+    public event EventHandler NotifyEditDataUpdated;
 
-    protected void RaiseEditBarInfoUpdated()
+    protected void RaiseEditBarVMUpdated()
     {
-        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+        NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -46,7 +48,7 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
                     return;
             }
             e.Handled = true;
-            EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+            NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
         }
         base.OnKeyDown(e);
     }
@@ -60,7 +62,7 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
         set => SetValue(TextDataProperty, value);
     }
 
-    public abstract EditBarInfo GetEditBarInfo();
+    public abstract EditBarVM GetEditData();
     private List<IDisposable> bindings = new List<IDisposable>();
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -78,7 +80,7 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
             BindToData(FontStyleProperty, nameof(TextElementInfo.FontStyle));
             BindToData(TextAlignmentProperty, nameof(TextElementInfo.TextAlignment));
             BindToData(ForegroundProperty, nameof(TextElementInfo.Foreground));
-            BindToData(BackgroundProperty, nameof(TextElementInfo.Background));
+            //BindToData(BackgroundProperty, nameof(TextElementInfo.Background));
         }
     }
     protected void BindToData(AvaloniaProperty property, string propertyName)
@@ -92,18 +94,6 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
         base.OnGotFocus(e);
-        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+        NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
     }
-    protected override void OnLostFocus(RoutedEventArgs e)
-    {
-        //if(TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement() is not DiaryTextBoxBase)
-        //{
-        //    this.Focus();
-        //    e.Handled = true;
-        //    return;
-        //}
-        base.OnLostFocus(e);
-        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
-    }
-
 }

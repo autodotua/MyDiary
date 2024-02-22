@@ -45,9 +45,9 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     #region 和EditBar的数据交换
 
-    public event EventHandler EditBarInfoUpdated;
+    public event EventHandler NotifyEditDataUpdated;
 
-    public EditBarInfo GetEditBarInfo()
+    public EditBarVM GetEditData()
     {
         var txts = GetSelectedCells().ToList();
         if (txts.Count == 0)
@@ -57,8 +57,8 @@ public partial class DiaryTable : Grid, IDiaryElement
         var data = txts[0].CellData;
         var datas = txts.Select(p => p.CellData).ToHashSet();
 
-        Debug.WriteLine(data);
-        var ep = new EditBarInfo()
+        Debug.WriteLine(datas.Count);
+        var ep = new EditBarVM(datas.Cast<TextElementInfo>().ToList())
         {
             CanMergeCell = CellsSelectionMode switch
             {
@@ -72,44 +72,20 @@ public partial class DiaryTable : Grid, IDiaryElement
                 TableCellsSelectionMode.None => data.RowSpan * data.ColumnSpan > 1,
                 _ => false
             },
-            Bold = datas.All(p => p.Bold),
-            Italic = datas.All(p => p.Italic),
-            FontSize = datas.Min(p => p.FontSize),
-            Alignment = datas.Min(p => p.Alignment),
-            TextColor = datas.First().TextColor,
-            BackColor = datas.First().BackColor
         };
 
         ep.PropertyChanged += (s, e) =>
         {
             switch (e.PropertyName)
             {
-                case nameof(EditBarInfo.Bold):
-                    datas.ForEach(d => d.Bold = ep.Bold);
-                    break;
-                case nameof(EditBarInfo.Italic):
-                    datas.ForEach(d => d.Italic = ep.Italic);
-                    break;
-                case nameof(EditBarInfo.FontSize):
-                    datas.ForEach(d => d.FontSize = ep.FontSize);
-                    break;
-                case nameof(EditBarInfo.Alignment):
-                    datas.ForEach(d => d.Alignment = ep.Alignment);
-                    break;
-                case nameof(EditBarInfo.TextColor):
-                    datas.ForEach(d => d.TextColor = ep.TextColor);
-                    break; 
-                case nameof(EditBarInfo.BackColor):
-                    datas.ForEach(d => d.BackColor = ep.BackColor);
-                    break;
-                case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == true:
+                case nameof(EditBarVM.CellsMerged) when ep.CellsMerged == true:
                     if (CellsSelectionMode != TableCellsSelectionMode.Selected)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
                     }
                     MergeCells();
                     break;
-                case nameof(EditBarInfo.CellsMerged) when ep.CellsMerged == false:
+                case nameof(EditBarVM.CellsMerged) when ep.CellsMerged == false:
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
                     {
                         throw new Exception($"{nameof(CellsSelectionMode)}状态错误");
@@ -145,7 +121,7 @@ public partial class DiaryTable : Grid, IDiaryElement
 
         var data2 = GetCellsData();
         CreateTableStructure(data2);
-        EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+        NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     private void MergeCells()
@@ -295,7 +271,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             {
                 grd.Children.OfType<GridSplitter>()
                     .ForEach(p => p.IsEnabled = value == TableCellsSelectionMode.None);
-                EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+                NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
             }
         }
     }
@@ -483,7 +459,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     selectionBottomIndex = Math.Max(selectionBottomIndex, txt.TableRow + txt.CellData.RowSpan - 1);
                 }
             }
-            Debug.WriteLine($"{selectionLeftIndex},{selectionRightIndex},{selectionTopIndex},{selectionBottomIndex}");
+            //Debug.WriteLine($"{selectionLeftIndex},{selectionRightIndex},{selectionTopIndex},{selectionBottomIndex}");
 
             //在范围更新、保证了不截断合并的单元格后，
             //新扩充的范围内可能又包含了新的被截断的合并单元格，
@@ -963,7 +939,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         {
             AddTextBoxMenuEvents(s as DiaryTableCell);
         };
-        txt.EditBarInfoUpdated += (s, e) => EditBarInfoUpdated?.Invoke(this, EventArgs.Empty);
+        txt.NotifyEditDataUpdated += (s, e) => NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
 
         //标记已创建
         for (int r = row; r < row + item.RowSpan; r++)

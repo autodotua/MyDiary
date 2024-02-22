@@ -21,39 +21,13 @@ public partial class DiaryTextBox : DiaryTextBoxBase, IDiaryElement
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
         base.OnGotFocus(e);
-        RaiseEditBarInfoUpdated();
+        RaiseEditBarVMUpdated();
     }
 
-    public override EditBarInfo GetEditBarInfo()
+    public override EditBarVM GetEditData()
     {
-        var ep = new EditBarInfo()
-        {
-            CanMergeCell = false,
-            Bold = FontWeight > FontWeight.Normal,
-            FontSize = FontSize,
-            Italic = FontStyle == FontStyle.Italic,
-        };
-
-        ep.PropertyChanged += (s, e) =>
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(ep.Bold):
-                    FontWeight = ep.Bold ? FontWeight.Bold : FontWeight.Normal;
-                    break;
-                case nameof(ep.Italic):
-                    FontStyle = ep.Italic ? FontStyle.Italic : FontStyle.Normal;
-                    break;
-                case nameof(ep.FontSize):
-                    FontSize = ep.FontSize;
-                    break;
-                case nameof(ep.Alignment):
-                    TextAlignment = ep.TextAlignment;
-                    break;
-            }
-        };
-
-        return ep;
+        TextData.CanBackColorChange = false;
+        return new EditBarVM([TextData]);
     }
 
 }

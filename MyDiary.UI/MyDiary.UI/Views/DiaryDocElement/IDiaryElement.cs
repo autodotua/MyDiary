@@ -5,6 +5,6 @@ namespace MyDiary.UI.Views.DiaryDocElement;
 
 public interface IDiaryElement
 {
-    public event EventHandler EditBarInfoUpdated;
-    public EditBarInfo GetEditBarInfo();
+    public event EventHandler NotifyEditDataUpdated;
+    public EditBarVM GetEditData();
 }

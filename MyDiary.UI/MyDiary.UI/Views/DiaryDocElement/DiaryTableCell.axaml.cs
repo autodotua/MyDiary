@@ -62,7 +62,7 @@ public partial class DiaryTableCell : DiaryTextBoxBase
         }
     }
 
-    public override EditBarInfo GetEditBarInfo()
+    public override EditBarVM GetEditData()
     {
         throw new NotImplementedException();
     }
