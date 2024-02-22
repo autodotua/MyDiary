@@ -1,5 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Rendering;
 using Avalonia.Threading;
+using MyDiary.Core.Services;
+using MyDiary.UI.ViewModels;
 using System;
 using System.Threading.Tasks;
 
@@ -10,15 +14,12 @@ namespace MyDiary.UI.Views
         public MainView()
         {
             InitializeComponent();
-            Task.Delay(2000).ContinueWith(t =>
-            {
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    datePicker.SelectedDate = DateTime.Now.AddDays(-1000);
-                });
+        }
 
 
-            });
+        private void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            datePicker.SelectedDate = DateTime.Today;
         }
     }
 }

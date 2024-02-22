@@ -1,9 +1,41 @@
-﻿namespace MyDiary.UI.ViewModels
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using MyDiary.Core.Models;
+using MyDiary.Core.Services;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+
+namespace MyDiary.UI.ViewModels
 {
-    public class MainViewVM : ViewModelBase
+    public partial class MainViewVM : ViewModelBase
     {
-#pragma warning disable CA1822 // Mark members as static
-        public string Greeting => "Welcome to 等到那时离开南非骄傲的农垦大家!";
-#pragma warning restore CA1822 // Mark members as static
+        DataService dataService = new DataService();
+
+
+        [ObservableProperty]
+        private DateTime? date;
+        [ObservableProperty]
+        private bool isLoading;
+        [ObservableProperty]
+        private IList<DocumentPart> document;
+
+        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.PropertyName == nameof(Date))
+            {
+                IsLoading = true;
+                if (Date.HasValue)
+                {
+                    Document = dataService.GetDocument(Date.Value);
+                }
+                else
+                {
+                    Document = null;
+                }
+                IsLoading = false;
+            }
+        }
     }
 }

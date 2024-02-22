@@ -9,6 +9,7 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Styling;
 using FzLib;
+using MyDiary.Core.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -1016,6 +1017,11 @@ public partial class DiaryTable : Grid, IDiaryElement
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
+    }
+
+    public void LoadData(DocumentPart data)
+    {
+        throw new NotImplementedException();
     }
     #endregion
 

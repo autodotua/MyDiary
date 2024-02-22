@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using MyDiary.UI.ViewModels;
 using System;
@@ -10,7 +11,7 @@ public partial class DiaryDatePicker : UserControl
 {
     private bool isChangingSelectedDate = false;
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
-        = AvaloniaProperty.Register<DiaryDatePicker, DateTime?>(nameof(SelectedDate), DateTime.Today);
+        = AvaloniaProperty.Register<DiaryDatePicker, DateTime?>(nameof(SelectedDate));
 
     public DateTime? SelectedDate
     {
@@ -20,44 +21,16 @@ public partial class DiaryDatePicker : UserControl
     private DiaryDatePickerVM viewModel = new DiaryDatePickerVM();
     public DiaryDatePicker()
     {
-        DataContext = viewModel;
-        viewModel.PropertyChanged += ViewModel_PropertyChanged;
         InitializeComponent();
+        DataContext = viewModel;
     }
 
-    private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (isChangingSelectedDate)
-        {
-            return;
-        }
-        isChangingSelectedDate = true;
-        SelectedDate = viewModel.Day.HasValue ? new DateTime(viewModel.Year, viewModel.Month, viewModel.Day.Value) : null;
-        isChangingSelectedDate = false;
-    }
+    public event EventHandler<AvaloniaPropertyChangedEventArgs> SelectedDateChanged;
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
+    private bool pauseSelectedDatePropertyChangedProcess = false;
 
-        if(change.Property==SelectedDateProperty)
-        {
-            if (isChangingSelectedDate)
-            {
-                return;
-            }
-            isChangingSelectedDate = true;
-            if (SelectedDate.HasValue)
-            {
-                viewModel.Year = SelectedDate.Value.Year;
-                viewModel.Month = SelectedDate.Value.Month;
-                viewModel.Day = SelectedDate.Value.Day;
-            }
-            else
-            {
-                viewModel.Day = null;
-            }
-            isChangingSelectedDate = false;
-        }
+    private void Button_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SelectedDate = DateTime.Today - TimeSpan.FromDays(1000);
     }
 }

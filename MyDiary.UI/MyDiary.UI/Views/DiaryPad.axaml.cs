@@ -5,9 +5,13 @@ using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using MyDiary.Core.Models;
+using MyDiary.Core.Services;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -38,7 +42,7 @@ namespace MyDiary.UI.Views;
 public partial class DiaryPad : UserControl
 {
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
-        = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), DateTime.Today);
+        = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), DateTime.MinValue);
 
     private DiaryPadVM viewModel = new DiaryPadVM();
 
@@ -48,13 +52,13 @@ public partial class DiaryPad : UserControl
         InitializeComponent();
         var txt = CreateAndInsertElementBelow<DiaryTextBox>(null);
         stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-#if DEBUG
-        var table = CreateAndInsertElementBelow<DiaryTable>(txt);
-        table.MakeEmptyTable(6, 6);
-        var image = CreateAndInsertElementBelow<DiaryImage>(table);
-        image.ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico")));
+        //#if DEBUG
+        //        var table = CreateAndInsertElementBelow<DiaryTable>(txt);
+        //        table.MakeEmptyTable(6, 6);
+        //        var image = CreateAndInsertElementBelow<DiaryImage>(table);
+        //        image.ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico")));
 
-#endif
+        //#endif
     }
 
     public DateTime? SelectedDate
@@ -71,9 +75,18 @@ public partial class DiaryPad : UserControl
     public T CreateAndInsertElementBelow<T>(Control element) where T : Control, IDiaryElement, new()
     {
         int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
+        return CreateAndInsertElement<T>(index + 1);
+    }
+    public T CreateAndAppendElement<T>() where T : Control, IDiaryElement, new()
+    {
+        return CreateAndInsertElement<T>(int.MaxValue);
+    }
+    private T CreateAndInsertElement<T>(int index) where T : Control, IDiaryElement, new()
+    {
+        index = Math.Min(index, stkBody.Children.Count);
         T newElement = new T();
         newElement.NotifyEditDataUpdated += DiaryElement_EditPropertiesUpdated;
-        stkBody.InsertDiaryPart(index + 1, newElement);
+        stkBody.InsertDiaryPart(index, newElement);
         return newElement;
     }
 
@@ -87,16 +100,6 @@ public partial class DiaryPad : UserControl
     {
         IDiaryElement element = sender as IDiaryElement;
         editBar.DataContext = element.GetEditData();
-        //editBar.UpdateViewModel(element.GetEditData());
-        //var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
-        //if (focusedElement is Control c && element is ILogical l)
-        //{
-        //    if (c.GetLogicalAncestors().Contains(l) || c == l)
-        //    {
-        //        Debug.WriteLine("Updated Edit Properties");
-        //        editBar.DataContext = element.GetEditData();
-        //    }
-        //}
     }
 
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
@@ -199,5 +202,40 @@ public partial class DiaryPad : UserControl
     private void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         stkBody.GetChild(0).GetControlContent().Focus();
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == SelectedDateProperty)
+        {
+            stkBody.Children.Clear();
+            if (change.NewValue != null)
+            {
+                LoadDocument((change.NewValue as DateTime?).Value);
+            }
+        }
+    }
+    DataService dataService = new DataService();
+    private void LoadDocument(DateTime date)
+    {
+        var doc = dataService.GetDocument(date);
+        foreach (var part in doc)
+        {
+            IDiaryElement element = null;
+            switch (part.Type)
+            {
+                case DocumentPart.TypeOfTextElement:
+                    element = CreateAndAppendElement<DiaryTextBox>();
+                    break;
+                case DocumentPart.TypeOfTable:
+                    element = CreateAndAppendElement<DiaryTable>();
+                    break;
+                case DocumentPart.TypeOfImage:
+                    element = CreateAndAppendElement<DiaryImage>();
+                    break;
+            }
+            element.LoadData(part);
+        }
     }
 }

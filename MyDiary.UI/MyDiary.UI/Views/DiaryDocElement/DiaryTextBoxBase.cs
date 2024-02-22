@@ -6,6 +6,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using Mapster;
+using MyDiary.Core.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -53,10 +55,10 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
         base.OnKeyDown(e);
     }
 
-    public static readonly StyledProperty<TextElementInfo> TextDataProperty =
-        AvaloniaProperty.Register<DiaryTextBoxBase, TextElementInfo>(nameof(TextData));
+    public static readonly StyledProperty<ViewModels.TextElementInfo> TextDataProperty =
+        AvaloniaProperty.Register<DiaryTextBoxBase, ViewModels.TextElementInfo>(nameof(TextData));
 
-    public TextElementInfo TextData
+    public ViewModels.TextElementInfo TextData
     {
         get => this.GetValue(TextDataProperty);
         set => SetValue(TextDataProperty, value);
@@ -95,5 +97,10 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
     {
         base.OnGotFocus(e);
         NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
+    }
+
+    public  void LoadData(DocumentPart data)
+    {
+        TextData = (data as TextElement).Adapt<TextElementInfo>();
     }
 }

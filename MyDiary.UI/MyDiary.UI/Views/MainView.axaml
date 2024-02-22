@@ -9,6 +9,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:DataType="vm:MainViewVM"
+    Loaded="UserControl_Loaded"
     mc:Ignorable="d">
     <Design.DataContext>
         <vm:MainViewVM />
@@ -17,6 +18,6 @@
         <v:DiaryDatePicker x:Name="datePicker" />
         <v:DiaryPad
             Grid.Column="2"
-            SelectedDate="{Binding #datePicker.SelectedDate}" />
+            SelectedDate="{Binding #datePicker.SelectedDate, Mode=OneWay}" />
     </Grid>
 </UserControl>

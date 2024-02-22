@@ -15,11 +15,32 @@ namespace MyDiary.UI.ViewModels
         }
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Date))]
         private int year = DateTime.Today.Year;
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Date))]
         private int month = DateTime.Today.Month;
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(Date))]
         private int? day = DateTime.Today.Day;
+
+        public DateTime? Date
+        {
+            get => Day.HasValue ? new DateTime(Year, Month, Day.Value) : null;
+            set
+            {
+                if(value==null)
+                {
+                    Day = null;
+                }
+                else
+                {
+                    Year = value.Value.Year;
+                    Month=value.Value.Month;
+                    Day = value.Value.Day;
+                }
+            }
+        }
 
         public List<int> Years { get; } = Enumerable.Range(2000, DateTime.Today.Year - 2000 + 1).ToList();
         public List<int> Months { get; } = Enumerable.Range(1, 12).ToList();

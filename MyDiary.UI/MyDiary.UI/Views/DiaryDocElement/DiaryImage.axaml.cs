@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using MyDiary.Core.Models;
 using MyDiary.UI.ViewModels;
 using System;
 
@@ -60,6 +61,11 @@ public partial class DiaryImage : Grid, IDiaryElement
     }
 
     public EditBarVM GetEditData()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void LoadData(DocumentPart data)
     {
         throw new NotImplementedException();
     }
