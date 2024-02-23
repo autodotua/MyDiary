@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MyDiary.UI.Views;
 /// <summary>
@@ -42,7 +43,7 @@ namespace MyDiary.UI.Views;
 public partial class DiaryPad : UserControl
 {
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
-        = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), DateTime.MinValue);
+        = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), null);
 
     private DiaryPadVM viewModel = new DiaryPadVM();
 
@@ -50,8 +51,8 @@ public partial class DiaryPad : UserControl
     {
         DataContext = viewModel;
         InitializeComponent();
-        var txt = CreateAndInsertElementBelow<DiaryTextBox>(null);
-        stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+        //var txt = CreateAndInsertElementBelow<DiaryTextBox>(null);
+        //stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
         //#if DEBUG
         //        var table = CreateAndInsertElementBelow<DiaryTable>(txt);
         //        table.MakeEmptyTable(6, 6);
@@ -204,38 +205,62 @@ public partial class DiaryPad : UserControl
         stkBody.GetChild(0).GetControlContent().Focus();
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == SelectedDateProperty)
         {
+            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
+            if (change.OldValue != null)
+            {
+                await SaveDocumentAsync(oldValue.Value);
+            }
             stkBody.Children.Clear();
             if (change.NewValue != null)
             {
-                LoadDocument((change.NewValue as DateTime?).Value);
+                await LoadDocumentAsync(newValue.Value);
             }
         }
     }
-    DataService dataService = new DataService();
-    private void LoadDocument(DateTime date)
+    DoumentManager docManager = new DoumentManager();
+
+    private async Task SaveDocumentAsync(DateTime date)
     {
-        var doc = dataService.GetDocument(date);
-        foreach (var part in doc)
+        List<Block> blocks = new List<Block>();
+        foreach (var element in stkBody.Children)
         {
-            IDiaryElement element = null;
-            switch (part.Type)
+            blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
+        }
+        await docManager.SetDocumentAsync(date, null, blocks);
+    }
+    private async Task LoadDocumentAsync(DateTime date)
+    {
+        var doc = await docManager.GetDocumentAsync(date, null);
+        if (doc == null || doc.Count == 0)
+        {
+            var txt = CreateAndAppendElement<DiaryTextBox>();
+            txt.AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+        }
+        else
+        {
+            foreach (var part in doc)
             {
-                case DocumentPart.TypeOfTextElement:
-                    element = CreateAndAppendElement<DiaryTextBox>();
-                    break;
-                case DocumentPart.TypeOfTable:
-                    element = CreateAndAppendElement<DiaryTable>();
-                    break;
-                case DocumentPart.TypeOfImage:
-                    element = CreateAndAppendElement<DiaryImage>();
-                    break;
+                IDiaryElement element = null;
+                switch (part.Type)
+                {
+                    case Block.TypeOfTextElement:
+                        element = CreateAndAppendElement<DiaryTextBox>();
+                        (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+                        break;
+                    case Block.TypeOfTable:
+                        element = CreateAndAppendElement<DiaryTable>();
+                        break;
+                    case Block.TypeOfImage:
+                        element = CreateAndAppendElement<DiaryImage>();
+                        break;
+                }
+                element.LoadData(part);
             }
-            element.LoadData(part);
         }
     }
 }

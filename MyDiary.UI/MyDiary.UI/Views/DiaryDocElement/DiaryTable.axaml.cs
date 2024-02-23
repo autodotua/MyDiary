@@ -9,6 +9,7 @@ using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 using Avalonia.Styling;
 using FzLib;
+using Mapster;
 using MyDiary.Core.Models;
 using MyDiary.UI.ViewModels;
 using System;
@@ -44,9 +45,11 @@ public partial class DiaryTable : Grid, IDiaryElement
         InitializeComponent();
     }
 
-    #region 和EditBar的数据交换
+    #region 数据
 
     public event EventHandler NotifyEditDataUpdated;
+
+
 
     public EditBarVM GetEditData()
     {
@@ -146,8 +149,22 @@ public partial class DiaryTable : Grid, IDiaryElement
         ClearCellsSelection();
         topLeftTextBox.Focus();
     }
-    #endregion
 
+    public void LoadData(Block data)
+    {
+        Debug.Assert(data is Table);
+        var table = data as Table;
+        var cells = table.Cells.Adapt<TableCellInfo[,]>();
+        MakeTable(cells);
+    }
+
+    public Block GetData()
+    {
+        var table = new Table();
+        table.Cells = GetCellsData().Adapt<TableCell[,]>();
+        return table;
+    }
+    #endregion
 
     #region 建立表格
     public void MakeEmptyTable(int row, int column)
@@ -160,11 +177,11 @@ public partial class DiaryTable : Grid, IDiaryElement
                 data[i, j] = new TableCellInfo();
             }
         }
-#if DEBUG
-        data[1, 1] = new TableCellInfo(2, 2, null);
-        data[4, 0] = new TableCellInfo(2, 3, null);
-        data[2, 3] = new TableCellInfo(2, 3, null);
-#endif
+//#if DEBUG
+//        data[1, 1] = new TableCellInfo(2, 2, null);
+//        data[4, 0] = new TableCellInfo(2, 3, null);
+//        data[2, 3] = new TableCellInfo(2, 3, null);
+//#endif
         MakeTable(data);
     }
 
@@ -1017,11 +1034,6 @@ public partial class DiaryTable : Grid, IDiaryElement
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
-    }
-
-    public void LoadData(DocumentPart data)
-    {
-        throw new NotImplementedException();
     }
     #endregion
 

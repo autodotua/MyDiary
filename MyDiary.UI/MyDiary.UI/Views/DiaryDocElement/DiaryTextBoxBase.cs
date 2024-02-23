@@ -99,8 +99,13 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
         NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
     }
 
-    public  void LoadData(DocumentPart data)
+    public void LoadData(Block data)
     {
-        TextData = (data as TextElement).Adapt<TextElementInfo>();
+        TextData = TextElementInfo.FromModel<TextElementInfo>(data as TextElement);
+    }
+
+    public Block GetData()
+    {
+        return TextData.ToModel();
     }
 }

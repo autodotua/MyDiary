@@ -10,32 +10,14 @@ namespace MyDiary.UI.ViewModels
 {
     public partial class MainViewVM : ViewModelBase
     {
-        DataService dataService = new DataService();
-
+        DoumentManager dataService = new DoumentManager();
 
         [ObservableProperty]
         private DateTime? date;
         [ObservableProperty]
         private bool isLoading;
         [ObservableProperty]
-        private IList<DocumentPart> document;
+        private IList<Block> document;
 
-        protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-        {
-            base.OnPropertyChanged(e);
-            if (e.PropertyName == nameof(Date))
-            {
-                IsLoading = true;
-                if (Date.HasValue)
-                {
-                    Document = dataService.GetDocument(Date.Value);
-                }
-                else
-                {
-                    Document = null;
-                }
-                IsLoading = false;
-            }
-        }
     }
 }

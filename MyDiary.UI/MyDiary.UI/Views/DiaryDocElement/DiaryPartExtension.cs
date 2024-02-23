@@ -14,6 +14,15 @@ namespace MyDiary.UI.Views.DiaryDocElement
             throw new ArgumentException($"{nameof(container.Content)}不是{nameof(Control)}");
         }
 
+        public static IDiaryElement GetDiaryElement(this DiaryPart container)
+        {
+            if (container.Content is IDiaryElement d)
+            {
+                return d;
+            }
+            throw new ArgumentException($"{nameof(container.Content)}不是{nameof(IDiaryElement)}");
+        }
+
         public static DiaryPart GetParentDiaryPart(this Control control)
         {
             if (control.Parent is DiaryPart dp)

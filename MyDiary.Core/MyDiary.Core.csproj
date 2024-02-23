@@ -26,5 +26,8 @@
       <HintPath>..\libs\FzLib.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.2" />
+  </ItemGroup>
 
 </Project>

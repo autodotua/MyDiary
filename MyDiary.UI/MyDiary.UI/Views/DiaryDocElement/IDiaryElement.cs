@@ -9,5 +9,7 @@ public interface IDiaryElement
     public event EventHandler NotifyEditDataUpdated;
     public EditBarVM GetEditData();
 
-    public void LoadData(DocumentPart data);
+    public void LoadData(Block data);
+
+    public Block GetData();
 }

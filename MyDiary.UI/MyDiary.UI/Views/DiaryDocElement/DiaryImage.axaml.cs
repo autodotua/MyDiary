@@ -19,7 +19,7 @@ public partial class DiaryImage : Grid, IDiaryElement
     }
 
 
-    public static readonly StyledProperty<IImage> ImageSourceProperty = Image.SourceProperty.AddOwner<DiaryImage>(new StyledPropertyMetadata<IImage>(coerce: (s, v) =>
+    public static readonly StyledProperty<IImage> ImageSourceProperty = Avalonia.Controls.Image.SourceProperty.AddOwner<DiaryImage>(new StyledPropertyMetadata<IImage>(coerce: (s, v) =>
     {
         return v;
     }));
@@ -65,7 +65,12 @@ public partial class DiaryImage : Grid, IDiaryElement
         throw new NotImplementedException();
     }
 
-    public void LoadData(DocumentPart data)
+    public void LoadData(Block data)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Block GetData()
     {
         throw new NotImplementedException();
     }
