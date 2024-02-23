@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using MyDiary.Core.Models;
+using MyDiary.Core.Services;
 using MyDiary.UI.ViewModels;
 using System;
 using System.IO;
@@ -15,11 +16,6 @@ namespace MyDiary.UI.Views.DiaryDocElement;
 
 public partial class DiaryImage : Grid, IDiaryElement
 {
-    //public static readonly StyledProperty<IImage> ImageSourceProperty = Avalonia.Controls.Image.SourceProperty.AddOwner<DiaryImage>(new StyledPropertyMetadata<IImage>());
-
-    //public static readonly StyledProperty<string> TitleProperty =
-    //    AvaloniaProperty.Register<DiaryImage, string>(nameof(Title), "Í¼Ãû");
-
     private DiaryImageVM viewModel = new DiaryImageVM();
     public DiaryImage()
     {
@@ -28,23 +24,12 @@ public partial class DiaryImage : Grid, IDiaryElement
     }
     public event EventHandler NotifyEditDataUpdated;
 
-    //public IImage ImageSource
-    //{
-    //    get => GetValue(ImageSourceProperty);
-    //    set => SetValue(ImageSourceProperty, value);
-    //}
-
-    //public string Title
-    //{
-    //    get => this.GetValue(TitleProperty);
-    //    set => SetValue(TitleProperty, value);
-    //}
     public Block GetData()
     {
         return new Core.Models.Image()
         {
             Title = viewModel.Title,
-            Data = viewModel.ImageData
+            DataId = viewModel.ImageDataId
         };
     }
 
@@ -53,11 +38,16 @@ public partial class DiaryImage : Grid, IDiaryElement
         throw new NotImplementedException();
     }
 
-    public void LoadData(Block data)
+    public async void LoadData(Block data)
     {
+        var binaryManager = new BinaryManager();
         var imageData = data as Core.Models.Image;
         viewModel.Title = imageData.Title;
-        viewModel.ImageData = imageData.Data;
+        viewModel.ImageDataId = imageData.DataId;
+        if (imageData.DataId.HasValue)
+        {
+            viewModel.ImageData = await binaryManager.GetBinaryAsync(imageData.DataId.Value);
+        }
     }
 
     private async void ChangeSourceButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -76,6 +66,9 @@ public partial class DiaryImage : Grid, IDiaryElement
     public async Task LoadImageFromFileAsync(string filePath)
     {
         viewModel.ImageData = await File.ReadAllBytesAsync(filePath);
+
+        using var bm = new BinaryManager();
+        viewModel.ImageDataId = await bm.AddBinaryAsync(viewModel.ImageData);
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

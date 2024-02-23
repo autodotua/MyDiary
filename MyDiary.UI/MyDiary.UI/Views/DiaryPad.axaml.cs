@@ -45,6 +45,7 @@ public partial class DiaryPad : UserControl
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
         = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), null);
 
+    DoumentManager docManager = new DoumentManager();
     private DiaryPadVM viewModel = new DiaryPadVM();
 
     public DiaryPad()
@@ -73,15 +74,40 @@ public partial class DiaryPad : UserControl
             ?? throw new Exception($"提供的{nameof(control)}非{nameof(DiaryPad)}子元素");
     }
 
+    public T CreateAndAppendElement<T>() where T : Control, IDiaryElement, new()
+    {
+        return CreateAndInsertElement<T>(int.MaxValue);
+    }
+
     public T CreateAndInsertElementBelow<T>(Control element) where T : Control, IDiaryElement, new()
     {
         int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
         return CreateAndInsertElement<T>(index + 1);
     }
-    public T CreateAndAppendElement<T>() where T : Control, IDiaryElement, new()
+    public void RemoveElement<T>(T element) where T : Control, IDiaryElement
     {
-        return CreateAndInsertElement<T>(int.MaxValue);
+        element.NotifyEditDataUpdated -= DiaryElement_EditPropertiesUpdated;
+        stkBody.Children.Remove(element.GetParentDiaryPart());
     }
+
+    protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == SelectedDateProperty)
+        {
+            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
+            if (change.OldValue != null)
+            {
+                await SaveDocumentAsync(oldValue.Value);
+            }
+            stkBody.Children.Clear();
+            if (change.NewValue != null)
+            {
+                await LoadDocumentAsync(newValue.Value);
+            }
+        }
+    }
+
     private T CreateAndInsertElement<T>(int index) where T : Control, IDiaryElement, new()
     {
         index = Math.Min(index, stkBody.Children.Count);
@@ -90,17 +116,51 @@ public partial class DiaryPad : UserControl
         stkBody.InsertDiaryPart(index, newElement);
         return newElement;
     }
-
-    public void RemoveElement<T>(T element) where T : Control, IDiaryElement
-    {
-        element.NotifyEditDataUpdated -= DiaryElement_EditPropertiesUpdated;
-        stkBody.Children.Remove(element.GetParentDiaryPart());
-    }
-
     private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
     {
         IDiaryElement element = sender as IDiaryElement;
         editBar.DataContext = element.GetEditData();
+    }
+
+    private async Task LoadDocumentAsync(DateTime date)
+    {
+        var doc = await docManager.GetDocumentAsync(date, null);
+        if (doc == null || doc.Count == 0)
+        {
+            var txt = CreateAndAppendElement<DiaryTextBox>();
+            txt.AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+        }
+        else
+        {
+            foreach (var part in doc)
+            {
+                IDiaryElement element = null;
+                switch (part.Type)
+                {
+                    case Block.TypeOfTextElement:
+                        element = CreateAndAppendElement<DiaryTextBox>();
+                        (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+                        break;
+                    case Block.TypeOfTable:
+                        element = CreateAndAppendElement<DiaryTable>();
+                        break;
+                    case Block.TypeOfImage:
+                        element = CreateAndAppendElement<DiaryImage>();
+                        break;
+                }
+                element.LoadData(part);
+            }
+        }
+    }
+
+    private async Task SaveDocumentAsync(DateTime date)
+    {
+        List<Block> blocks = new List<Block>();
+        foreach (var element in stkBody.Children)
+        {
+            blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
+        }
+        await docManager.SetDocumentAsync(date, null, blocks);
     }
 
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
@@ -205,62 +265,12 @@ public partial class DiaryPad : UserControl
         stkBody.GetChild(0).GetControlContent().Focus();
     }
 
-    protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnUnloaded(RoutedEventArgs e)
     {
-        base.OnPropertyChanged(change);
-        if (change.Property == SelectedDateProperty)
+        if (SelectedDate.HasValue)
         {
-            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
-            if (change.OldValue != null)
-            {
-                await SaveDocumentAsync(oldValue.Value);
-            }
-            stkBody.Children.Clear();
-            if (change.NewValue != null)
-            {
-                await LoadDocumentAsync(newValue.Value);
-            }
+            SaveDocumentAsync(SelectedDate.Value).Wait();
         }
-    }
-    DoumentManager docManager = new DoumentManager();
-
-    private async Task SaveDocumentAsync(DateTime date)
-    {
-        List<Block> blocks = new List<Block>();
-        foreach (var element in stkBody.Children)
-        {
-            blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
-        }
-        await docManager.SetDocumentAsync(date, null, blocks);
-    }
-    private async Task LoadDocumentAsync(DateTime date)
-    {
-        var doc = await docManager.GetDocumentAsync(date, null);
-        if (doc == null || doc.Count == 0)
-        {
-            var txt = CreateAndAppendElement<DiaryTextBox>();
-            txt.AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-        }
-        else
-        {
-            foreach (var part in doc)
-            {
-                IDiaryElement element = null;
-                switch (part.Type)
-                {
-                    case Block.TypeOfTextElement:
-                        element = CreateAndAppendElement<DiaryTextBox>();
-                        (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-                        break;
-                    case Block.TypeOfTable:
-                        element = CreateAndAppendElement<DiaryTable>();
-                        break;
-                    case Block.TypeOfImage:
-                        element = CreateAndAppendElement<DiaryImage>();
-                        break;
-                }
-                element.LoadData(part);
-            }
-        }
+        base.OnUnloaded(e);
     }
 }

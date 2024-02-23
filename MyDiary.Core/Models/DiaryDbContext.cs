@@ -20,7 +20,7 @@ namespace MyDiary.Core.Models
             }
         };
         private const string CurrentVersion = "20240223";
-        private const string dbName = "db.sqlite";
+        private const string dbName = "db.diary";
 
         private static readonly string connectionString = $"Data Source={dbName}";
         private DiaryDbContext()
@@ -30,6 +30,7 @@ namespace MyDiary.Core.Models
 
         public DbSet<Config> Configs { get; set; }
         public DbSet<Document> Documents { get; set; }
+        public DbSet<Binary> Binaries { get; set; }
         public static void Migrate()
         {
             if (File.Exists(dbName))

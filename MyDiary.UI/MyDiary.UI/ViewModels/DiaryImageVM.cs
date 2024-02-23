@@ -25,5 +25,6 @@ namespace MyDiary.UI.ViewModels
         private byte[] imageData;
         [ObservableProperty]
         private string title;
+        public int? ImageDataId { get; set; }
     }
 }

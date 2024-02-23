@@ -1,6 +1,7 @@
 ﻿using MyDiary.Core.Models;
 using MyDiary.UI.ViewModels;
 using System;
+using System.Threading.Tasks;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 

@@ -4,6 +4,6 @@
     {
         public override string Type => TypeOfImage;
         public string Title { get; set; }
-        public byte[] Data { get; set; }
+        public int? DataId { get; set; }
     }
 }
