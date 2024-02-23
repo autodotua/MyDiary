@@ -10,6 +10,7 @@
     xmlns:vm="using:MyDiary.UI.ViewModels"
     d:DesignHeight="600"
     d:DesignWidth="800"
+    x:DataType="vm:DiaryTableVM"
     Background="Transparent"
     Classes="add"
     RowDefinitions="Auto,8,*,8"
@@ -18,7 +19,7 @@
         MinWidth="108"
         Padding="5,6,6,5"
         HorizontalAlignment="Center"
-        Text="表名"
+        Text="{Binding Title}"
         TextAlignment="Center"
         Theme="{StaticResource DiaryTextBoxTheme}" />
 

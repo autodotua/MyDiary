@@ -8,38 +8,56 @@ using Avalonia.Platform.Storage;
 using MyDiary.Core.Models;
 using MyDiary.UI.ViewModels;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
 public partial class DiaryImage : Grid, IDiaryElement
 {
+    //public static readonly StyledProperty<IImage> ImageSourceProperty = Avalonia.Controls.Image.SourceProperty.AddOwner<DiaryImage>(new StyledPropertyMetadata<IImage>());
+
+    //public static readonly StyledProperty<string> TitleProperty =
+    //    AvaloniaProperty.Register<DiaryImage, string>(nameof(Title), "Í¼Ãû");
+
+    private DiaryImageVM viewModel = new DiaryImageVM();
     public DiaryImage()
     {
+        DataContext = viewModel = new DiaryImageVM();
         InitializeComponent();
     }
-
-
-    public static readonly StyledProperty<IImage> ImageSourceProperty = Avalonia.Controls.Image.SourceProperty.AddOwner<DiaryImage>(new StyledPropertyMetadata<IImage>(coerce: (s, v) =>
-    {
-        return v;
-    }));
-
     public event EventHandler NotifyEditDataUpdated;
 
-    public IImage ImageSource
+    //public IImage ImageSource
+    //{
+    //    get => GetValue(ImageSourceProperty);
+    //    set => SetValue(ImageSourceProperty, value);
+    //}
+
+    //public string Title
+    //{
+    //    get => this.GetValue(TitleProperty);
+    //    set => SetValue(TitleProperty, value);
+    //}
+    public Block GetData()
     {
-        get => GetValue(ImageSourceProperty);
-        set => SetValue(ImageSourceProperty, value);
+        return new Core.Models.Image()
+        {
+            Title = viewModel.Title,
+            Data = viewModel.ImageData
+        };
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    public EditBarVM GetEditData()
     {
-        base.OnPropertyChanged(change);
+        throw new NotImplementedException();
+    }
 
-        if (change.Property == ImageSourceProperty)
-        {
-            image.Source = ImageSource;
-        }
+    public void LoadData(Block data)
+    {
+        var imageData = data as Core.Models.Image;
+        viewModel.Title = imageData.Title;
+        viewModel.ImageData = imageData.Data;
     }
 
     private async void ChangeSourceButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -51,27 +69,17 @@ public partial class DiaryImage : Grid, IDiaryElement
          });
         if (files.Count > 0)
         {
-            image.Source = new Bitmap(files[0].Path.LocalPath);
+            await LoadImageFromFileAsync(files[0].Path.LocalPath);
         }
+    }
+
+    public async Task LoadImageFromFileAsync(string filePath)
+    {
+        viewModel.ImageData = await File.ReadAllBytesAsync(filePath);
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
-    }
-
-    public EditBarVM GetEditData()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void LoadData(Block data)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Block GetData()
-    {
-        throw new NotImplementedException();
     }
 }

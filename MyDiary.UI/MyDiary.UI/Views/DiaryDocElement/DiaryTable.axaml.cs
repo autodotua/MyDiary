@@ -29,27 +29,31 @@ public partial class DiaryTable : Grid, IDiaryElement
      * 用来支持调整大小的多余空间    边框      DiaryTableCell       边框    ……       边框     用来支持调整大小的多余空间
      */
 
+    private const double DefaultColumnWidth = 64;
+
     /// <summary>
     /// 边框实际（调整区）粗细
     /// </summary>
     private const double InnerBorderWidth = 2;
-
-    private const double DefaultColumnWidth = 64;
-
     private readonly DiaryTableVM viewModel;
-
     public DiaryTable()
     {
         DataContext = viewModel = new DiaryTableVM();
 
         InitializeComponent();
     }
-
     #region 数据
 
     public event EventHandler NotifyEditDataUpdated;
 
 
+    public Block GetData()
+    {
+        var table = new Table();
+        table.Cells = GetCellsData().Adapt<TableCell[,]>();
+        table.Title = viewModel.Title;
+        return table;
+    }
 
     public EditBarVM GetEditData()
     {
@@ -105,27 +109,13 @@ public partial class DiaryTable : Grid, IDiaryElement
         return ep;
     }
 
-    private void SplitMergedCell(DiaryTableCell txt)
+    public void LoadData(Block data)
     {
-        bool first = true;
-        for (int r = txt.TableRow; r < txt.TableRow + txt.CellData.RowSpan; r++)
-        {
-            for (int c = txt.TableColumn; c < txt.TableColumn + txt.CellData.ColumnSpan; c++)
-            {
-                if (first)
-                {
-                    first = false;
-                    continue;
-                }
-                CreateAndInsertCellTextBox(r, c, new TableCellInfo());
-            }
-        }
-        txt.CellData.ColumnSpan = 1;
-        txt.CellData.RowSpan = 1;
-
-        var data2 = GetCellsData();
-        CreateTableStructure(data2);
-        NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
+        Debug.Assert(data is Table);
+        var table = data as Table;
+        var cells = table.Cells.Adapt<TableCellInfo[,]>();
+        viewModel.Title = table.Title;
+        MakeTable(cells);
     }
 
     private void MergeCells()
@@ -150,19 +140,27 @@ public partial class DiaryTable : Grid, IDiaryElement
         topLeftTextBox.Focus();
     }
 
-    public void LoadData(Block data)
+    private void SplitMergedCell(DiaryTableCell txt)
     {
-        Debug.Assert(data is Table);
-        var table = data as Table;
-        var cells = table.Cells.Adapt<TableCellInfo[,]>();
-        MakeTable(cells);
-    }
+        bool first = true;
+        for (int r = txt.TableRow; r < txt.TableRow + txt.CellData.RowSpan; r++)
+        {
+            for (int c = txt.TableColumn; c < txt.TableColumn + txt.CellData.ColumnSpan; c++)
+            {
+                if (first)
+                {
+                    first = false;
+                    continue;
+                }
+                CreateAndInsertCellTextBox(r, c, new TableCellInfo());
+            }
+        }
+        txt.CellData.ColumnSpan = 1;
+        txt.CellData.RowSpan = 1;
 
-    public Block GetData()
-    {
-        var table = new Table();
-        table.Cells = GetCellsData().Adapt<TableCell[,]>();
-        return table;
+        var data2 = GetCellsData();
+        CreateTableStructure(data2);
+        NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
     }
     #endregion
 
@@ -177,11 +175,11 @@ public partial class DiaryTable : Grid, IDiaryElement
                 data[i, j] = new TableCellInfo();
             }
         }
-//#if DEBUG
-//        data[1, 1] = new TableCellInfo(2, 2, null);
-//        data[4, 0] = new TableCellInfo(2, 3, null);
-//        data[2, 3] = new TableCellInfo(2, 3, null);
-//#endif
+        //#if DEBUG
+        //        data[1, 1] = new TableCellInfo(2, 2, null);
+        //        data[4, 0] = new TableCellInfo(2, 3, null);
+        //        data[2, 3] = new TableCellInfo(2, 3, null);
+        //#endif
         MakeTable(data);
     }
 
@@ -254,13 +252,6 @@ public partial class DiaryTable : Grid, IDiaryElement
 
     #region 框选
 
-    enum TableCellsSelectionMode
-    {
-        None,
-        Selecting,
-        Selected
-    }
-
     private TableCellsSelectionMode cellsSelectionMode = TableCellsSelectionMode.None;
 
     /// <summary>
@@ -278,6 +269,12 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// </summary>
     private int selectionLeftIndex, selectionRightIndex, selectionTopIndex, selectionBottomIndex;
 
+    enum TableCellsSelectionMode
+    {
+        None,
+        Selecting,
+        Selected
+    }
     private TableCellsSelectionMode CellsSelectionMode
     {
         get => cellsSelectionMode;

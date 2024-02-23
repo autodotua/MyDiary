@@ -33,7 +33,7 @@ public partial class AddPartBar : Grid
         if (files.Count > 0)
         {
             var image = DiaryPad.GetDiaryPad(this).CreateAndInsertElementBelow<DiaryImage>(this);
-            image.ImageSource = new Bitmap(files[0].Path.LocalPath);
+            await image.LoadImageFromFileAsync(files[0].Path.LocalPath);
         }
     }
 
