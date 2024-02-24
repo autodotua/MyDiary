@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyDiary.Core.Models
+namespace MyDiary.Models
 {
     public class TextElement: Block
     {

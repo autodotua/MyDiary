@@ -1,12 +1,12 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using MyDiary.Core.Models.Converters;
+using MyDiary.Models.Converters;
 using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 
-namespace MyDiary.Core.Models
+namespace MyDiary.Models
 {
     internal class DiaryDbContext : DbContext
     {
@@ -24,15 +24,7 @@ namespace MyDiary.Core.Models
             dbName = Path.Combine(dataDir, "db.diary");
             connectionString = $"Data Source={dbName}";
         }
-        internal static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-            WriteIndented = false,
-            Converters = {
-                new JsonBlockConverter(),
-                new Json2DArrayConverter()
-            }
-        };
+
         private const string CurrentVersion = "20240223";
         private static readonly string dbName;
 

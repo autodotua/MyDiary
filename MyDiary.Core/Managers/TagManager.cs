@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 
-namespace MyDiary.Core.Services
+namespace MyDiary.Managers.Services
 {
     public class TagManager : IDisposable
     {

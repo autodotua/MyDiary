@@ -6,8 +6,8 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using FzLib.Avalonia.Dialogs;
-using MyDiary.Core.Models;
-using MyDiary.Core.Services;
+using MyDiary.Models;
+using MyDiary.Managers.Services;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
@@ -47,7 +47,7 @@ public partial class DiaryPad : UserControl
         = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), null);
 
     private bool dbLoaded = false;
-    DoumentManager docManager = new DoumentManager();
+    //DocumentManager docManager = new DocumentManager();
     private DiaryPadVM viewModel = new DiaryPadVM();
     public DiaryPad()
     {
@@ -63,11 +63,11 @@ public partial class DiaryPad : UserControl
         set => SetValue(SelectedDateProperty, value);
     }
 
-    protected override void OnUnloaded(RoutedEventArgs e)
+    protected override async void OnUnloaded(RoutedEventArgs e)
     {
         if (SelectedDate.HasValue)
         {
-            SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag).Wait();
+            await SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
         }
         base.OnUnloaded(e);
     }
@@ -88,8 +88,8 @@ public partial class DiaryPad : UserControl
           });
         if (!string.IsNullOrWhiteSpace(newTag))
         {
-            using var tm = new TagManager();
-            await tm.AddTagAsync(newTag);
+            //using var tm = new TagManager();
+            await DataManager.Manager.AddTagAsync(newTag);
             viewModel.Tags.Add(newTag);
             viewModel.SelectedTag = newTag;
         }
@@ -97,8 +97,8 @@ public partial class DiaryPad : UserControl
 
     private async void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        using TagManager tm = new TagManager();
-        viewModel.Tags = new ObservableCollection<string>(await tm.GetAllAsync());
+        //using TagManager tm = new TagManager();
+        viewModel.Tags = new ObservableCollection<string>(await DataManager.Manager.GetTagsAsync());
         viewModel.SelectedTag = viewModel.Tags.First();
         if (SelectedDate.HasValue)
         {
@@ -129,7 +129,7 @@ public partial class DiaryPad : UserControl
     private async Task LoadDocumentAsync(DateTime date, string tag)
     {
         stkBody.Children.Clear();
-        var doc = await docManager.GetDocumentAsync(date, tag);
+        var doc = await DataManager.Manager.GetDocumentAsync(date, tag);
         if (doc == null || doc.Blocks.Count == 0)
         {
             var txt = CreateAndAppendElement<DiaryTextBox>();
@@ -166,7 +166,7 @@ public partial class DiaryPad : UserControl
         {
             blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
         }
-        await docManager.SetDocumentAsync(date, tag, blocks, viewModel.Title);
+        await DataManager.Manager.SetDocumentAsync(date, tag, blocks, viewModel.Title);
     }
 
     private async void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)

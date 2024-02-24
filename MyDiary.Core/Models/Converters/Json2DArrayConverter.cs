@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace MyDiary.Core.Models.Converters
+namespace MyDiary.Models.Converters
 {
     public class Json2DArrayConverter : JsonConverterFactory
     {

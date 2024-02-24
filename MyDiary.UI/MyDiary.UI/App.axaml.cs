@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Mapster;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views;
 using System;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace MyDiary.Core.Models
+namespace MyDiary.Models
 {
     public abstract class ModelBase
     {

@@ -1,7 +1,8 @@
-﻿using MyDiary.Core.Models;
+﻿using MyDiary.Models;
+using MyDiary.Models.Converters;
 using System.Text.Json;
 
-namespace MyDiary.Core.Services
+namespace MyDiary.Managers.Services
 {
     public static class ConfigManager
     {
@@ -57,12 +58,12 @@ namespace MyDiary.Core.Services
 
         private static string GetString<T>(T data)
         {
-            return JsonSerializer.Serialize(data,DiaryDbContext.jsonOptions);
+            return JsonSerializer.Serialize(data,EfJsonConverter<object>.jsonOptions);
         }
 
         private static T Parse<T>(string data)
         {
-            return JsonSerializer.Deserialize<T>(data, DiaryDbContext.jsonOptions);
+            return JsonSerializer.Deserialize<T>(data, EfJsonConverter<object>.jsonOptions);
         }
     }
 }

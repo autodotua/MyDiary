@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace MyDiary.Core.Models
+namespace MyDiary.Models
 {
     [JsonDerivedType(typeof(TextElement))]
     [JsonDerivedType(typeof(Table))]

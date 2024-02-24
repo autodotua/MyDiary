@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace MyDiary.Core.Models
+namespace MyDiary.Models
 {
     [Index(nameof(Year),nameof(Month),nameof(Day),nameof(Tag))]
     public class Document : ModelBase

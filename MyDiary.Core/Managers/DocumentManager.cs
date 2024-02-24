@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,11 +8,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyDiary.Core.Services
+namespace MyDiary.Managers.Services
 {
-    public class DoumentManager
+    public class DocumentManager : IDisposable
     {
         DiaryDbContext db = DiaryDbContext.GetNew();
+
+        public void Dispose()
+        {
+            db?.Dispose();
+        }
+
         public async Task<Document> GetDocumentAsync(DateTime date, string tag)
         {
             if (tag == TagManager.DefaultTagName)
@@ -33,9 +39,9 @@ namespace MyDiary.Core.Services
             }
             return null;
         }
-        public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks,string title)
+        public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks, string title)
         {
-            if(tag==TagManager.DefaultTagName)
+            if (tag == TagManager.DefaultTagName)
             {
                 tag = null;
             }
@@ -62,7 +68,7 @@ namespace MyDiary.Core.Services
                     Day = date.Day,
                     Tag = tag,
                     Blocks = blocks,
-                    Title=title
+                    Title = title
                 };
                 db.Documents.Add(doc);
             }

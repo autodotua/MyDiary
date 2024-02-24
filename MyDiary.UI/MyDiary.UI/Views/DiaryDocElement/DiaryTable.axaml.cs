@@ -10,7 +10,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using FzLib;
 using Mapster;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;

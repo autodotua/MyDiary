@@ -7,7 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using Mapster;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;

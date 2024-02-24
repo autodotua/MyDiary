@@ -1,4 +1,4 @@
-﻿namespace MyDiary.Core.Models
+﻿namespace MyDiary.Models
 {
     public class Tag : ModelBase
     {

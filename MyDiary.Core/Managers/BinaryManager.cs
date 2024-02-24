@@ -1,6 +1,6 @@
-﻿using MyDiary.Core.Models;
+﻿using MyDiary.Models;
 
-namespace MyDiary.Core.Services
+namespace MyDiary.Managers.Services
 {
     public class BinaryManager : IDisposable
     {
@@ -17,7 +17,7 @@ namespace MyDiary.Core.Services
             await db.SaveChangesAsync();
             return binary.Id;
         }
-        public Task<int> UpdateBinary(int id, byte[] data)
+        public Task<int> UpdateBinaryAsync(int id, byte[] data)
         {
             throw new NotImplementedException();
         }

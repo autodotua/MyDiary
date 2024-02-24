@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Rendering;
 using Avalonia.Threading;
-using MyDiary.Core.Services;
+using MyDiary.Managers.Services;
 using MyDiary.UI.ViewModels;
 using System;
 using System.Diagnostics;
