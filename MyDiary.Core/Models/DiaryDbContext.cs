@@ -10,24 +10,39 @@ namespace MyDiary.Core.Models
 {
     internal class DiaryDbContext : DbContext
     {
+        static DiaryDbContext()
+        {
+            var dataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux())
+            {
+                dataDir = Path.Combine(dataDir, nameof(MyDiary));
+            }
+            if(!Directory.Exists(dataDir))
+            {
+                Directory.CreateDirectory(dataDir);
+            }
+            dbName = Path.Combine(dataDir, "db.diary");
+            connectionString = $"Data Source={dbName}";
+        }
         internal static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
             WriteIndented = false,
-            Converters = { 
+            Converters = {
                 new JsonBlockConverter(),
-                new Json2DArrayConverter() 
+                new Json2DArrayConverter()
             }
         };
         private const string CurrentVersion = "20240223";
-        private const string dbName = "db.diary";
+        private static readonly string dbName;
 
-        private static readonly string connectionString = $"Data Source={dbName}";
+        private static readonly string connectionString;
         private DiaryDbContext()
         {
             Database.EnsureCreated();
         }
 
+        public DbSet<Tag> Tags { get; set; }
         public DbSet<Config> Configs { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Binary> Binaries { get; set; }

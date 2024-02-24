@@ -39,8 +39,32 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="InnerRightContent" Value="{x:Null}" />
+      <Setter Property="ContextFlyout">
+        <Setter.Value>
+          <MenuFlyout Placement="Bottom">
+            <MenuItem
+                x:Name="Cut"
+                Command="{Binding $parent[TextBox].Cut}"
+                Header="剪切"
+                InputGesture="{x:Static TextBox.CutGesture}"
+                IsEnabled="{Binding $parent[TextBox].CanCut}" />
+            <MenuItem
+                x:Name="Copy"
+                Command="{Binding $parent[TextBox].Copy}"
+                Header="复制"
+                InputGesture="{x:Static TextBox.CopyGesture}"
+                IsEnabled="{Binding $parent[TextBox].CanCopy}" />
+            <MenuItem
+                x:Name="Paste"
+                Command="{Binding $parent[TextBox].Paste}"
+                Header="粘贴"
+                InputGesture="Ctrl+V"
+                IsEnabled="{Binding $parent[TextBox].CanPaste}" />
+          </MenuFlyout>
+        </Setter.Value>
+      </Setter>
 
-        <Style Selector="^:focus">
+      <Style Selector="^:focus">
             <Setter Property="Foreground" Value="{DynamicResource Foreground0}" />
 
             <Style Selector="^ /template/ Border#PART_BorderElement">

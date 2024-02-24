@@ -13,8 +13,12 @@ namespace MyDiary.Core.Services
     public class DoumentManager
     {
         DiaryDbContext db = DiaryDbContext.GetNew();
-        public async Task<IList<Block>> GetDocumentAsync(DateTime date, string tag)
+        public async Task<Document> GetDocumentAsync(DateTime date, string tag)
         {
+            if (tag == TagManager.DefaultTagName)
+            {
+                tag = null;
+            }
             var docs = db.Documents
                 .Where(p => p.Year == date.Year)
                 .Where(p => p.Month == date.Month)
@@ -25,12 +29,16 @@ namespace MyDiary.Core.Services
             if (docs.Any())
             {
                 Debug.Assert(docs.Count() == 1);
-                return (await docs.FirstAsync()).Blocks;
+                return (await docs.FirstAsync());
             }
             return null;
         }
-        public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks)
+        public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks,string title)
         {
+            if(tag==TagManager.DefaultTagName)
+            {
+                tag = null;
+            }
             var docs = db.Documents
                 .Where(p => p.Year == date.Year)
                 .Where(p => p.Month == date.Month)
@@ -42,6 +50,7 @@ namespace MyDiary.Core.Services
             {
                 var doc = await docs.FirstAsync();
                 doc.Blocks = blocks;
+                doc.Title = title;
                 db.Entry(doc).State = EntityState.Modified;
             }
             else
@@ -52,7 +61,8 @@ namespace MyDiary.Core.Services
                     Month = date.Month,
                     Day = date.Day,
                     Tag = tag,
-                    Blocks = blocks
+                    Blocks = blocks,
+                    Title=title
                 };
                 db.Documents.Add(doc);
             }

@@ -69,6 +69,5 @@
             Grid.Column="1"
             ItemsSource="{Binding Days}"
             SelectedItem="{Binding Day}" />
-      <Button Content="A" Click="Button_Click"/>
     </Grid>
 </UserControl>

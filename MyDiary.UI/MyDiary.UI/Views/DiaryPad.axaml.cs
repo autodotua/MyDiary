@@ -5,6 +5,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using FzLib.Avalonia.Dialogs;
 using MyDiary.Core.Models;
 using MyDiary.Core.Services;
 using MyDiary.UI.ViewModels;
@@ -45,22 +46,15 @@ public partial class DiaryPad : UserControl
     public static readonly StyledProperty<DateTime?> SelectedDateProperty
         = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), null);
 
+    private bool dbLoaded = false;
     DoumentManager docManager = new DoumentManager();
     private DiaryPadVM viewModel = new DiaryPadVM();
-
     public DiaryPad()
     {
         DataContext = viewModel;
         InitializeComponent();
-        //var txt = CreateAndInsertElementBelow<DiaryTextBox>(null);
-        //stkBody.GetChild(0).GetControlContent().AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-        //#if DEBUG
-        //        var table = CreateAndInsertElementBelow<DiaryTable>(txt);
-        //        table.MakeEmptyTable(6, 6);
-        //        var image = CreateAndInsertElementBelow<DiaryImage>(table);
-        //        image.ImageSource = new Bitmap(AssetLoader.Open(new Uri("avares://MyDiary.UI/Assets/avalonia-logo.ico")));
-
-        //#endif
+        viewModel.PropertyChanging += ViewModel_PropertyChanging;
+        viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
     public DateTime? SelectedDate
@@ -68,6 +62,138 @@ public partial class DiaryPad : UserControl
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
     }
+
+    protected override void OnUnloaded(RoutedEventArgs e)
+    {
+        if (SelectedDate.HasValue)
+        {
+            SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag).Wait();
+        }
+        base.OnUnloaded(e);
+    }
+
+    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
+    {
+        IDiaryElement element = sender as IDiaryElement;
+        editBar.DataContext = element.GetEditData();
+    }
+    private async void AddTagButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        string newTag = await this.ShowInputTextDialogAsync("新增标签", "请输入要新增的标签名", validation: t =>
+          {
+              if (viewModel.Tags.Contains(t))
+              {
+                  throw new Exception("已存在相同名称的标签");
+              }
+          });
+        if (!string.IsNullOrWhiteSpace(newTag))
+        {
+            using var tm = new TagManager();
+            await tm.AddTagAsync(newTag);
+            viewModel.Tags.Add(newTag);
+            viewModel.SelectedTag = newTag;
+        }
+    }
+
+    private async void UserControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        using TagManager tm = new TagManager();
+        viewModel.Tags = new ObservableCollection<string>(await tm.GetAllAsync());
+        viewModel.SelectedTag = viewModel.Tags.First();
+        if (SelectedDate.HasValue)
+        {
+            await LoadDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
+        }
+        dbLoaded = true;
+    }
+
+    #region 加载和保存数据
+    protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (dbLoaded && change.Property == SelectedDateProperty)
+        {
+            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
+            if (change.OldValue != null)
+            {
+                await SaveDocumentAsync(oldValue.Value, viewModel.SelectedTag);
+            }
+            stkBody.Children.Clear();
+            if (change.NewValue != null)
+            {
+                await LoadDocumentAsync(newValue.Value, viewModel.SelectedTag);
+            }
+        }
+    }
+
+    private async Task LoadDocumentAsync(DateTime date, string tag)
+    {
+        stkBody.Children.Clear();
+        var doc = await docManager.GetDocumentAsync(date, tag);
+        if (doc == null || doc.Blocks.Count == 0)
+        {
+            var txt = CreateAndAppendElement<DiaryTextBox>();
+            txt.AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+        }
+        else
+        {
+            foreach (var part in doc.Blocks)
+            {
+                IDiaryElement element = null;
+                switch (part.Type)
+                {
+                    case Block.TypeOfTextElement:
+                        element = CreateAndAppendElement<DiaryTextBox>();
+                        (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
+                        break;
+                    case Block.TypeOfTable:
+                        element = CreateAndAppendElement<DiaryTable>();
+                        break;
+                    case Block.TypeOfImage:
+                        element = CreateAndAppendElement<DiaryImage>();
+                        break;
+                }
+                element.LoadData(part);
+            }
+        }
+        viewModel.Title = doc?.Title;
+    }
+
+    private async Task SaveDocumentAsync(DateTime date, string tag)
+    {
+        List<Block> blocks = new List<Block>();
+        foreach (var element in stkBody.Children)
+        {
+            blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
+        }
+        await docManager.SetDocumentAsync(date, tag, blocks, viewModel.Title);
+    }
+
+    private async void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (dbLoaded && e.PropertyName == nameof(DiaryPadVM.SelectedTag))
+        {
+            if (SelectedDate.HasValue)
+            {
+                await LoadDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
+            }
+        }
+    }
+
+    private async void ViewModel_PropertyChanging(object sender, PropertyChangingEventArgs e)
+    {
+        if (dbLoaded && e.PropertyName == nameof(DiaryPadVM.SelectedTag))
+        {
+            if (SelectedDate.HasValue)
+            {
+                await SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
+            }
+        }
+    }
+    #endregion
+
+    #region 文档部件控制
+
     public static DiaryPad GetDiaryPad(Control control)
     {
         return control.GetLogicalAncestors().OfType<DiaryPad>().FirstOrDefault()
@@ -90,24 +216,6 @@ public partial class DiaryPad : UserControl
         stkBody.Children.Remove(element.GetParentDiaryPart());
     }
 
-    protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-    {
-        base.OnPropertyChanged(change);
-        if (change.Property == SelectedDateProperty)
-        {
-            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
-            if (change.OldValue != null)
-            {
-                await SaveDocumentAsync(oldValue.Value);
-            }
-            stkBody.Children.Clear();
-            if (change.NewValue != null)
-            {
-                await LoadDocumentAsync(newValue.Value);
-            }
-        }
-    }
-
     private T CreateAndInsertElement<T>(int index) where T : Control, IDiaryElement, new()
     {
         index = Math.Min(index, stkBody.Children.Count);
@@ -116,53 +224,9 @@ public partial class DiaryPad : UserControl
         stkBody.InsertDiaryPart(index, newElement);
         return newElement;
     }
-    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
-    {
-        IDiaryElement element = sender as IDiaryElement;
-        editBar.DataContext = element.GetEditData();
-    }
+    #endregion
 
-    private async Task LoadDocumentAsync(DateTime date)
-    {
-        var doc = await docManager.GetDocumentAsync(date, null);
-        if (doc == null || doc.Count == 0)
-        {
-            var txt = CreateAndAppendElement<DiaryTextBox>();
-            txt.AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-        }
-        else
-        {
-            foreach (var part in doc)
-            {
-                IDiaryElement element = null;
-                switch (part.Type)
-                {
-                    case Block.TypeOfTextElement:
-                        element = CreateAndAppendElement<DiaryTextBox>();
-                        (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
-                        break;
-                    case Block.TypeOfTable:
-                        element = CreateAndAppendElement<DiaryTable>();
-                        break;
-                    case Block.TypeOfImage:
-                        element = CreateAndAppendElement<DiaryImage>();
-                        break;
-                }
-                element.LoadData(part);
-            }
-        }
-    }
-
-    private async Task SaveDocumentAsync(DateTime date)
-    {
-        List<Block> blocks = new List<Block>();
-        foreach (var element in stkBody.Children)
-        {
-            blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
-        }
-        await docManager.SetDocumentAsync(date, null, blocks);
-    }
-
+    #region 多行文本
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
     {
         StackPanel stkBody = this.stkBody;
@@ -260,17 +324,6 @@ public partial class DiaryPad : UserControl
         }
     }
 
-    private void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        stkBody.GetChild(0).GetControlContent().Focus();
-    }
+    #endregion
 
-    protected override void OnUnloaded(RoutedEventArgs e)
-    {
-        if (SelectedDate.HasValue)
-        {
-            SaveDocumentAsync(SelectedDate.Value).Wait();
-        }
-        base.OnUnloaded(e);
-    }
 }

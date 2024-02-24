@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
+using MyDiary.UI.Events;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -12,5 +15,11 @@ namespace MyDiary.UI.ViewModels
         {
         }
 
+        [ObservableProperty]
+        private string title;
+        [ObservableProperty]
+        private ObservableCollection<string> tags;
+        [ObservableProperty]
+        private string selectedTag;
     }
 }
