@@ -2,14 +2,41 @@
     x:Class="MyDiary.UI.Views.MainWindow"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="using:FzLib.Avalonia.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:views="clr-namespace:MyDiary.UI.Views"
     xmlns:vm="using:MyDiary.UI.ViewModels"
+    x:Name="win"
     Title="我的日记本"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    ExtendClientAreaChromeHints="{OnPlatform Default,
+                                             Windows=NoChrome}"
+    ExtendClientAreaToDecorationsHint="{OnPlatform False,
+                                                   Windows=True}"
     Icon="/Assets/avalonia-logo.ico"
     mc:Ignorable="d">
-    <views:MainView />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{OnPlatform 0, Windows=Auto}" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Rectangle
+            Margin="0,0,0,-8"
+            Fill="{DynamicResource Background1}"
+            IsHitTestVisible="False" />
+        <c:WindowButtons
+            HorizontalAlignment="Right"
+            IsVisible="{OnPlatform False,
+                                   Windows=True}" />
+        <Border Margin="{Binding #win.OffScreenMargin}">
+            <TextBlock
+                Margin="12,4"
+                Text="{Binding #win.Title}" />
+        </Border>
+        <views:MainView
+            Grid.Row="2"
+            Margin="{Binding #win.OffScreenMargin}" />
+    </Grid>
 </Window>

@@ -47,12 +47,11 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
                     TextData.Alignment = 2;
                     break;
                 default:
+                    base.OnKeyDown(e);
                     return;
             }
-            e.Handled = true;
             NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
         }
-        base.OnKeyDown(e);
     }
 
     public static readonly StyledProperty<ViewModels.TextElementInfo> TextDataProperty =

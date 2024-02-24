@@ -13,7 +13,6 @@
     <ContentControl.Template>
         <ControlTemplate>
             <StackPanel Orientation="Vertical">
-                <!--<dde:AddPartBar/>-->
                 <ContentPresenter Content="{TemplateBinding Content}" />
                 <dde:AddPartBar Margin="8,-8" />
             </StackPanel>
