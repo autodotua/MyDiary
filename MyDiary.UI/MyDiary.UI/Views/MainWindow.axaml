@@ -30,9 +30,12 @@
             HorizontalAlignment="Right"
             IsVisible="{OnPlatform False,
                                    Windows=True}" />
-        <Border Margin="{Binding #win.OffScreenMargin}">
+        <Border
+            Margin="{Binding #win.OffScreenMargin}"
+            IsHitTestVisible="False">
             <TextBlock
                 Margin="12,4"
+                IsHitTestVisible="False"
                 Text="{Binding #win.Title}" />
         </Border>
         <views:MainView

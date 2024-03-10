@@ -19,6 +19,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
+using System.Threading;
 
 namespace MyDiary.UI.Views;
 /// <summary>
@@ -129,6 +130,7 @@ public partial class DiaryPad : UserControl
     private async Task LoadDocumentAsync(DateTime date, string tag)
     {
         stkBody.Children.Clear();
+        var cts = LoadingOverlay.ShowLoading(this,TimeSpan.FromSeconds(0.5));
         var doc = await DataManager.Manager.GetDocumentAsync(date, tag);
         if (doc == null || doc.Blocks.Count == 0)
         {
@@ -157,6 +159,7 @@ public partial class DiaryPad : UserControl
             }
         }
         viewModel.Title = doc?.Title;
+        cts.Cancel();
     }
 
     private async Task SaveDocumentAsync(DateTime date, string tag)
