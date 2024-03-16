@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Mapster;
+using MyDiary.Core.WordParser;
 using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views;
@@ -24,7 +25,7 @@ namespace MyDiary.UI
             {
                 Resources.Add("ContentControlThemeFontFamily", new FontFamily("avares://MyDiary.UI/Assets#Microsoft YaHei"));
             }
-
+            WordReader.Test();
             TypeAdapterConfig.GlobalSettings.NewConfig<TextElementInfo, TextElement>()
                  .Map(dest => dest.TextColor,
                  src => System.Drawing.Color.FromArgb(src.TextColor.A, src.TextColor.R, src.TextColor.G, src.TextColor.B));
