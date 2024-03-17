@@ -38,22 +38,31 @@ namespace MyDiary.Core.WordParser
         /// 每日的内容是如何编号的，是提供了带大纲级别的标题，还是用段落编号
         /// </summary>
         public NumberingType DayNumberingType { get; set; }
+        public string MonthPattern { get; set; }
+        public string DayPattern { get; set; }
 
     }
-    public class WordParserOptions(int year,List<WordParserDiarySegment> segments)
+    public class WordParserOptions(int year, List<WordParserDiarySegment> segments)
     {
         public int Year { get; set; } = year;
         public List<WordParserDiarySegment> Segments { get; set; } = segments;
     }
+    public class WordParserError(string message, string paragraph)
+    {
+        public string Message { get; } = message;
+        public string Paragraph { get; } = paragraph;
+    }
+
     public class WordReader
     {
         public static void Test()
         {
-            var options = new WordParserOptions(2023,[
+            var options = new WordParserOptions(2023, [
                     new WordParserDiarySegment(){
                         Name="日记",
                         TimeHost=TimeUnit.Day,
-                        DayNumberingType=NumberingType.ParagraphNumbering
+                        DayNumberingType=NumberingType.ParagraphNumbering,
+                        MonthPattern="(<value>[0-1]?[0-9])月",
                     },
                       new WordParserDiarySegment(){
                                 Name="科研日志",
@@ -76,8 +85,9 @@ namespace MyDiary.Core.WordParser
             var ps = doc.Paragraphs;
             var segments = options.Segments.ToDictionary(p => p.Name);
             WordParserDiarySegment currentSegment = null;
-            int month = 1;
-            int day = 1;
+            int month = 0;
+            int day = 0;
+            List<WordParserError> errors = new List<WordParserError>();
             foreach (XWPFParagraph p in ps)
             {
                 var text = p.Text;
@@ -86,11 +96,50 @@ namespace MyDiary.Core.WordParser
                 {
                     continue;
                 }
-                if (currentSegment == null 
-                    && outline > 0 
-                    && segments.ContainsKey(text))
+                if (outline > 0)
                 {
-                    currentSegment = segments[text];
+                    //进入一个新的主题
+                    if (currentSegment == null )
+                    {
+                        if (segments.TryGetValue(text, out WordParserDiarySegment value))
+                        {
+                            currentSegment = value;
+                        }
+                    }
+                    else //currentSegment is not null
+                    {
+                        if(currentSegment.MonthPattern!=null)
+                        {
+                            if(Regex.IsMatch(text, currentSegment.MonthPattern))
+                            {
+                                var match=Regex.Match(text, currentSegment.MonthPattern);
+                                if(match.Groups.ContainsKey("value"))
+                                {
+                                    int tempMonth = int.Parse(match.Groups["value"].ValueSpan);
+                                    if(tempMonth<=0 || tempMonth >= 13)
+                                    {
+                                        errors.Add(new WordParserError("月份范围错误", text));
+                                    }
+                                    else if(tempMonth<=month)
+                                    {
+                                        errors.Add(new WordParserError("月份早于先前的月份", text));
+                                    }
+                                    else
+                                    {
+                                        month = tempMonth;
+                                    }
+                                }
+                                else //月份内无value组
+                                {
+                                    errors.Add(new WordParserError("找不到月份值", text));
+                                }
+                            }
+                        }
+                    }
+                }
+                else //outline == 0
+                {
+
                 }
 
                 Debug.WriteLine(outline);
