@@ -17,8 +17,12 @@ namespace MyDiary.Core.WordParser
 
     public class WordReader
     {
-        public static async void Test()
+        public static void Test()
         {
+#if DEBUG
+            using (var dm = new DocumentManager())
+                dm.ClearDocumentsAsync().Wait();
+#endif
             var options = new WordParserOptions(2023, [
                     new WordParserDiarySegment(){
                         Name="日记",
@@ -43,7 +47,7 @@ namespace MyDiary.Core.WordParser
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                             },
                 ]);
-             ParseAsync(@"C:\Users\fz\OneDrive\临时\2023.docx", options).Wait();
+            ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2023.docx", options).Wait();
         }
 
         public static async Task ParseAsync(string file, WordParserOptions options)
@@ -129,7 +133,7 @@ namespace MyDiary.Core.WordParser
                             day++;
                             if (day > DateTime.DaysInMonth(options.Year, month))
                             {
-                                throw new Exception("日期已大于本月应有日期");
+                                //throw new Exception("日期已大于本月应有日期");
                             }
                         }
                         AddParagraph();

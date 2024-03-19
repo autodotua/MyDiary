@@ -19,6 +19,13 @@ namespace MyDiary.Managers.Services
             db?.Dispose();
         }
 
+#if DEBUG
+        public async Task ClearDocumentsAsync()
+        {
+            await db.Database.ExecuteSqlRawAsync($"delete from [{nameof(db.Documents)}]");
+        }
+#endif
+
         public async Task<Document> GetDocumentAsync(DateTime date, string tag)
         {
             var docs = db.Documents
@@ -72,23 +79,37 @@ namespace MyDiary.Managers.Services
         }
         public async Task SetDocumentsAsync(IList<Document> documents)
         {
+            HashSet<string> tags;
+            using (var tm = new TagManager())
+            {
+                tags = (await tm.GetAllAsync()).ToHashSet();
+            }
             foreach (var doc in documents)
             {
-                var existedDoc =await db.Documents.Where(p =>
+                var existedDoc = await db.Documents.Where(p =>
                 p.Year == doc.Year
                 && p.Month == doc.Month
                 && p.Day == doc.Day
                 && p.Tag == doc.Tag
                 && !p.IsDeleted)
                     .FirstOrDefaultAsync();
-                if(existedDoc!=null)
+                if (existedDoc != null)
                 {
                     existedDoc.Blocks = doc.Blocks;
                     existedDoc.Title = doc.Title;
-                    db.Entry(existedDoc).State= EntityState.Modified;
+                    db.Entry(existedDoc).State = EntityState.Modified;
                 }
                 else
                 {
+                    if (!tags.Contains(doc.Tag))
+                    {
+                        Tag tag = new Tag()
+                        {
+                            Name = doc.Tag,
+                        };
+                        db.Tags.Add(tag);
+                        tags.Add(doc.Tag);
+                    }
                     db.Documents.Add(doc);
                 }
             }
