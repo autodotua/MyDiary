@@ -21,10 +21,6 @@ namespace MyDiary.Managers.Services
 
         public async Task<Document> GetDocumentAsync(DateTime date, string tag)
         {
-            if (tag == TagManager.DefaultTagName)
-            {
-                tag = null;
-            }
             var docs = db.Documents
                 .Where(p => p.Year == date.Year)
                 .Where(p => p.Month == date.Month)
@@ -71,6 +67,30 @@ namespace MyDiary.Managers.Services
                     Title = title
                 };
                 db.Documents.Add(doc);
+            }
+            await db.SaveChangesAsync();
+        }
+        public async Task SetDocumentsAsync(IList<Document> documents)
+        {
+            foreach (var doc in documents)
+            {
+                var existedDoc =await db.Documents.Where(p =>
+                p.Year == doc.Year
+                && p.Month == doc.Month
+                && p.Day == doc.Day
+                && p.Tag == doc.Tag
+                && !p.IsDeleted)
+                    .FirstOrDefaultAsync();
+                if(existedDoc!=null)
+                {
+                    existedDoc.Blocks = doc.Blocks;
+                    existedDoc.Title = doc.Title;
+                    db.Entry(existedDoc).State= EntityState.Modified;
+                }
+                else
+                {
+                    db.Documents.Add(doc);
+                }
             }
             await db.SaveChangesAsync();
         }
