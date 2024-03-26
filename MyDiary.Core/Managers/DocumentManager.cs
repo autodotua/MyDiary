@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyDiary.Core.Models;
 using MyDiary.Models;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace MyDiary.Managers.Services
         }
 #endif
 
-        public async Task<Document> GetDocumentAsync(DateTime date, string tag)
+        public async Task<Document> GetDocumentAsync(NullableDate date, string tag)
         {
             var docs = db.Documents
                 .Where(p => p.Year == date.Year)
@@ -42,7 +43,7 @@ namespace MyDiary.Managers.Services
             }
             return null;
         }
-        public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks, string title)
+        public async Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
         {
             if (tag == TagManager.DefaultTagName)
             {

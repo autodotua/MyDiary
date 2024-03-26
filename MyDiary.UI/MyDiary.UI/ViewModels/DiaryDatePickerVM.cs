@@ -1,4 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MyDiary.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,32 +21,37 @@ namespace MyDiary.UI.ViewModels
         private int year = DateTime.Today.Year;
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Date))]
-        private int month = DateTime.Today.Month;
+        private int? month = DateTime.Today.Month;
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Date))]
         private int? day = DateTime.Today.Day;
 
-        public DateTime? Date
+        public NullableDate Date
         {
-            get => Day.HasValue ? new DateTime(Year, Month, Day.Value) : null;
+            get => new NullableDate(Year, Month, Day);
             set
             {
-                if(value==null)
-                {
-                    Day = null;
-                }
-                else
-                {
-                    Year = value.Value.Year;
-                    Month=value.Value.Month;
-                    Day = value.Value.Day;
-                }
+                Year = value.Year;
+                Month = value.Month;
+                Day = value.Day;
             }
         }
 
         public List<int> Years { get; } = Enumerable.Range(2000, DateTime.Today.Year - 2000 + 1).ToList();
         public List<int> Months { get; } = Enumerable.Range(1, 12).ToList();
         public ObservableCollection<int> Days { get; } = new ObservableCollection<int>();
+
+        [RelayCommand]
+        private void WholeYearButtonClick()
+        {
+            Month = null;
+        }
+
+        [RelayCommand]
+        private void WholeMonthButtonClick()
+        {
+            Day = null;
+        }
 
         protected override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
@@ -53,10 +60,17 @@ namespace MyDiary.UI.ViewModels
             {
                 case nameof(Year):
                 case nameof(Month):
-                    Days.Clear();
-                    foreach (var i in Enumerable.Range(1, DateTime.DaysInMonth(Year, Month)))
+                    if (Month.HasValue)
                     {
-                        Days.Add(i);
+                        Days.Clear();
+                        foreach (var i in Enumerable.Range(1, DateTime.DaysInMonth(Year, Month.Value)))
+                        {
+                            Days.Add(i);
+                        }
+                    }
+                    else
+                    {
+                        Day = null;
                     }
                     break;
             }

@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using System.Threading;
+using MyDiary.Core.Models;
 
 namespace MyDiary.UI.Views;
 /// <summary>
@@ -44,8 +45,8 @@ namespace MyDiary.UI.Views;
 /// </remarks>
 public partial class DiaryPad : UserControl
 {
-    public static readonly StyledProperty<DateTime?> SelectedDateProperty
-        = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), null);
+    public static readonly StyledProperty<NullableDate> SelectedDateProperty
+        = AvaloniaProperty.Register<DiaryPad, NullableDate>(nameof(SelectedDate), default);
 
     private bool dbLoaded = false;
     //DocumentManager docManager = new DocumentManager();
@@ -58,7 +59,7 @@ public partial class DiaryPad : UserControl
         viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    public DateTime? SelectedDate
+    public NullableDate SelectedDate
     {
         get => GetValue(SelectedDateProperty);
         set => SetValue(SelectedDateProperty, value);
@@ -66,10 +67,7 @@ public partial class DiaryPad : UserControl
 
     protected override async void OnUnloaded(RoutedEventArgs e)
     {
-        if (SelectedDate.HasValue)
-        {
-            await SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-        }
+        await SaveDocumentAsync(SelectedDate, viewModel.SelectedTag);
         base.OnUnloaded(e);
     }
 
@@ -101,10 +99,7 @@ public partial class DiaryPad : UserControl
         //using TagManager tm = new TagManager();
         viewModel.Tags = new ObservableCollection<string>(await DataManager.Manager.GetTagsAsync());
         viewModel.SelectedTag = viewModel.Tags.First();
-        if (SelectedDate.HasValue)
-        {
-            await LoadDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-        }
+        await LoadDocumentAsync(SelectedDate, viewModel.SelectedTag);
         dbLoaded = true;
     }
 
@@ -114,23 +109,23 @@ public partial class DiaryPad : UserControl
         base.OnPropertyChanged(change);
         if (dbLoaded && change.Property == SelectedDateProperty)
         {
-            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
+            (var oldValue, var newValue) = change.GetOldAndNewValue<NullableDate>();
             if (change.OldValue != null)
             {
-                await SaveDocumentAsync(oldValue.Value, viewModel.SelectedTag);
+                await SaveDocumentAsync(oldValue, viewModel.SelectedTag);
             }
             stkBody.Children.Clear();
             if (change.NewValue != null)
             {
-                await LoadDocumentAsync(newValue.Value, viewModel.SelectedTag);
+                await LoadDocumentAsync(newValue, viewModel.SelectedTag);
             }
         }
     }
 
-    private async Task LoadDocumentAsync(DateTime date, string tag)
+    private async Task LoadDocumentAsync(NullableDate date, string tag)
     {
         stkBody.Children.Clear();
-        var cts = LoadingOverlay.ShowLoading(this,TimeSpan.FromSeconds(0.5));
+        var cts = LoadingOverlay.ShowLoading(this, TimeSpan.FromSeconds(0.5));
         var doc = await DataManager.Manager.GetDocumentAsync(date, tag);
         if (doc == null || doc.Blocks.Count == 0)
         {
@@ -162,7 +157,7 @@ public partial class DiaryPad : UserControl
         cts.Cancel();
     }
 
-    private async Task SaveDocumentAsync(DateTime date, string tag)
+    private async Task SaveDocumentAsync(NullableDate date, string tag)
     {
         List<Block> blocks = new List<Block>();
         foreach (var element in stkBody.Children)
@@ -176,10 +171,7 @@ public partial class DiaryPad : UserControl
     {
         if (dbLoaded && e.PropertyName == nameof(DiaryPadVM.SelectedTag))
         {
-            if (SelectedDate.HasValue)
-            {
-                await LoadDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-            }
+            await LoadDocumentAsync(SelectedDate, viewModel.SelectedTag);
         }
     }
 
@@ -187,10 +179,7 @@ public partial class DiaryPad : UserControl
     {
         if (dbLoaded && e.PropertyName == nameof(DiaryPadVM.SelectedTag))
         {
-            if (SelectedDate.HasValue)
-            {
-                await SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-            }
+            await SaveDocumentAsync(SelectedDate, viewModel.SelectedTag);
         }
     }
     #endregion

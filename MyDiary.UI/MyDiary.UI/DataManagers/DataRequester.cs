@@ -1,4 +1,5 @@
-﻿using MyDiary.Models;
+﻿using MyDiary.Core.Models;
+using MyDiary.Models;
 using MyDiary.Models.Converters;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ public class WebDataManager : IDataManager
     private const string AddBinaryEndpoint = "Binary";
     private const string DeleteTagEndpoint = "Tag";
 
-    public async Task<Document> GetDocumentAsync(DateTime date, string tag)
+    public async Task<Document> GetDocumentAsync(NullableDate date, string tag)
     {
         var endpoint = $"{DocumentEndpoint}?date={date:yyyy-MM-dd}&tag={tag}";
         return await GetAsync<Document>(endpoint);
@@ -32,7 +33,7 @@ public class WebDataManager : IDataManager
         var endpoint = AddBinaryEndpoint;
         return await PostAsync<int>(endpoint, data);
     }
-    public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks, string title)
+    public async Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
     {
         var endpoint = $"{SetDocumentEndpoint}?date={date:yyyy-MM-dd}&tag={tag}&title={title}";
         await PostAsync(endpoint, blocks);

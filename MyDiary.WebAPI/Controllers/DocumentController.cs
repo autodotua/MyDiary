@@ -3,6 +3,7 @@ using MyDiary.Models;
 using MyDiary.Managers.Services;
 using MyDiary.Models.Converters;
 using static System.Reflection.Metadata.BlobBuilder;
+using MyDiary.Core.Models;
 
 namespace MyDiary.WebAPI.Controllers
 {
@@ -17,7 +18,7 @@ namespace MyDiary.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDocumentAsync(DateTime date, string tag)
+        public async Task<IActionResult> GetDocumentAsync(NullableDate date, string tag)
         {
             try
             {
@@ -39,7 +40,7 @@ namespace MyDiary.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SetDocumentAsync(DateTime date, string tag, string title)
+        public async Task<IActionResult> SetDocumentAsync(NullableDate date, string tag, string title)
         {
             try
             {

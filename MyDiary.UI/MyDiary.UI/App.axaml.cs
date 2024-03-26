@@ -25,9 +25,6 @@ namespace MyDiary.UI
             {
                 Resources.Add("ContentControlThemeFontFamily", new FontFamily("avares://MyDiary.UI/Assets#Microsoft YaHei"));
             }
-#if DEBUG
-            WordReader.Test();
-#endif
             TypeAdapterConfig.GlobalSettings.NewConfig<TextElementInfo, TextElement>()
                  .Map(dest => dest.TextColor,
                  src => System.Drawing.Color.FromArgb(src.TextColor.A, src.TextColor.R, src.TextColor.G, src.TextColor.B));

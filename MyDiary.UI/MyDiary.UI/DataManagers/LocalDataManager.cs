@@ -1,4 +1,5 @@
-﻿using MyDiary.Managers.Services;
+﻿using MyDiary.Core.Models;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ public class LocalDataManager : IDataManager
         return binaryManager.GetBinaryAsync(id);
     }
 
-    public Task<Document> GetDocumentAsync(DateTime date, string tag)
+    public Task<Document> GetDocumentAsync(NullableDate date, string tag)
     {
         return documentManager.GetDocumentAsync(date, tag);
     }
@@ -45,7 +46,7 @@ public class LocalDataManager : IDataManager
         return tagManager.GetAllAsync();
     }
 
-    public Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks, string title)
+    public Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
     {
         return documentManager.SetDocumentAsync(date, tag, blocks, title);
     }

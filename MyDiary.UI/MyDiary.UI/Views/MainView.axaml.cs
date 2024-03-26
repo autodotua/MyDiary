@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Rendering;
 using Avalonia.Threading;
+using MyDiary.Core.Models;
+using MyDiary.Core.WordParser;
 using MyDiary.Managers.Services;
 using MyDiary.UI.ViewModels;
 using System;
@@ -19,12 +21,15 @@ namespace MyDiary.UI.Views
         }
 
 
-        private void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private async void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            datePicker.SelectedDate = DateTime.Today;
+#if DEBUG
+            await WordReader.TestAsync();
+#endif
+            datePicker.SelectedDate = NullableDate.Today;
         }
 
-        private void Button_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private void Button_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             Process.Start(new ProcessStartInfo()
             {

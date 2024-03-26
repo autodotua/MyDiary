@@ -1,4 +1,5 @@
-﻿using MyDiary.Managers.Services;
+﻿using MyDiary.Core.Models;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
@@ -17,7 +18,7 @@ namespace MyDiary.Core.WordParser
 
     public class WordReader
     {
-        public static void Test()
+        public static async Task TestAsync()
         {
 #if DEBUG
             using (var dm = new DocumentManager())
@@ -42,12 +43,12 @@ namespace MyDiary.Core.WordParser
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                             },
                       new WordParserDiarySegment(){
-                                Name="年终总结",
+                                Name="年度总结",
                                 TimeHost=TimeUnit.Year,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                             },
                 ]);
-            ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2021.docx", options).Wait();
+            await ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2021.docx", options);
         }
 
         public static async Task ParseAsync(string file, WordParserOptions options)
@@ -58,10 +59,10 @@ namespace MyDiary.Core.WordParser
             var ps = doc.Paragraphs;
             var segments = options.Segments.ToDictionary(p => p.Name);
             WordParserDiarySegment s = null;
-            int month = 0;
-            int day = 0;
+            NullableDate date = default;
+            int year = options.Year;
             List<WordParserError> errors = new List<WordParserError>();
-            Dictionary<WordParserDiarySegment, Dictionary<(int, int, int), Document>> documents = new();
+            Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
             foreach (XWPFParagraph p in ps)
             {
                 var text = p.Text;
@@ -79,8 +80,7 @@ namespace MyDiary.Core.WordParser
                         if (segments.TryGetValue(text, out WordParserDiarySegment value))
                         {
                             s = value;
-                            month = 0;
-                            day = 0;
+                            date = new NullableDate(year);
                         }
                     }
                     else //currentSegment is not null
@@ -88,24 +88,22 @@ namespace MyDiary.Core.WordParser
                         if (segments.TryGetValue(text, out WordParserDiarySegment value))
                         {
                             s = value;
-                            month = 0;
-                            day = 0;
+                            date = new NullableDate(year);
                         }
                         else if (s.TimeHost is TimeUnit.Month or TimeUnit.Day
-                           && CheckDateTitle(ref month, text, s.MonthPattern, errors, "月份"))
+                           && CheckDateTitle(ref date, text, s.MonthPattern, errors, TimeUnit.Month, "月份"))
                         {
-                            day = 0;
                             //跳转新月份
                         }
                         else if (s.TimeHost is TimeUnit.Day
                             && s.DayNumberingType == NumberingType.OutlineTitle
-                            && CheckDateTitle(ref day, text, s.DayPattern, errors, "日"))
+                            && CheckDateTitle(ref date, text, s.DayPattern, errors, TimeUnit.Day, "日"))
                         {
-                            //跳转新日期
-                            if (day > DateTime.DaysInMonth(options.Year, month))
-                            {
-                                throw new Exception("日期已大于本月应有日期");
-                            }
+                            //跳转新日
+                        }
+                        else
+                        {
+                            AddParagraph();
                         }
                     }
                 }
@@ -121,7 +119,7 @@ namespace MyDiary.Core.WordParser
                     }
                     else if (s.TimeHost == TimeUnit.Month)
                     {
-                        if (month > 0)
+                        if (date.Month.HasValue)
                         {
                             AddParagraph();
                         }
@@ -131,10 +129,13 @@ namespace MyDiary.Core.WordParser
                         if (s.DayNumberingType == NumberingType.ParagraphNumbering
                             && HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
                         {
-                            day++;
-                            if (day > DateTime.DaysInMonth(options.Year, month))
+                            if (date.IsSpecified)
                             {
-                                //throw new Exception("日期已大于本月应有日期");
+                                date = new NullableDate(date.Year, date.Month, date.Day + 1);
+                            }
+                            else
+                            {
+                                throw new NotImplementedException();
                             }
                         }
                         AddParagraph();
@@ -145,7 +146,7 @@ namespace MyDiary.Core.WordParser
                     foreach (var line in text.Split('\r', '\n'))//正常情况下软换行\n
                     {
                         TextElement t = new TextElement() { Text = line };
-                        AddToDic(documents, s, options.Year, month, day, t);
+                        AddToDic(documents, s, date, t);
                     }
                 }
             }
@@ -163,16 +164,14 @@ namespace MyDiary.Core.WordParser
             return doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
         }
         private static void AddToDic(
-            Dictionary<WordParserDiarySegment, Dictionary<(int, int, int), Document>> docs4Seg,
-            WordParserDiarySegment seg,
-            int year, int month, int day, Block block)
+            Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> docs4Seg,
+            WordParserDiarySegment seg, NullableDate date, Block block)
         {
             if (!docs4Seg.ContainsKey(seg))
             {
-                docs4Seg.Add(seg, new Dictionary<(int, int, int), Document>());
+                docs4Seg.Add(seg, new Dictionary<NullableDate, Document>());
             }
-            Dictionary<(int, int, int), Document> docs = docs4Seg[seg];
-            var date = (year, month, day);
+            Dictionary<NullableDate, Document> docs = docs4Seg[seg];
             Document doc;
             if (docs.TryGetValue(date, out Document value))
             {
@@ -182,9 +181,9 @@ namespace MyDiary.Core.WordParser
             {
                 doc = new Document()
                 {
-                    Year = year,
-                    Month = month,
-                    Day = day,
+                    Year = date.Year,
+                    Month = seg.TimeHost is TimeUnit.Year ? null : date.Month,
+                    Day = (seg.TimeHost is TimeUnit.Year or TimeUnit.Month) ? null : date.Day,
                     Tag = seg.Name,
                     Blocks = []
                 };
@@ -208,7 +207,7 @@ namespace MyDiary.Core.WordParser
             }
         }
 
-        private static bool CheckDateTitle(ref int value, string text, string pattern, IList<WordParserError> errors, string errorText)
+        private static bool CheckDateTitle(ref NullableDate value, string text, string pattern, IList<WordParserError> errors, TimeUnit type, string errorText)
         {
             if (Regex.IsMatch(text, pattern))
             {
@@ -216,17 +215,31 @@ namespace MyDiary.Core.WordParser
                 if (match.Groups.ContainsKey("value"))
                 {
                     int tempValue = int.Parse(match.Groups["value"].ValueSpan);
-                    if (tempValue <= 0 || tempValue >= 13)
+                    if (type == TimeUnit.Month && (tempValue <= 0 || tempValue >= 13))
                     {
-                        errors.Add(new WordParserError(errorText + "范围错误", text));
+                        errors.Add(new WordParserError(errorText + "月超出范围", text));
                     }
-                    else if (tempValue <= value)
+                    else if (type == TimeUnit.Day && !value.Month.HasValue)
                     {
-                        errors.Add(new WordParserError(errorText + "早于先前的" + errorText, text));
+                        errors.Add(new WordParserError(errorText + "在指定日前未指定月", text));
+                    }
+                    else if (type == TimeUnit.Day && (tempValue <= 0 || tempValue > DateTime.DaysInMonth(value.Year, value.Month.Value)))
+                    {
+                        errors.Add(new WordParserError(errorText + "日超出范围", text));
                     }
                     else
                     {
-                        value = tempValue;
+                        switch (type)
+                        {
+                            case TimeUnit.Year:
+                                break;
+                            case TimeUnit.Month:
+                                value = new NullableDate(value.Year, tempValue, 0);
+                                break;
+                            case TimeUnit.Day:
+                                value = new NullableDate(value.Year, value.Month, tempValue);
+                                break;
+                        }
                         return true;
                     }
                 }
