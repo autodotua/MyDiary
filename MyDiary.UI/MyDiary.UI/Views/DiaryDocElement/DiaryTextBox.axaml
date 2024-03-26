@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:system="using:System"
     xmlns:v="using:MyDiary.UI.Views"
+    xmlns:ui="using:MyDiary.UI"
     xmlns:vm="using:MyDiary.UI.ViewModels"
     Theme="{StaticResource DiaryTextBoxTheme}"
     mc:Ignorable="d" />

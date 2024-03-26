@@ -23,7 +23,7 @@ namespace MyDiary.Core.WordParser
             using (var dm = new DocumentManager())
                 dm.ClearDocumentsAsync().Wait();
 #endif
-            var options = new WordParserOptions(2023, [
+            var options = new WordParserOptions(2024, [
                     new WordParserDiarySegment(){
                         Name="日记",
                         TimeHost=TimeUnit.Day,
@@ -47,7 +47,7 @@ namespace MyDiary.Core.WordParser
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                             },
                 ]);
-            ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2023.docx", options).Wait();
+            ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2021.docx", options).Wait();
         }
 
         public static async Task ParseAsync(string file, WordParserOptions options)
@@ -128,7 +128,8 @@ namespace MyDiary.Core.WordParser
                     }
                     else if (s.TimeHost == TimeUnit.Day)
                     {
-                        if (s.DayNumberingType == NumberingType.ParagraphNumbering)
+                        if (s.DayNumberingType == NumberingType.ParagraphNumbering
+                            && HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
                         {
                             day++;
                             if (day > DateTime.DaysInMonth(options.Year, month))
@@ -157,7 +158,10 @@ namespace MyDiary.Core.WordParser
             }
             await dm.SetDocumentsAsync(allDocuments);
         }
-
+        private static bool HasNumberingEnabled(XWPFDocument doc, XWPFParagraph p)
+        {
+            return doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
+        }
         private static void AddToDic(
             Dictionary<WordParserDiarySegment, Dictionary<(int, int, int), Document>> docs4Seg,
             WordParserDiarySegment seg,

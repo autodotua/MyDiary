@@ -6,23 +6,29 @@ namespace MyDiary.Managers.Services
 {
     public static class ConfigManager
     {
+        public static readonly string FontFamilyKey = "FontFamily";
         private static readonly Dictionary<string, object> cache = new Dictionary<string, object>();
+        private static object lockObj = new object();
 
         public static T GetConfig<T>(string key, T defaultValue)
         {
-            if (cache.ContainsKey(key))
-            {
-                return (T)cache[key];
+            T value = default;
+         
+                if (cache.ContainsKey(key))
+                {
+                    return (T)cache[key];
             }
-            using var db = DiaryDbContext.GetNew();
-            var item = db.Configs.Where(p => p.Key == key).FirstOrDefault();
-            if (item == null)
+            lock (lockObj)
             {
-                return defaultValue;
+                using var db = DiaryDbContext.GetNew();
+                var item = db.Configs.Where(p => p.Key == key).FirstOrDefault();
+                if (item == null)
+                {
+                    return defaultValue;
+                }
+                value = Parse<T>(item.Value);
+                cache.Add(key, value);
             }
-            T value = Parse<T>(item.Value);
-            cache.Add(key, value);
-
             //using Logger logger = new Logger();
             //logger.Info($"读取配置：[{key}]={value}");
             return value;
@@ -58,7 +64,7 @@ namespace MyDiary.Managers.Services
 
         private static string GetString<T>(T data)
         {
-            return JsonSerializer.Serialize(data,EfJsonConverter<object>.jsonOptions);
+            return JsonSerializer.Serialize(data, EfJsonConverter<object>.jsonOptions);
         }
 
         private static T Parse<T>(string data)
