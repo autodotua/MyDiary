@@ -1,4 +1,5 @@
-﻿using MyDiary.Managers.Services;
+﻿using Mapster;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
@@ -57,6 +58,8 @@ namespace MyDiary.WordParser
             WordParserDiarySegment s = null;
             NullableDate date = default;
             int year = options.Year;
+            using var pm = new PresetStyleManager();
+            var level2Style = pm.GetAll();
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
             foreach (XWPFParagraph p in ps)
@@ -142,6 +145,10 @@ namespace MyDiary.WordParser
                     foreach (var line in text.Split('\r', '\n'))//正常情况下软换行\n
                     {
                         TextParagraph t = new TextParagraph() { Text = line };
+                        if (level2Style.ContainsKey(outline-1))
+                        {
+                            level2Style[outline-1].Adapt(t);
+                        }
                         AddToDic(documents, s, date, t);
                     }
                 }

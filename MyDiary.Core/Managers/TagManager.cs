@@ -5,7 +5,6 @@ namespace MyDiary.Managers.Services
 {
     public class TagManager : IDisposable
     {
-        public static string DefaultTagName { get; set; } = "日记";
         private DiaryDbContext db = DiaryDbContext.GetNew();
 
         public void Dispose()
@@ -19,12 +18,6 @@ namespace MyDiary.Managers.Services
                 .Where(p => !p.IsDeleted && p.TimeUnit == timeUnit)
                 .Select(p => p.Name)
                 .ToListAsync();
-            if (tags.Count == 0)
-            {
-                db.Tags.Add(new Tag() { Name = DefaultTagName });
-                await db.SaveChangesAsync();
-                tags.Add(DefaultTagName);
-            }
             return tags;
         }
 

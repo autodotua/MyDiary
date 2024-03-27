@@ -41,10 +41,6 @@ namespace MyDiary.Managers.Services
 
         public async Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
         {
-            if (tag == TagManager.DefaultTagName)
-            {
-                tag = null;
-            }
             var docs = db.Documents
                 .Where(p => p.Year == date.Year)
                 .Where(p => p.Month == date.Month)

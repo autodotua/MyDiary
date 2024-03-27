@@ -35,6 +35,7 @@ namespace MyDiary.Models
         public DbSet<Config> Configs { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Binary> Binaries { get; set; }
+        public DbSet<PresetStyle> PresetStyles { get; set; }
 
         public static void Migrate()
         {
@@ -84,9 +85,67 @@ namespace MyDiary.Models
         {
             //对于非结构化数据，采用Json的方式进行存储
             var blocksConverter = new EfJsonConverter<IList<Block>>();
+            var presetStyleConverter = new EfJsonConverter<TextStyle>();
             modelBuilder.Entity<Document>()
                 .Property(p => p.Blocks)
                 .HasConversion(blocksConverter);
+            modelBuilder.Entity<PresetStyle>()
+                .Property(p => p.Style)
+                .HasConversion(presetStyleConverter);
+
+            modelBuilder.Entity<Tag>().HasData(new Tag()
+            {
+                Id = 1,
+                Name = "日记",
+                TimeUnit = TimeUnit.Day
+            });
+
+            modelBuilder.Entity<PresetStyle>().HasData(new PresetStyle()
+            {
+                Id = 1,
+                Level = 0,
+            },
+            new PresetStyle()
+            {
+                Id = 2,
+                Level = 1,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 24,
+                    Alignment = 1
+                }
+            },
+            new PresetStyle()
+            {
+                Id = 3,
+                Level = 2,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 22,
+                }
+            },
+            new PresetStyle()
+            {
+                Id = 4,
+                Level = 3,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 20,
+                }
+            },
+            new PresetStyle()
+            {
+                Id = 5,
+                Level = 4,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 18,
+                }
+            });
         }
 
         private static void MigrateXXXX(SqliteConnection sqlite)
