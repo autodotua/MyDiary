@@ -68,6 +68,7 @@
         <ListBox
             Grid.Row="4"
             Grid.Column="1"
+            IsEnabled="{Binding Month, Converter={StaticResource NotNullConverter}}"
             ItemsSource="{Binding Days}"
             SelectedItem="{Binding Day}" />
         <Button

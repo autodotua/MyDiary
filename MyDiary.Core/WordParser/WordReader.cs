@@ -1,4 +1,4 @@
-﻿using MyDiary.Core.Models;
+﻿using MyDiary.Models;
 using MyDiary.Managers.Services;
 using MyDiary.Models;
 using NPOI.OpenXmlFormats.Wordprocessing;
@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Document = MyDiary.Models.Document;
 
-namespace MyDiary.Core.WordParser
+namespace MyDiary.WordParser
 {
 
     public class WordReader
@@ -27,24 +27,24 @@ namespace MyDiary.Core.WordParser
             var options = new WordParserOptions(2024, [
                     new WordParserDiarySegment(){
                         Name="日记",
-                        TimeHost=TimeUnit.Day,
+                        TimeUnit=TimeUnit.Day,
                         DayNumberingType=NumberingType.ParagraphNumbering,
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                     },
                       new WordParserDiarySegment(){
                                 Name="科研日志",
-                                TimeHost=TimeUnit.Day,
+                                TimeUnit=TimeUnit.Day,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                             },  new WordParserDiarySegment(){
                                 Name="求职日志",
-                                TimeHost=TimeUnit.Day,
+                                TimeUnit=TimeUnit.Day,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                             },
                       new WordParserDiarySegment(){
                                 Name="年度总结",
-                                TimeHost=TimeUnit.Year,
+                                TimeUnit=TimeUnit.Year,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                             },
                 ]);
@@ -90,12 +90,12 @@ namespace MyDiary.Core.WordParser
                             s = value;
                             date = new NullableDate(year);
                         }
-                        else if (s.TimeHost is TimeUnit.Month or TimeUnit.Day
+                        else if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
                            && CheckDateTitle(ref date, text, s.MonthPattern, errors, TimeUnit.Month, "月份"))
                         {
                             //跳转新月份
                         }
-                        else if (s.TimeHost is TimeUnit.Day
+                        else if (s.TimeUnit is TimeUnit.Day
                             && s.DayNumberingType == NumberingType.OutlineTitle
                             && CheckDateTitle(ref date, text, s.DayPattern, errors, TimeUnit.Day, "日"))
                         {
@@ -113,18 +113,18 @@ namespace MyDiary.Core.WordParser
                     {
                         continue;
                     }
-                    if (s.TimeHost == TimeUnit.Year)
+                    if (s.TimeUnit == TimeUnit.Year)
                     {
                         AddParagraph();
                     }
-                    else if (s.TimeHost == TimeUnit.Month)
+                    else if (s.TimeUnit == TimeUnit.Month)
                     {
                         if (date.Month.HasValue)
                         {
                             AddParagraph();
                         }
                     }
-                    else if (s.TimeHost == TimeUnit.Day)
+                    else if (s.TimeUnit == TimeUnit.Day)
                     {
                         if (s.DayNumberingType == NumberingType.ParagraphNumbering
                             && HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
@@ -182,8 +182,8 @@ namespace MyDiary.Core.WordParser
                 doc = new Document()
                 {
                     Year = date.Year,
-                    Month = seg.TimeHost is TimeUnit.Year ? null : date.Month,
-                    Day = (seg.TimeHost is TimeUnit.Year or TimeUnit.Month) ? null : date.Day,
+                    Month = seg.TimeUnit is TimeUnit.Year ? null : date.Month,
+                    Day = (seg.TimeUnit is TimeUnit.Year or TimeUnit.Month) ? null : date.Day,
                     Tag = seg.Name,
                     Blocks = []
                 };
@@ -196,11 +196,11 @@ namespace MyDiary.Core.WordParser
         {
             foreach (var seg in options.Segments)
             {
-                if (seg.TimeHost is TimeUnit.Month or TimeUnit.Day && seg.MonthPattern == null)
+                if (seg.TimeUnit is TimeUnit.Month or TimeUnit.Day && seg.MonthPattern == null)
                 {
                     throw new NullReferenceException(nameof(WordParserDiarySegment.MonthPattern));
                 }
-                if (seg.TimeHost is TimeUnit.Day && seg.DayNumberingType == NumberingType.OutlineTitle && seg.DayPattern == null)
+                if (seg.TimeUnit is TimeUnit.Day && seg.DayNumberingType == NumberingType.OutlineTitle && seg.DayPattern == null)
                 {
                     throw new NullReferenceException(nameof(WordParserDiarySegment.DayPattern));
                 }

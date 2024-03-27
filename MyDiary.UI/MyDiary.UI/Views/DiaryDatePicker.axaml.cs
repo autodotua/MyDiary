@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using System;
 

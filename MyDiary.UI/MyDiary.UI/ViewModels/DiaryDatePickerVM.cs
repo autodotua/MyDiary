@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

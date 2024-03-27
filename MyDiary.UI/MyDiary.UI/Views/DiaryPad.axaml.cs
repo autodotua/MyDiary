@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using System.Threading;
-using MyDiary.Core.Models;
+using MyDiary.Models;
 
 namespace MyDiary.UI.Views;
 /// <summary>
@@ -87,8 +87,7 @@ public partial class DiaryPad : UserControl
           });
         if (!string.IsNullOrWhiteSpace(newTag))
         {
-            //using var tm = new TagManager();
-            await DataManager.Manager.AddTagAsync(newTag);
+            await DataManager.Manager.AddTagAsync(newTag, SelectedDate.TimeUnit);
             viewModel.Tags.Add(newTag);
             viewModel.SelectedTag = newTag;
         }
@@ -97,8 +96,8 @@ public partial class DiaryPad : UserControl
     private async void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
         //using TagManager tm = new TagManager();
-        viewModel.Tags = new ObservableCollection<string>(await DataManager.Manager.GetTagsAsync());
-        viewModel.SelectedTag = viewModel.Tags.First();
+        viewModel.Tags = new ObservableCollection<string>(await DataManager.Manager.GetTagsAsync(TimeUnit.Day));
+        viewModel.SelectedTag = viewModel.Tags[0];
         await LoadDocumentAsync(SelectedDate, viewModel.SelectedTag);
         dbLoaded = true;
     }
@@ -109,15 +108,28 @@ public partial class DiaryPad : UserControl
         base.OnPropertyChanged(change);
         if (dbLoaded && change.Property == SelectedDateProperty)
         {
-            (var oldValue, var newValue) = change.GetOldAndNewValue<NullableDate>();
-            if (change.OldValue != null)
+            try
             {
+                dbLoaded = false;
+                (var oldValue, var newValue) = change.GetOldAndNewValue<NullableDate>();
+
                 await SaveDocumentAsync(oldValue, viewModel.SelectedTag);
-            }
-            stkBody.Children.Clear();
-            if (change.NewValue != null)
-            {
+
+                var oldTag = viewModel.SelectedTag;
+                viewModel.Tags = new ObservableCollection<string>(await DataManager.Manager.GetTagsAsync(newValue.TimeUnit));
+                if (viewModel.Tags.Contains(oldTag))
+                {
+                    viewModel.SelectedTag = oldTag;
+                }
+                else
+                {
+                    viewModel.SelectedTag = viewModel.Tags[0];
+                }
                 await LoadDocumentAsync(newValue, viewModel.SelectedTag);
+            }
+            finally
+            {
+                dbLoaded = true;
             }
         }
     }

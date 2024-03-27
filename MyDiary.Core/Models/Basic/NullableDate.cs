@@ -1,4 +1,4 @@
-﻿namespace MyDiary.Core.Models
+﻿namespace MyDiary.Models
 {
     public struct NullableDate
     {
@@ -6,7 +6,7 @@
         {
         }
 
-        public NullableDate(int year, int? month=null, int? day=null)
+        public NullableDate(int year, int? month = null, int? day = null)
         {
             Year = year;
             Month = month;
@@ -30,6 +30,8 @@
 
         public static NullableDate Today => FromDatetime(DateTime.Today);
 
+        public TimeUnit TimeUnit => Month.HasValue ? (Day.HasValue ? TimeUnit.Day : TimeUnit.Month) : TimeUnit.Year;
+
         public static NullableDate FromDatetime(DateTime datetime)
         {
             return new NullableDate(datetime.Year, datetime.Month, datetime.Day);
@@ -37,11 +39,11 @@
 
         public override string ToString()
         {
-            if(!Month.HasValue)
+            if (!Month.HasValue)
             {
                 return Year.ToString();
             }
-            if(!Day.HasValue)
+            if (!Day.HasValue)
             {
                 return $"{Year}-{Month}";
             }

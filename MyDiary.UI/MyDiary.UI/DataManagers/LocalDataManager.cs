@@ -1,6 +1,5 @@
-﻿using MyDiary.Core.Models;
+﻿using MyDiary.Models;
 using MyDiary.Managers.Services;
-using MyDiary.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,21 +13,21 @@ public class LocalDataManager : IDataManager
         return binaryManager.AddBinaryAsync(data);
     }
 
-    public Task AddTagAsync(string tagName)
+    public Task AddTagAsync(string tagName, TimeUnit timeUnit)
     {
-        return tagManager.AddTagAsync(tagName);
+        return tagManager.AddTagAsync(tagName, timeUnit);
     }
 
-    public Task DeleteTagAsync(string tagName)
+    public Task DeleteTagAsync(string tagName, TimeUnit timeUnit)
     {
-        return DeleteTagAsync(tagName);
+        return tagManager.DeleteTagAsync(tagName, timeUnit);
     }
 
     public void Dispose()
     {
         binaryManager.Dispose();
         documentManager.Dispose();
-        tagManager.Dispose();   
+        tagManager.Dispose();
     }
 
     public Task<byte[]> GetBinaryAsync(int id)
@@ -41,9 +40,9 @@ public class LocalDataManager : IDataManager
         return documentManager.GetDocumentAsync(date, tag);
     }
 
-    public Task<IList<string>> GetTagsAsync()
+    public Task<IList<string>> GetTagsAsync(TimeUnit timeUnit)
     {
-        return tagManager.GetAllAsync();
+        return tagManager.GetAllAsync(timeUnit);
     }
 
     public Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)

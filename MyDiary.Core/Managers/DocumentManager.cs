@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MyDiary.Core.Models;
 using MyDiary.Models;
+using MyDiary.Models;
+using NPOI.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -80,11 +81,9 @@ namespace MyDiary.Managers.Services
         }
         public async Task SetDocumentsAsync(IList<Document> documents)
         {
-            HashSet<string> tags;
-            using (var tm = new TagManager())
-            {
-                tags = (await tm.GetAllAsync()).ToHashSet();
-            }
+            var tags = await db.Tags
+                .Where(p => !p.IsDeleted)
+                .ToListAsync();
             foreach (var doc in documents)
             {
                 var existedDoc = await db.Documents.Where(p =>
@@ -102,14 +101,16 @@ namespace MyDiary.Managers.Services
                 }
                 else
                 {
-                    if (!tags.Contains(doc.Tag))
+                    var timeUnit = doc.Month.HasValue ? (doc.Day.HasValue ? TimeUnit.Day : TimeUnit.Month) : TimeUnit.Year;
+                    if (!tags.Any(p => p.Name == doc.Tag && p.TimeUnit == timeUnit))
                     {
                         Tag tag = new Tag()
                         {
                             Name = doc.Tag,
+                            TimeUnit=timeUnit,
                         };
                         db.Tags.Add(tag);
-                        tags.Add(doc.Tag);
+                        tags.Add(tag);
                     }
                     db.Documents.Add(doc);
                 }

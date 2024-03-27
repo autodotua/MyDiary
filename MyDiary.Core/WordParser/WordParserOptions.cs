@@ -1,4 +1,4 @@
-﻿namespace MyDiary.Core.WordParser
+﻿namespace MyDiary.WordParser
 {
     public class WordParserOptions(int year, List<WordParserDiarySegment> segments)
     {

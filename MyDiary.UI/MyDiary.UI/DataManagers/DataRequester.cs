@@ -1,5 +1,4 @@
-﻿using MyDiary.Core.Models;
-using MyDiary.Models;
+﻿using MyDiary.Models;
 using MyDiary.Models.Converters;
 using System;
 using System.Collections.Generic;
@@ -53,15 +52,15 @@ public class WebDataManager : IDataManager
         }
     }
 
-    public async Task<IList<string>> GetTagsAsync()
+    public async Task<IList<string>> GetTagsAsync(TimeUnit timeUnit)
     {
-        var endpoint = GetTagsEndpoint;
+        var endpoint = $"{GetTagsEndpoint}?timeUnit={timeUnit}";
         return await GetAsync<IList<string>>(endpoint);
     }
 
-    public async Task AddTagAsync(string tagName)
+    public async Task AddTagAsync(string tagName, TimeUnit timeUnit)
     {
-        await PostAsync(AddTagEndpoint, new { tagName });
+        await PostAsync(AddTagEndpoint, new { tagName, timeUnit });
     }
 
     public async Task UpdateBinaryAsync(int id, byte[] data)
@@ -70,9 +69,9 @@ public class WebDataManager : IDataManager
         await PutAsync(endpoint, data);
     }
 
-    public async Task DeleteTagAsync(string tagName)
+    public async Task DeleteTagAsync(string tagName, TimeUnit timeUnit)
     {
-        var endpoint = $"{DeleteTagEndpoint}?tagName={tagName}";
+        var endpoint = $"{DeleteTagEndpoint}?tagName={tagName}&timeUnit={timeUnit}";
         await DeleteAsync(endpoint);
     }
 

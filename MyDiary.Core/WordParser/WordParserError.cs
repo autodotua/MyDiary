@@ -1,4 +1,4 @@
-﻿namespace MyDiary.Core.WordParser
+﻿namespace MyDiary.WordParser
 {
     public class WordParserError(string message, string paragraph)
     {

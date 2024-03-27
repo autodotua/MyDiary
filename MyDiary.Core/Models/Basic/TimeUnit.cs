@@ -1,4 +1,4 @@
-﻿namespace MyDiary.Core.WordParser
+﻿namespace MyDiary.Models
 {
     public enum TimeUnit
     {
