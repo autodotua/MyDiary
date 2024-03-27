@@ -142,7 +142,7 @@ public partial class DiaryPad : UserControl
                 IDiaryElement element = null;
                 switch (part.Type)
                 {
-                    case Block.TypeOfTextElement:
+                    case Block.TypeOfTextParagraph:
                         element = CreateAndAppendElement<DiaryTextBox>();
                         (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
                         break;

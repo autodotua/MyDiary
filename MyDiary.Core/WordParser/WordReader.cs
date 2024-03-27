@@ -18,29 +18,33 @@ namespace MyDiary.WordParser
 #endif
             var options = new WordParserOptions(2024, [
                     new WordParserDiarySegment(){
-                        Name="日记",
+                        TitleInDocument="日记",
+                        TargetTag="日记",
                         TimeUnit=TimeUnit.Day,
                         DayNumberingType=NumberingType.ParagraphNumbering,
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                     },
                       new WordParserDiarySegment(){
-                                Name="科研日志",
+                                TitleInDocument="科研日志",
+                                TargetTag="科研日志",
                                 TimeUnit=TimeUnit.Day,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                             },  new WordParserDiarySegment(){
-                                Name="求职日志",
+                                TitleInDocument="求职日志",
+                                TargetTag="求职日志",
                                 TimeUnit=TimeUnit.Day,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                         MonthPattern="(?<value>[0-1]?[0-9])月",
                             },
                       new WordParserDiarySegment(){
-                                Name="年度总结",
+                                TargetTag="年终总结",
+                                TitleInDocument="事件",
                                 TimeUnit=TimeUnit.Year,
                                 DayNumberingType=NumberingType.ParagraphNumbering,
                             },
                 ]);
-            await ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2021.docx", options);
+            await ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2020.docx", options);
         }
 
         public static async Task ParseAsync(string file, WordParserOptions options)
@@ -49,7 +53,7 @@ namespace MyDiary.WordParser
             using var fs = File.OpenRead(file);
             XWPFDocument doc = new XWPFDocument(fs);
             var ps = doc.Paragraphs;
-            var segments = options.Segments.ToDictionary(p => p.Name);
+            var segments = options.Segments.ToDictionary(p => p.TitleInDocument);
             WordParserDiarySegment s = null;
             NullableDate date = default;
             int year = options.Year;
@@ -137,7 +141,7 @@ namespace MyDiary.WordParser
                 {
                     foreach (var line in text.Split('\r', '\n'))//正常情况下软换行\n
                     {
-                        TextElement t = new TextElement() { Text = line };
+                        TextParagraph t = new TextParagraph() { Text = line };
                         AddToDic(documents, s, date, t);
                     }
                 }
@@ -178,7 +182,7 @@ namespace MyDiary.WordParser
                     Year = date.Year,
                     Month = seg.TimeUnit is TimeUnit.Year ? null : date.Month,
                     Day = (seg.TimeUnit is TimeUnit.Year or TimeUnit.Month) ? null : date.Day,
-                    Tag = seg.Name,
+                    Tag = seg.TargetTag,
                     Blocks = []
                 };
                 docs.Add(date, doc);

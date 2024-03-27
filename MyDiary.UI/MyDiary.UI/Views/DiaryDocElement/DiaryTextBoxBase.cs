@@ -114,7 +114,7 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
 
     public void LoadData(Block data)
     {
-        TextData = TextElementInfo.FromModel<TextElementInfo>(data as TextElement);
+        TextData = TextElementInfo.FromModel<TextElementInfo>(data as TextParagraph);
     }
 
     public Block GetData()
