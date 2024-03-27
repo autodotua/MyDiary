@@ -1,12 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MyDiary.UI.Views.DiaryDocElement
 {
@@ -49,6 +42,7 @@ namespace MyDiary.UI.Views.DiaryDocElement
             int index = IndexOf(panel, element);
             return index == panel.Children.Count - 1;
         }
+
         public static int IndexOf(this StackPanel panel, Control element)
         {
             if (element.Parent is not DiaryPart part)

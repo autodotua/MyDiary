@@ -1,21 +1,13 @@
-﻿using MyDiary.Models;
-using MyDiary.Managers.Services;
+﻿using MyDiary.Managers.Services;
 using MyDiary.Models;
 using NPOI.OpenXmlFormats.Wordprocessing;
 using NPOI.XWPF.UserModel;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Document = MyDiary.Models.Document;
 
 namespace MyDiary.WordParser
 {
-
     public class WordReader
     {
         public static async Task TestAsync()
@@ -159,10 +151,12 @@ namespace MyDiary.WordParser
             }
             await dm.SetDocumentsAsync(allDocuments);
         }
+
         private static bool HasNumberingEnabled(XWPFDocument doc, XWPFParagraph p)
         {
             return doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
         }
+
         private static void AddToDic(
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> docs4Seg,
             WordParserDiarySegment seg, NullableDate date, Block block)
@@ -233,9 +227,11 @@ namespace MyDiary.WordParser
                         {
                             case TimeUnit.Year:
                                 break;
+
                             case TimeUnit.Month:
                                 value = new NullableDate(value.Year, tempValue, 0);
                                 break;
+
                             case TimeUnit.Day:
                                 value = new NullableDate(value.Year, value.Month, tempValue);
                                 break;
@@ -249,10 +245,10 @@ namespace MyDiary.WordParser
                 }
             }
             return false;
-
         }
 
-        static Regex rCatalogue = new Regex("\t\\w+$", RegexOptions.Compiled);
+        private static Regex rCatalogue = new Regex("\t\\w+$", RegexOptions.Compiled);
+
         private static bool IsCatalogue(XWPFParagraph p)
         {
             if (!rCatalogue.IsMatch(p.Text))
@@ -262,13 +258,14 @@ namespace MyDiary.WordParser
             var outlineString = p.GetCTP().pPr.outlineLvl;
             return outlineString == null;
         }
-        static int GetOutlineLevel(XWPFParagraph p)
+
+        private static int GetOutlineLevel(XWPFParagraph p)
         {
             string level = GetStyle(p)?.pPr?.outlineLvl?.val;
             return level == null ? 0 : (int.Parse(level) + 1);
         }
 
-        static CT_Style GetStyle(XWPFParagraph p)
+        private static CT_Style GetStyle(XWPFParagraph p)
         {
             var styles = p.Document.GetStyles();
             if (p.StyleID == null)

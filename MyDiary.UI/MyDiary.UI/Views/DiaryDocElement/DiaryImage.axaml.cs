@@ -1,12 +1,7 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using MyDiary.Models;
 using MyDiary.Managers.Services;
+using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.IO;
@@ -17,11 +12,13 @@ namespace MyDiary.UI.Views.DiaryDocElement;
 public partial class DiaryImage : Grid, IDiaryElement
 {
     private DiaryImageVM viewModel = new DiaryImageVM();
+
     public DiaryImage()
     {
         DataContext = viewModel = new DiaryImageVM();
         InitializeComponent();
     }
+
     public event EventHandler NotifyEditDataUpdated;
 
     public Block GetData()

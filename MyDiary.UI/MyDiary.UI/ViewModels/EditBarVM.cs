@@ -1,7 +1,4 @@
-﻿using Avalonia.Media;
-using Avalonia.Media.Fonts;
-using CommunityToolkit.Mvvm.ComponentModel;
-using FzLib;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,10 +10,13 @@ namespace MyDiary.UI.ViewModels
     {
         [ObservableProperty]
         private bool cellsMerged;
+
         [ObservableProperty]
         private bool canMergeCell;
+
         [ObservableProperty]
         private IList<TextElementInfo> textDatas;
+
         [ObservableProperty]
         private TextElementInfo textData;
 

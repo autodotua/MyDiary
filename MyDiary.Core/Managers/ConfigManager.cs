@@ -13,10 +13,10 @@ namespace MyDiary.Managers.Services
         public static T GetConfig<T>(string key, T defaultValue)
         {
             T value = default;
-         
-                if (cache.ContainsKey(key))
-                {
-                    return (T)cache[key];
+
+            if (cache.ContainsKey(key))
+            {
+                return (T)cache[key];
             }
             lock (lockObj)
             {
@@ -33,6 +33,7 @@ namespace MyDiary.Managers.Services
             //logger.Info($"读取配置：[{key}]={value}");
             return value;
         }
+
         public static void SetConfig<T>(string key, T value)
         {
             if (cache.ContainsKey(key))

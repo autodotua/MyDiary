@@ -11,8 +11,5 @@ namespace MyDiary.Models
         public const string TypeOfTable = "Table";
         public const string TypeOfImage = "Image";
         public abstract string Type { get; }
-
     }
-
 }
-

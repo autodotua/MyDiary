@@ -1,20 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using MyDiary.Models;
-using MyDiary.Models;
-using NPOI.Util;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MyDiary.Managers.Services
 {
     public class DocumentManager : IDisposable
     {
-        DiaryDbContext db = DiaryDbContext.GetNew();
+        private DiaryDbContext db = DiaryDbContext.GetNew();
 
         public void Dispose()
         {
@@ -22,10 +14,12 @@ namespace MyDiary.Managers.Services
         }
 
 #if DEBUG
+
         public async Task ClearDocumentsAsync()
         {
             await db.Database.ExecuteSqlRawAsync($"delete from [{nameof(db.Documents)}]");
         }
+
 #endif
 
         public async Task<Document> GetDocumentAsync(NullableDate date, string tag)
@@ -44,6 +38,7 @@ namespace MyDiary.Managers.Services
             }
             return null;
         }
+
         public async Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
         {
             if (tag == TagManager.DefaultTagName)
@@ -79,6 +74,7 @@ namespace MyDiary.Managers.Services
             }
             await db.SaveChangesAsync();
         }
+
         public async Task SetDocumentsAsync(IList<Document> documents)
         {
             var tags = await db.Tags
@@ -107,7 +103,7 @@ namespace MyDiary.Managers.Services
                         Tag tag = new Tag()
                         {
                             Name = doc.Tag,
-                            TimeUnit=timeUnit,
+                            TimeUnit = timeUnit,
                         };
                         db.Tags.Add(tag);
                         tags.Add(tag);

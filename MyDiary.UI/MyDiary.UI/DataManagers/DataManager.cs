@@ -3,6 +3,7 @@
 public static class DataManager
 {
     public static IDataManager dataManager;
+
     public static IDataManager Manager
     {
         get

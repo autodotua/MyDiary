@@ -1,7 +1,6 @@
 ﻿using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.ComponentModel;
 using System.IO;
 
 namespace MyDiary.UI.ViewModels
@@ -12,7 +11,7 @@ namespace MyDiary.UI.ViewModels
         {
             get
             {
-                if(ImageData==null)
+                if (ImageData == null)
                 {
                     return null;
                 }
@@ -20,11 +19,14 @@ namespace MyDiary.UI.ViewModels
                 return new Bitmap(ms);
             }
         }
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ImageSource))]
         private byte[] imageData;
+
         [ObservableProperty]
         private string title;
+
         public int? ImageDataId { get; set; }
     }
 }

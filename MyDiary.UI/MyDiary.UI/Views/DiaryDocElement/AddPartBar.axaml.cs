@@ -1,13 +1,6 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.LogicalTree;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using Avalonia.VisualTree;
 using MyDiary.UI.ViewModels;
-using System;
-using System.Linq;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 

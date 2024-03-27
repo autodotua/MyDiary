@@ -2,7 +2,7 @@
 
 namespace MyDiary.Models
 {
-    [Index(nameof(Year),nameof(Tag))]
+    [Index(nameof(Year), nameof(Tag))]
     public class Document : ModelBase
     {
         public IList<Block> Blocks { get; set; }

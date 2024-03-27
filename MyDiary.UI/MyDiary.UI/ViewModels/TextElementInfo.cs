@@ -1,17 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Mapster;
 using MyDiary.Models;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 
 namespace MyDiary.UI.ViewModels
 {
@@ -54,7 +48,6 @@ namespace MyDiary.UI.ViewModels
 
         static TextElementInfo()
         {
- 
         }
 
         public TextElementInfo()

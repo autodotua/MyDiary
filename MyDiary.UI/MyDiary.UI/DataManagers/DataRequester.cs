@@ -32,11 +32,13 @@ public class WebDataManager : IDataManager
         var endpoint = AddBinaryEndpoint;
         return await PostAsync<int>(endpoint, data);
     }
+
     public async Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
     {
         var endpoint = $"{SetDocumentEndpoint}?date={date:yyyy-MM-dd}&tag={tag}&title={title}";
         await PostAsync(endpoint, blocks);
     }
+
     public async Task<byte[]> GetBinaryAsync(int id)
     {
         var endpoint = $"{GetBinaryEndpoint}/{id}";

@@ -26,6 +26,4 @@ namespace MyDiary.Models.Converters
             JsonSerializer.Serialize(writer, value, value.GetType(), options);
         }
     }
-
 }
-

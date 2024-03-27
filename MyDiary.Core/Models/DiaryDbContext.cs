@@ -1,10 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using MyDiary.Models.Converters;
-using System.Diagnostics;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 
 namespace MyDiary.Models
 {
@@ -17,7 +13,7 @@ namespace MyDiary.Models
             {
                 dataDir = Path.Combine(dataDir, nameof(MyDiary));
             }
-            if(!Directory.Exists(dataDir))
+            if (!Directory.Exists(dataDir))
             {
                 Directory.CreateDirectory(dataDir);
             }
@@ -29,6 +25,7 @@ namespace MyDiary.Models
         private static readonly string dbName;
 
         private static readonly string connectionString;
+
         private DiaryDbContext()
         {
             Database.EnsureCreated();
@@ -38,6 +35,7 @@ namespace MyDiary.Models
         public DbSet<Config> Configs { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Binary> Binaries { get; set; }
+
         public static void Migrate()
         {
             if (File.Exists(dbName))
@@ -90,6 +88,7 @@ namespace MyDiary.Models
                 .Property(p => p.Blocks)
                 .HasConversion(blocksConverter);
         }
+
         private static void MigrateXXXX(SqliteConnection sqlite)
         {
             //Debug.WriteLine("数据库迁移：" + nameof(Migrate20230408));
@@ -104,7 +103,6 @@ namespace MyDiary.Models
             //new SqliteCommand("CREATE INDEX IX_Tasks_Status ON Tasks (Status);", sqlite).ExecuteNonQuery();
 
             //new SqliteCommand("CREATE INDEX IX_Presets_Type ON Presets (Type);", sqlite).ExecuteNonQuery();
-
         }
     }
 }

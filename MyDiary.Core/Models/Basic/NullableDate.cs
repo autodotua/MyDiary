@@ -49,6 +49,5 @@
             }
             return $"{Year}-{Month}-{Day}";
         }
-
     }
 }

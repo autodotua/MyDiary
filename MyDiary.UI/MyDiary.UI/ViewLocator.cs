@@ -26,6 +26,6 @@ namespace MyDiary.UI
         public bool Match(object data)
         {
             return data is ViewModelBase;
-         }
+        }
     }
 }

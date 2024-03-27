@@ -6,7 +6,8 @@ namespace MyDiary.Managers.Services
     public class TagManager : IDisposable
     {
         public static string DefaultTagName { get; set; } = "日记";
-        DiaryDbContext db = DiaryDbContext.GetNew();
+        private DiaryDbContext db = DiaryDbContext.GetNew();
+
         public void Dispose()
         {
             db?.Dispose();
@@ -61,5 +62,4 @@ namespace MyDiary.Managers.Services
             await db.SaveChangesAsync();
         }
     }
-
 }

@@ -2,25 +2,16 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using FzLib.Avalonia.Dialogs;
 using MyDiary.Models;
-using MyDiary.Managers.Services;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using System.Threading;
-using MyDiary.Models;
 
 namespace MyDiary.UI.Views;
 /// <summary>
@@ -155,9 +146,11 @@ public partial class DiaryPad : UserControl
                         element = CreateAndAppendElement<DiaryTextBox>();
                         (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
                         break;
+
                     case Block.TypeOfTable:
                         element = CreateAndAppendElement<DiaryTable>();
                         break;
+
                     case Block.TypeOfImage:
                         element = CreateAndAppendElement<DiaryImage>();
                         break;
@@ -194,7 +187,7 @@ public partial class DiaryPad : UserControl
             await SaveDocumentAsync(SelectedDate, viewModel.SelectedTag);
         }
     }
-    #endregion
+    #endregion 加载和保存数据
 
     #region 文档部件控制
 
@@ -228,7 +221,7 @@ public partial class DiaryPad : UserControl
         stkBody.InsertDiaryPart(index, newElement);
         return newElement;
     }
-    #endregion
+    #endregion 文档部件控制
 
     #region 多行文本
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
@@ -328,6 +321,5 @@ public partial class DiaryPad : UserControl
         }
     }
 
-    #endregion
-
+    #endregion 多行文本
 }

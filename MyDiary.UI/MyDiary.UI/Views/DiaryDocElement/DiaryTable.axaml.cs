@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
-using Avalonia.Data.Converters;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
@@ -15,14 +14,12 @@ using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
 public partial class DiaryTable : Grid, IDiaryElement
 {
-
     /**
      * Grid的ColumnDefinitions/RowDefinitions：
      * 10                                                  4           64               4        ……         4           10
@@ -45,7 +42,6 @@ public partial class DiaryTable : Grid, IDiaryElement
     #region 数据
 
     public event EventHandler NotifyEditDataUpdated;
-
 
     public Block GetData()
     {
@@ -93,6 +89,7 @@ public partial class DiaryTable : Grid, IDiaryElement
                     }
                     MergeCells();
                     break;
+
                 case nameof(EditBarVM.CellsMerged) when ep.CellsMerged == false:
                     if (CellsSelectionMode != TableCellsSelectionMode.None)
                     {
@@ -162,7 +159,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         CreateTableStructure(data2);
         NotifyEditDataUpdated?.Invoke(this, EventArgs.Empty);
     }
-    #endregion
+    #endregion 数据
 
     #region 建立表格
     public void MakeEmptyTable(int row, int column)
@@ -190,8 +187,6 @@ public partial class DiaryTable : Grid, IDiaryElement
         FillTextBoxes(data);
     }
 
-
-
     private void CreateTableStructure(TableCellInfo[,] data)
     {
         int row = data.GetLength(0);
@@ -215,7 +210,6 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
             grd.ColumnDefinitions.Add(new ColumnDefinition(InnerBorderWidth, GridUnitType.Pixel));
 
-
             var splitter = new GridSplitter()
             {
                 Background = Brushes.Transparent,
@@ -224,7 +218,6 @@ public partial class DiaryTable : Grid, IDiaryElement
             SetRowSpan(splitter, int.MaxValue);
             SetColumn(splitter, BID2GID(c));
             grd.Children.Add(splitter);
-
         }
         grd.ColumnDefinitions.Add(new ColumnDefinition(10, GridUnitType.Pixel));
 
@@ -244,11 +237,10 @@ public partial class DiaryTable : Grid, IDiaryElement
             };
             SetRow(splitter, BID2GID(r));
             grd.Children.Add(splitter);
-
         }
         grd.RowDefinitions.Add(new RowDefinition(10, GridUnitType.Pixel));
     }
-    #endregion
+    #endregion 建立表格
 
     #region 框选
 
@@ -357,7 +349,6 @@ public partial class DiaryTable : Grid, IDiaryElement
     /// <returns></returns>
     private IEnumerable<DiaryTableCell> GetSelectedCells(bool returnFocusedWhenNotSelecting = true)
     {
-
         if (CellsSelectionMode == TableCellsSelectionMode.None)
         {
             if (returnFocusedWhenNotSelecting)
@@ -529,7 +520,7 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
         }
     }
-    #endregion
+    #endregion 框选
 
     #region 索引转换
 
@@ -565,7 +556,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         return index * 2 + 2;
     }
 
-    #endregion
+    #endregion 索引转换
 
     #region 文本框处理
 
@@ -644,7 +635,6 @@ public partial class DiaryTable : Grid, IDiaryElement
             }
         }
 
-
         void InsertRow(object sender, bool up)
         {
             //如果直接拿上面的txt，永远都是[0,0]那个，不确定是什么原因，可能是闭包相关问题
@@ -691,7 +681,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                             newTextBoxes[rr, cc] = t;
                         }
                     }
-
                 }
             }
             textBoxes = newTextBoxes;
@@ -929,7 +918,6 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
     }
 
-
     private DiaryTableCell CreateAndInsertCellTextBox(int row, int column, TableCellInfo item)
     {
         var txt = new DiaryTableCell
@@ -943,7 +931,6 @@ public partial class DiaryTable : Grid, IDiaryElement
         txt.TableRow = row;
         txt.TableColumn = column;
         txt.CellData = item;
-
 
         txt.GotFocus += (s, e) =>
         {
@@ -985,7 +972,6 @@ public partial class DiaryTable : Grid, IDiaryElement
                 }
                 var item = data[r, c];
                 CreateAndInsertCellTextBox(r, c, item);
-
             }
         }
     }
@@ -1015,7 +1001,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         }
         return items;
     }
-    #endregion
+    #endregion 文本框处理
 
     #region 按钮操作
     private void ChangeSourceButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -1025,13 +1011,11 @@ public partial class DiaryTable : Grid, IDiaryElement
         // {
         //     FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
         // });
-
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ((Parent as Control).Parent as StackPanel).Children.Remove(this.GetParentDiaryPart());
     }
-    #endregion
-
+    #endregion 按钮操作
 }

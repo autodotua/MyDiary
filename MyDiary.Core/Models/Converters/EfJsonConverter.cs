@@ -13,6 +13,7 @@ namespace MyDiary.Models.Converters
             )
         {
         }
+
         public static readonly JsonSerializerOptions jsonOptions = new JsonSerializerOptions()
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),

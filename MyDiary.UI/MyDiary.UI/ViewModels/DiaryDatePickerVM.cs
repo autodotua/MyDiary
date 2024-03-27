@@ -19,9 +19,11 @@ namespace MyDiary.UI.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Date))]
         private int year = DateTime.Today.Year;
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Date))]
         private int? month = DateTime.Today.Month;
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(Date))]
         private int? day = DateTime.Today.Day;

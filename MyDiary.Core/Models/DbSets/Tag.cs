@@ -1,6 +1,4 @@
-﻿using MyDiary.WordParser;
-
-namespace MyDiary.Models
+﻿namespace MyDiary.Models
 {
     public class Tag : ModelBase
     {

@@ -1,13 +1,14 @@
-﻿using MyDiary.Models;
-using MyDiary.Managers.Services;
-using System;
+﻿using MyDiary.Managers.Services;
+using MyDiary.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 public class LocalDataManager : IDataManager
 {
-    BinaryManager binaryManager = new BinaryManager();
-    DocumentManager documentManager = new DocumentManager();
-    TagManager tagManager = new TagManager();
+    private BinaryManager binaryManager = new BinaryManager();
+    private DocumentManager documentManager = new DocumentManager();
+    private TagManager tagManager = new TagManager();
+
     public Task<int> AddBinaryAsync(byte[] data)
     {
         return binaryManager.AddBinaryAsync(data);

@@ -3,16 +3,11 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Media;
-using Avalonia.Media.Immutable;
-using Mapster;
 using MyDiary.Managers.Services;
 using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
@@ -21,8 +16,9 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
 {
     protected DiaryTextBoxBase()
     {
-        FontFamily = ConfigManager.GetConfig(ConfigManager.FontFamilyKey,"等线");
+        FontFamily = ConfigManager.GetConfig(ConfigManager.FontFamilyKey, "等线");
     }
+
     public event EventHandler NotifyEditDataUpdated;
 
     protected void RaiseEditBarVMUpdated()
@@ -39,18 +35,23 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
                 case Key.B:
                     TextData.Bold = !TextData.Bold;
                     break;
+
                 case Key.I:
                     TextData.Italic = !TextData.Italic;
                     break;
+
                 case Key.L:
                     TextData.Alignment = 0;
                     break;
+
                 case Key.E:
                     TextData.Alignment = 1;
                     break;
+
                 case Key.R:
                     TextData.Alignment = 2;
                     break;
+
                 default:
                     base.OnKeyDown(e);
                     return;
@@ -70,7 +71,9 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
     }
 
     public abstract EditBarVM GetEditData();
+
     private List<IDisposable> bindings = new List<IDisposable>();
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -83,7 +86,7 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
             bindings.Clear();
             BindToData(TextProperty, nameof(TextElementInfo.Text));
             BindToData(FontSizeProperty, nameof(TextElementInfo.FontSize));
-            BindToData(LineHeightProperty, nameof(TextElementInfo.FontSize),new MultiplyingFactorConverter(),1.3);
+            BindToData(LineHeightProperty, nameof(TextElementInfo.FontSize), new MultiplyingFactorConverter(), 1.3);
             BindToData(FontWeightProperty, nameof(TextElementInfo.FontWeight));
             BindToData(FontStyleProperty, nameof(TextElementInfo.FontStyle));
             BindToData(TextAlignmentProperty, nameof(TextElementInfo.TextAlignment));
@@ -91,16 +94,18 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
             //BindToData(BackgroundProperty, nameof(TextElementInfo.Background));
         }
     }
-    protected void BindToData(AvaloniaProperty property, string propertyName,IValueConverter converter=null,object converterParameter=null)
+
+    protected void BindToData(AvaloniaProperty property, string propertyName, IValueConverter converter = null, object converterParameter = null)
     {
         bindings.Add(this.Bind(property, new Binding
         {
             Source = TextData,
             Path = propertyName,
-            Converter=converter,
-            ConverterParameter= converterParameter,
+            Converter = converter,
+            ConverterParameter = converterParameter,
         }));
     }
+
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
         base.OnGotFocus(e);
