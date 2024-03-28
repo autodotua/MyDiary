@@ -5,15 +5,29 @@ using MyDiary.UI;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class LocalDataProvider(BinaryManager binaryManager, DocumentManager documentManager, TagManager tagManager) : IDataProvider
+public class LocalDataProvider(BinaryManager binaryManager,
+                               DocumentManager documentManager,
+                               TagManager tagManager,
+                               PresetStyleManager presetStyleManager) : IDataProvider
 {
     private BinaryManager binaryManager = binaryManager;
     private DocumentManager documentManager = documentManager;
     private TagManager tagManager = tagManager;
+    private readonly PresetStyleManager presetStyleManager = presetStyleManager;
 
     public Task<int> AddBinaryAsync(byte[] data)
     {
         return binaryManager.AddBinaryAsync(data);
+    }
+
+    public Task<IDictionary<int,TextStyle>> GetPresetStylesAsync()
+    {
+        return presetStyleManager.GetAllAsync();
+    }
+
+    public Task<TextStyle> GetPresetStyleByLevelAsync(int level)
+    {
+        return presetStyleManager.GetByLevelAsync(level);
     }
 
     public Task AddTagAsync(string tagName, TimeUnit timeUnit)

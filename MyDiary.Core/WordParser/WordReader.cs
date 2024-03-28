@@ -25,7 +25,7 @@ namespace MyDiary.WordParser
             NullableDate date = default;
             int year = options.Year;
             IDictionary<int, TextStyle> level2Style = null;
-            level2Style = pm.GetAll();
+            level2Style = await pm.GetAllAsync();
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
             foreach (XWPFParagraph p in ps)
@@ -42,7 +42,7 @@ namespace MyDiary.WordParser
                     //进入一个新的主题
                     if (s == null)
                     {
-                        if (segments.TryGetValue(text, out WordParserDiarySegment value))
+                        if (outline == 1 && segments.TryGetValue(text, out WordParserDiarySegment value))
                         {
                             s = value;
                             date = new NullableDate(year);
@@ -50,7 +50,7 @@ namespace MyDiary.WordParser
                     }
                     else //currentSegment is not null
                     {
-                        if (segments.TryGetValue(text, out WordParserDiarySegment value))
+                        if (outline == 1 && segments.TryGetValue(text, out WordParserDiarySegment value))
                         {
                             s = value;
                             date = new NullableDate(year);
@@ -111,9 +111,13 @@ namespace MyDiary.WordParser
                     foreach (var line in text.Split('\r', '\n'))//正常情况下软换行\n
                     {
                         TextParagraph t = new TextParagraph() { Text = line };
-                        if (level2Style.ContainsKey(outline - 1))
+                        if (outline > 0)
                         {
-                            level2Style[outline - 1].Adapt(t);
+                            t.Level = outline - 1;
+                        }
+                        if (level2Style.TryGetValue(t.Level, out TextStyle value))
+                        {
+                            value.Adapt(t);
                         }
                         AddToDic(documents, s, date, t);
                     }

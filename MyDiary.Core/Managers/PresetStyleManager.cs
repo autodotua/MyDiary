@@ -1,19 +1,20 @@
-﻿using MyDiary.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using MyDiary.Models;
 
 namespace MyDiary.Managers.Services
 {
-    public class PresetStyleManager(DiaryDbContext db) 
+    public class PresetStyleManager(DiaryDbContext db)
     {
         private readonly DiaryDbContext db = db;
 
-        public TextStyle GetByLevel(int level)
+        public async Task<TextStyle> GetByLevelAsync(int level)
         {
-            return db.PresetStyles.FirstOrDefault(p => p.Level == level && !p.IsDeleted)?.Style;
+            return (await db.PresetStyles.FirstOrDefaultAsync(p => p.Level == level && !p.IsDeleted))?.Style;
         }
 
-        public IDictionary<int, TextStyle> GetAll()
+        public async Task<IDictionary<int, TextStyle>> GetAllAsync()
         {
-            return db.PresetStyles.Where(p => !p.IsDeleted && p.Style != null).ToDictionary(p => p.Level, p => p.Style);
+            return await db.PresetStyles.Where(p => !p.IsDeleted && p.Style != null).ToDictionaryAsync(p => p.Level, p => p.Style);
         }
     }
 }

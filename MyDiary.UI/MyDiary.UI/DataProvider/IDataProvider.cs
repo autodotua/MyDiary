@@ -14,7 +14,8 @@ public interface IDataProvider
     Task<byte[]> GetBinaryAsync(int id);
 
     Task<Document> GetDocumentAsync(NullableDate date, string tag);
-
+    Task<TextStyle> GetPresetStyleByLevelAsync(int level);
+    Task<IDictionary<int, TextStyle>> GetPresetStylesAsync();
     Task<IList<string>> GetTagsAsync(TimeUnit timeUnit);
 
     Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title);

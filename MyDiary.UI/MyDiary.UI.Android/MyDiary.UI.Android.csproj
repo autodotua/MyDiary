@@ -41,7 +41,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Android" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
   </ItemGroup>
 

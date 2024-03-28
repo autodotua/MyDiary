@@ -61,12 +61,12 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
         base.OnKeyDown(e);
     }
 
-    public static readonly StyledProperty<ViewModels.TextElementInfo> TextDataProperty =
-        AvaloniaProperty.Register<DiaryTextBoxBase, ViewModels.TextElementInfo>(nameof(TextData));
+    public static readonly StyledProperty<TextElementInfo> TextDataProperty =
+        AvaloniaProperty.Register<DiaryTextBoxBase, TextElementInfo>(nameof(TextData));
 
-    public ViewModels.TextElementInfo TextData
+    public TextElementInfo TextData
     {
-        get => this.GetValue(TextDataProperty);
+        get => GetValue(TextDataProperty);
         set => SetValue(TextDataProperty, value);
     }
 

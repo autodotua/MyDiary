@@ -4,8 +4,11 @@ using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Mapster;
+using Microsoft.Extensions.DependencyInjection;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using System;
+using System.ComponentModel;
 
 namespace MyDiary.UI.ViewModels
 {
@@ -103,6 +106,16 @@ namespace MyDiary.UI.ViewModels
         public TextParagraph ToModel()
         {
             return this.Adapt<TextParagraph>();
+        }
+
+        protected override async void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if(e.PropertyName==nameof(Level))
+            {
+                var preset = await App.ServiceProvider.GetRequiredService<PresetStyleManager>().GetByLevelAsync(Level);
+                preset.Adapt(this);
+            }
         }
     }
 }

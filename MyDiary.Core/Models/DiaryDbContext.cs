@@ -17,7 +17,11 @@ namespace MyDiary.Models
             {
                 Directory.CreateDirectory(dataDir);
             }
+#if DEBUG
+            dbName = Path.Combine(dataDir, "db_test.diary");
+#else
             dbName = Path.Combine(dataDir, "db.diary");
+#endif
             connectionString = $"Data Source={dbName}";
         }
 
@@ -99,6 +103,7 @@ namespace MyDiary.Models
             {
                 Id = 1,
                 Level = 0,
+                Style=new()
             },
             new PresetStyle()
             {

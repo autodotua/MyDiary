@@ -113,9 +113,13 @@ public partial class DiaryPad : UserControl
                 {
                     viewModel.SelectedTag = oldTag;
                 }
-                else
+                else if (viewModel.Tags.Count > 0)
                 {
                     viewModel.SelectedTag = viewModel.Tags[0];
+                }
+                else
+                {
+                    viewModel.SelectedTag = null;
                 }
                 await LoadDocumentAsync(newValue, viewModel.SelectedTag);
             }
@@ -129,6 +133,10 @@ public partial class DiaryPad : UserControl
     private async Task LoadDocumentAsync(NullableDate date, string tag)
     {
         stkBody.Children.Clear();
+        if (tag == null)
+        {
+            return;
+        }
         var cts = LoadingOverlay.ShowLoading(this, TimeSpan.FromSeconds(0.5));
         var doc = await App.ServiceProvider.GetRequiredService<IDataProvider>().GetDocumentAsync(date, tag);
         if (doc == null || doc.Blocks.Count == 0)

@@ -144,4 +144,14 @@ public class WebDataProvider : IDataProvider
     {
         HttpClient.Dispose();
     }
+
+    public Task<TextStyle> GetPresetStyleByLevelAsync(int level)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IDictionary<int, TextStyle>> GetPresetStylesAsync()
+    {
+        throw new NotImplementedException();
+    }
 }
