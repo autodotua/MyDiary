@@ -22,111 +22,129 @@ namespace MyDiary.WordParser
             using var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using XWPFDocument doc = new XWPFDocument(fs);
 
-            var segments = options.Segments.ToDictionary(p => p.TitleInDocument);
             IDictionary<int, TextStyle> level2Style = await pm.GetAllAsync();
 
-            WordParserDiarySegment s = null;
-            NullableDate date = default;
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
-
-            foreach (XWPFParagraph p in doc.Paragraphs)
+            foreach (var s in options.Segments)
             {
-                var text = p.Text;
-                var outline = GetOutlineLevel(p);
-                if (IsCatalogue(p))
+                NullableDate date = new NullableDate(options.Year);
+                bool hasCaptured = false;
+                foreach (XWPFParagraph p in doc.Paragraphs)
                 {
-                    continue;
-                }
-                Debug.WriteLine(text);
-                if (outline > 0)
-                {
-                    if (outline == 1)
-                    {
-                        if (segments.TryGetValue(text, out WordParserDiarySegment value))
-                        {
-                            s = value;
-                            date = new NullableDate(options.Year);
-                        }
-                        else
-                        {
-                            s = null;
-                        }
-                        continue;
-                    }
-                    //进入一个新的主题
-                    if (s != null)
-                    {
-                        if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
-                          && CheckMonthTitle(ref date, text, s.MonthPattern, errors, "月份"))
-                        {
-                            //跳转新月份
-                        }
-                        else if (s.TimeUnit is TimeUnit.Day
-                            && s.DayNumberingType == NumberingType.OutlineTitle
-                            && CheckDayTitle(ref date, text, s.DayPattern, errors, "日", out string title))
-                        {
-                            //跳转新日
-                            GetOrCreateDocument(documents, s, date).Title = title;
-                        }
-                        else
-                        {
-                            AddParagraph();
-                        }
-                    }
-                }
-                else //outline == 0
-                {
-                    if (s == null) //还没定位到时间
+                    var outline = GetOutlineLevel(p);
+                    if (IsCatalogue(p))
                     {
                         continue;
                     }
-                    if (s.TimeUnit == TimeUnit.Year)
+                    if (outline > 0)
                     {
-                        AddParagraph();
-                    }
-                    else if (s.TimeUnit == TimeUnit.Month)
-                    {
-                        if (date.Month.HasValue)
+                        if (outline == 1)
                         {
-                            AddParagraph();
-                        }
-                    }
-                    else if (s.TimeUnit == TimeUnit.Day)
-                    {
-                        if (s.DayNumberingType == NumberingType.ParagraphNumbering
-                            && HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
-                        {
-                            if (date.IsSpecified)
+                            if (p.Text == s.TitleInDocument)
                             {
-                                date = new NullableDate(date.Year, date.Month, date.Day + 1);
+                                hasCaptured = true;
                             }
                             else
                             {
-                                throw new NotImplementedException();
+                                if (hasCaptured)
+                                {
+                                    //该部分结束，跳出
+                                    break;
+                                }
+                            }
+                            continue;
+                        }
+                        //进入一个新的主题
+                        if (hasCaptured)
+                        {
+                            if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
+                              && CheckMonthTitle(ref date, p.Text, s.MonthPattern, errors, "月份"))
+                            {
+                                //跳转新月份
+                            }
+                            else if (s.TimeUnit is TimeUnit.Day
+                                && s.DayNumberingType == NumberingType.OutlineTitle
+                                && CheckDayTitle(ref date, p.Text, s.DayPattern, errors, "日", out string title))
+                            {
+                                //跳转新日
+                                GetOrCreateDocument(documents, s, date).Title = title;
+                            }
+                            else
+                            {
+                                AddParagraph();
                             }
                         }
-                        AddParagraph();
                     }
-                }
-                void AddParagraph()
-                {
-                    foreach (var line in text.Split('\r', '\n'))//正常情况下软换行\n
+                    else //outline == 0
                     {
-                        TextParagraph t = new TextParagraph() { Text = line };
-                        if (outline > 0)
+                        if (!hasCaptured) //还没定位到时间
                         {
-                            t.Level = outline - 1;
+                            continue;
                         }
-                        if (level2Style.TryGetValue(t.Level, out TextStyle value))
+
+                        if (s.TimeUnit == TimeUnit.Year)
                         {
-                            value.Adapt(t);
+                            AddParagraph();
                         }
-                        GetOrCreateDocument(documents, s, date).Blocks.Add(t);
+                        else if (s.TimeUnit == TimeUnit.Month)
+                        {
+                            if (date.Month.HasValue)
+                            {
+                                AddParagraph();
+                            }
+                        }
+                        else if (s.TimeUnit == TimeUnit.Day)
+                        {
+                            switch (s.DayNumberingType)
+                            {
+                                case NumberingType.OutlineTitle:
+                                    if (date.IsSpecified)
+                                    {
+                                        AddParagraph();
+                                    }
+                                    else
+                                    {
+                                        throw new NotImplementedException();
+                                    }
+                                    break;
+                                case NumberingType.ParagraphNumbering:
+                                    if (HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
+                                    {
+                                        if (date.IsSpecified)
+                                        {
+                                            date = new NullableDate(date.Year, date.Month, date.Day + 1);
+                                            AddParagraph();
+                                        }
+                                        else
+                                        {
+                                            throw new NotImplementedException();
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    void AddParagraph()
+                    {
+                        foreach (var line in p.Text.Split('\r', '\n'))//正常情况下软换行\n
+                        {
+                            TextParagraph t = new TextParagraph() { Text = line };
+                            if (outline > 0)
+                            {
+                                t.Level = outline - 1;
+                            }
+                            if (level2Style.TryGetValue(t.Level, out TextStyle value))
+                            {
+                                value.Adapt(t);
+                            }
+                            GetOrCreateDocument(documents, s, date).Blocks.Add(t);
+                        }
                     }
                 }
             }
-
             List<Document> allDocuments = new List<Document>(documents.Select(p => p.Value.Count).Sum());
             foreach (var docs in documents.Values)
             {
@@ -137,7 +155,8 @@ namespace MyDiary.WordParser
 
         private static bool HasNumberingEnabled(XWPFDocument doc, XWPFParagraph p)
         {
-            return doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
+            return p.GetCTP().pPr?.numPr != null
+           ||doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
         }
 
         private static Document GetOrCreateDocument(Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> docs4Seg, WordParserDiarySegment seg, NullableDate date)

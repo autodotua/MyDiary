@@ -22,27 +22,29 @@ namespace MyDiary.UI.Views
 
             DocumentManager dm = App.ServiceProvider.GetRequiredService<DocumentManager>();
             await dm.ClearDocumentsAsync();
-             var wr = App.ServiceProvider.GetRequiredService<WordReader>();
+            var wr = App.ServiceProvider.GetRequiredService<WordReader>();
+
+
             //var options = new WordParserOptions(2024, [
             //        new WordParserDiarySegment(){
             //            TitleInDocument="日记",
             //            TargetTag="日记",
             //            TimeUnit=TimeUnit.Day,
             //            DayNumberingType=NumberingType.ParagraphNumbering,
-            //            MonthPattern="(?<value>[0-1]?[0-9])月",
+            //            MonthPattern="(?<month>[0-1]?[0-9])月",
             //        },
             //          new WordParserDiarySegment(){
             //                    TitleInDocument="科研日志",
             //                    TargetTag="科研日志",
             //                    TimeUnit=TimeUnit.Day,
             //                    DayNumberingType=NumberingType.ParagraphNumbering,
-            //            MonthPattern="(?<value>[0-1]?[0-9])月",
+            //            MonthPattern="(?<month>[0-1]?[0-9])月",
             //                },  new WordParserDiarySegment(){
             //                    TitleInDocument="求职日志",
             //                    TargetTag="求职日志",
             //                    TimeUnit=TimeUnit.Day,
             //                    DayNumberingType=NumberingType.ParagraphNumbering,
-            //            MonthPattern="(?<value>[0-1]?[0-9])月",
+            //            MonthPattern="(?<month>[0-1]?[0-9])月",
             //                },
             //          new WordParserDiarySegment(){
             //                    TargetTag="年终总结",
@@ -51,10 +53,16 @@ namespace MyDiary.UI.Views
             //                    DayNumberingType=NumberingType.ParagraphNumbering,
             //                },
             //    ]);
-            //await wr.ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2020.docx", options);
+            //await wr.ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2020.docx", options);
 
             var options = new WordParserOptions(2024, [
                 new WordParserDiarySegment(){
+                        TitleInDocument="日记",
+                        TargetTag="日记（简单）",
+                        TimeUnit=TimeUnit.Day,
+                        DayNumberingType=NumberingType.ParagraphNumbering,
+                        MonthPattern="(?<month>[0-1]?[0-9])月",
+                    },       new WordParserDiarySegment(){
                         TitleInDocument="日记",
                         TargetTag="日记",
                         TimeUnit=TimeUnit.Day,
@@ -68,7 +76,7 @@ namespace MyDiary.UI.Views
                                 TimeUnit=TimeUnit.Year,
                             },
                 ]);
-            await wr.ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2019.docx", options);
+            await wr.ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2019.docx", options);
 #endif
             datePicker.SelectedDate = NullableDate.Today;
         }
