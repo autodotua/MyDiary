@@ -81,15 +81,19 @@
             Margin="8,4"
             Orientation="Horizontal"
             Spacing="8">
-            <TextBlock
-                Margin="16"
+            <!--  这边用DiaryTextBox主要是为了保持两者垂直居中  -->
+            <dde:DiaryTextBox
+                Margin="16,4"
                 VerticalAlignment="Center"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="{Binding #pad.SelectedDate, StringFormat=yyyy-MM-dd}" />
+                IsHitTestVisible="False"
+                IsReadOnly="True"
+                Text="{Binding #pad.SelectedDate, StringFormat=yyyy-MM-dd, Mode=OneWay}" />
             <dde:DiaryTextBox
                 VerticalAlignment="Center"
-                FontSize="18"
+                FontSize="20"
+                FontWeight="Bold"
                 Text="{Binding Title}" />
         </StackPanel>
         <ScrollViewer

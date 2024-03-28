@@ -2,6 +2,7 @@
 using MyDiary.Managers.Services;
 using MyDiary.Models;
 using NPOI.OpenXmlFormats.Wordprocessing;
+using NPOI.SS.Formula.Functions;
 using NPOI.XWPF.UserModel;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -17,7 +18,8 @@ namespace MyDiary.WordParser
         public async Task ParseAsync(string file, WordParserOptions options)
         {
             CheckOptions(options);
-            using var fs = File.OpenRead(file);
+            //using var fs = File.OpenRead(file);
+            using var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using XWPFDocument doc = new XWPFDocument(fs);
 
             var segments = options.Segments.ToDictionary(p => p.TitleInDocument);
@@ -39,25 +41,33 @@ namespace MyDiary.WordParser
                 Debug.WriteLine(text);
                 if (outline > 0)
                 {
-                    if (outline == 1 && segments.TryGetValue(text, out WordParserDiarySegment value))
+                    if (outline == 1)
                     {
-                        s = value;
-                        date = new NullableDate(options.Year);
+                        if (segments.TryGetValue(text, out WordParserDiarySegment value))
+                        {
+                            s = value;
+                            date = new NullableDate(options.Year);
+                        }
+                        else
+                        {
+                            s = null;
+                        }
                         continue;
                     }
                     //进入一个新的主题
                     if (s != null)
                     {
-                         if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
-                           && CheckDateTitle(ref date, text, s.MonthPattern, errors, TimeUnit.Month, "月份"))
+                        if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
+                          && CheckMonthTitle(ref date, text, s.MonthPattern, errors, "月份"))
                         {
                             //跳转新月份
                         }
                         else if (s.TimeUnit is TimeUnit.Day
                             && s.DayNumberingType == NumberingType.OutlineTitle
-                            && CheckDateTitle(ref date, text, s.DayPattern, errors, TimeUnit.Day, "日"))
+                            && CheckDayTitle(ref date, text, s.DayPattern, errors, "日", out string title))
                         {
                             //跳转新日
+                            GetOrCreateDocument(documents, s, date).Title = title;
                         }
                         else
                         {
@@ -112,7 +122,7 @@ namespace MyDiary.WordParser
                         {
                             value.Adapt(t);
                         }
-                        AddToDic(documents, s, date, t);
+                        GetOrCreateDocument(documents, s, date).Blocks.Add(t);
                     }
                 }
             }
@@ -130,9 +140,7 @@ namespace MyDiary.WordParser
             return doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
         }
 
-        private static void AddToDic(
-            Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> docs4Seg,
-            WordParserDiarySegment seg, NullableDate date, Block block)
+        private static Document GetOrCreateDocument(Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> docs4Seg, WordParserDiarySegment seg, NullableDate date)
         {
             if (!docs4Seg.ContainsKey(seg))
             {
@@ -156,7 +164,8 @@ namespace MyDiary.WordParser
                 };
                 docs.Add(date, doc);
             }
-            doc.Blocks.Add(block);
+
+            return doc;
         }
 
         private static void CheckOptions(WordParserOptions options)
@@ -174,41 +183,21 @@ namespace MyDiary.WordParser
             }
         }
 
-        private static bool CheckDateTitle(ref NullableDate value, string text, string pattern, IList<WordParserError> errors, TimeUnit type, string errorText)
+        private static bool CheckMonthTitle(ref NullableDate value, string text, string pattern, IList<WordParserError> errors, string errorText)
         {
             if (Regex.IsMatch(text, pattern))
             {
                 var match = Regex.Match(text, pattern);
-                if (match.Groups.ContainsKey("value"))
+                if (match.Groups.ContainsKey("month"))
                 {
-                    int tempValue = int.Parse(match.Groups["value"].ValueSpan);
-                    if (type == TimeUnit.Month && (tempValue <= 0 || tempValue >= 13))
+                    int tempValue = int.Parse(match.Groups["month"].ValueSpan);
+                    if (tempValue <= 0 || tempValue >= 13)
                     {
                         errors.Add(new WordParserError(errorText + "月超出范围", text));
                     }
-                    else if (type == TimeUnit.Day && !value.Month.HasValue)
-                    {
-                        errors.Add(new WordParserError(errorText + "在指定日前未指定月", text));
-                    }
-                    else if (type == TimeUnit.Day && (tempValue <= 0 || tempValue > DateTime.DaysInMonth(value.Year, value.Month.Value)))
-                    {
-                        errors.Add(new WordParserError(errorText + "日超出范围", text));
-                    }
                     else
                     {
-                        switch (type)
-                        {
-                            case TimeUnit.Year:
-                                break;
-
-                            case TimeUnit.Month:
-                                value = new NullableDate(value.Year, tempValue, 0);
-                                break;
-
-                            case TimeUnit.Day:
-                                value = new NullableDate(value.Year, value.Month, tempValue);
-                                break;
-                        }
+                        value = new NullableDate(value.Year, tempValue, 0);
                         return true;
                     }
                 }
@@ -219,6 +208,44 @@ namespace MyDiary.WordParser
             }
             return false;
         }
+
+        private static bool CheckDayTitle(ref NullableDate value, string text, string pattern, IList<WordParserError> errors, string errorText, out string title)
+        {
+            title = null;
+            if (Regex.IsMatch(text, pattern))
+            {
+                var match = Regex.Match(text, pattern);
+                if (match.Groups.ContainsKey("day"))
+                {
+                    int tempValue = int.Parse(match.Groups["day"].ValueSpan);
+                    if (!value.Month.HasValue)
+                    {
+                        errors.Add(new WordParserError(errorText + "在指定日前未指定月", text));
+                    }
+                    else if (tempValue <= 0 || tempValue > DateTime.DaysInMonth(value.Year, value.Month.Value))
+                    {
+                        errors.Add(new WordParserError(errorText + "日超出范围", text));
+                    }
+                    else
+                    {
+                        value = new NullableDate(value.Year, value.Month, tempValue);
+                        if (match.Groups.ContainsKey("title"))
+                        {
+                            title = match.Groups["title"].Value;
+                        }
+                        return true;
+                    }
+
+
+                }
+                else //月份内无value组
+                {
+                    errors.Add(new WordParserError("找不到" + errorText, text));
+                }
+            }
+            return false;
+        }
+
 
         private static Regex rCatalogue = new Regex("\t\\w+$", RegexOptions.Compiled);
 
