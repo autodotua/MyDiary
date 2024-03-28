@@ -3,9 +3,12 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Mapster;
+using Microsoft.Extensions.DependencyInjection;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views;
+using MyDiary.WordParser;
 using System;
 
 namespace MyDiary.UI
@@ -23,6 +26,31 @@ namespace MyDiary.UI
             {
                 Resources.Add("ContentControlThemeFontFamily", new FontFamily("avares://MyDiary.UI/Assets#Microsoft YaHei"));
             }
+        }
+        public static ServiceProvider ServiceProvider { get; private set; }
+        private void InitializeServices()
+        {
+            ServiceCollection services = new ServiceCollection();
+            services.AddDbContext<DiaryDbContext>();
+            services.AddTransient<BinaryManager>();
+            services.AddTransient<DocumentManager>();
+            services.AddTransient<PresetStyleManager>();
+            services.AddTransient<TagManager>();
+            services.AddTransient<WordReader>();
+            if (OperatingSystem.IsBrowser())
+            {
+                services.AddSingleton<IDataProvider, WebDataProvider>();
+            }
+            else
+            {
+                services.AddSingleton<IDataProvider, LocalDataProvider>();
+            }
+
+            ServiceProvider = services.BuildServiceProvider();
+        }
+
+        private static void InitializeMapster()
+        {
             TypeAdapterConfig.GlobalSettings.NewConfig<TextElementInfo, TextParagraph>()
                  .Map(dest => dest.TextColor,
                  src => System.Drawing.Color.FromArgb(src.TextColor.A, src.TextColor.R, src.TextColor.G, src.TextColor.B));
@@ -39,6 +67,9 @@ namespace MyDiary.UI
 
         public override void OnFrameworkInitializationCompleted()
         {
+            InitializeMapster();
+            InitializeServices();
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 desktop.MainWindow = new MainWindow

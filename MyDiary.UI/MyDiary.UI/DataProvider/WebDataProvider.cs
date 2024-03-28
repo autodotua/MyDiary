@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-public class WebDataManager : IDataManager
+public class WebDataProvider : IDataProvider
 {
     private readonly HttpClient HttpClient = new HttpClient();
     private const string BaseApiUrl = "https://localhost:7135/api";

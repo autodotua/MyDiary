@@ -3,15 +3,9 @@ using MyDiary.Models;
 
 namespace MyDiary.Managers.Services
 {
-    public class TagManager : IDisposable
+    public class TagManager(DiaryDbContext db) 
     {
-        private DiaryDbContext db = DiaryDbContext.GetNew();
-
-        public void Dispose()
-        {
-            db?.Dispose();
-        }
-
+        private readonly DiaryDbContext db = db;
         public async Task<IList<string>> GetAllAsync(TimeUnit timeUnit)
         {
             var tags = await db.Tags

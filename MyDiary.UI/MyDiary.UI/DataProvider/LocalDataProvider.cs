@@ -1,13 +1,15 @@
-﻿using MyDiary.Managers.Services;
+﻿using Microsoft.Extensions.DependencyInjection;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
+using MyDiary.UI;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class LocalDataManager : IDataManager
+public class LocalDataProvider(BinaryManager binaryManager, DocumentManager documentManager, TagManager tagManager) : IDataProvider
 {
-    private BinaryManager binaryManager = new BinaryManager();
-    private DocumentManager documentManager = new DocumentManager();
-    private TagManager tagManager = new TagManager();
+    private BinaryManager binaryManager = binaryManager;
+    private DocumentManager documentManager = documentManager;
+    private TagManager tagManager = tagManager;
 
     public Task<int> AddBinaryAsync(byte[] data)
     {
@@ -22,13 +24,6 @@ public class LocalDataManager : IDataManager
     public Task DeleteTagAsync(string tagName, TimeUnit timeUnit)
     {
         return tagManager.DeleteTagAsync(tagName, timeUnit);
-    }
-
-    public void Dispose()
-    {
-        binaryManager.Dispose();
-        documentManager.Dispose();
-        tagManager.Dispose();
     }
 
     public Task<byte[]> GetBinaryAsync(int id)

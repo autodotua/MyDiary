@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using MyDiary.Managers.Services;
 using MyDiary.Models;
 using MyDiary.UI.ViewModels;
@@ -37,13 +38,12 @@ public partial class DiaryImage : Grid, IDiaryElement
 
     public async void LoadData(Block data)
     {
-        var binaryManager = new BinaryManager();
         var imageData = data as Models.Image;
         viewModel.Title = imageData.Title;
         viewModel.ImageDataId = imageData.DataId;
         if (imageData.DataId.HasValue)
         {
-            viewModel.ImageData = await DataManager.Manager.GetBinaryAsync(imageData.DataId.Value);
+            viewModel.ImageData = await App.ServiceProvider.GetRequiredService<IDataProvider>().GetBinaryAsync(imageData.DataId.Value);
         }
     }
 
@@ -64,7 +64,7 @@ public partial class DiaryImage : Grid, IDiaryElement
     {
         viewModel.ImageData = await File.ReadAllBytesAsync(filePath);
 
-        viewModel.ImageDataId = await DataManager.Manager.AddBinaryAsync(viewModel.ImageData);
+        viewModel.ImageDataId = await App.ServiceProvider.GetRequiredService<IDataProvider>().AddBinaryAsync(viewModel.ImageData);
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

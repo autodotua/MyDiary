@@ -2,9 +2,9 @@
 
 namespace MyDiary.Managers.Services
 {
-    public class BinaryManager : IDisposable
+    public class BinaryManager(DiaryDbContext db) 
     {
-        private DiaryDbContext db = DiaryDbContext.GetNew();
+        private readonly DiaryDbContext db = db;
 
         public async Task<byte[]> GetBinaryAsync(int id)
         {
@@ -23,11 +23,6 @@ namespace MyDiary.Managers.Services
         public Task<int> UpdateBinaryAsync(int id, byte[] data)
         {
             throw new NotImplementedException();
-        }
-
-        public void Dispose()
-        {
-            db.Dispose();
         }
     }
 }

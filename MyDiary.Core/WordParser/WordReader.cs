@@ -9,46 +9,12 @@ using Document = MyDiary.Models.Document;
 
 namespace MyDiary.WordParser
 {
-    public class WordReader
+    public class WordReader(DocumentManager dm, PresetStyleManager pm)
     {
-        public static async Task TestAsync()
-        {
-#if DEBUG
-            using (var dm = new DocumentManager())
-                dm.ClearDocumentsAsync().Wait();
-#endif
-            var options = new WordParserOptions(2024, [
-                    new WordParserDiarySegment(){
-                        TitleInDocument="日记",
-                        TargetTag="日记",
-                        TimeUnit=TimeUnit.Day,
-                        DayNumberingType=NumberingType.ParagraphNumbering,
-                        MonthPattern="(?<value>[0-1]?[0-9])月",
-                    },
-                      new WordParserDiarySegment(){
-                                TitleInDocument="科研日志",
-                                TargetTag="科研日志",
-                                TimeUnit=TimeUnit.Day,
-                                DayNumberingType=NumberingType.ParagraphNumbering,
-                        MonthPattern="(?<value>[0-1]?[0-9])月",
-                            },  new WordParserDiarySegment(){
-                                TitleInDocument="求职日志",
-                                TargetTag="求职日志",
-                                TimeUnit=TimeUnit.Day,
-                                DayNumberingType=NumberingType.ParagraphNumbering,
-                        MonthPattern="(?<value>[0-1]?[0-9])月",
-                            },
-                      new WordParserDiarySegment(){
-                                TargetTag="年终总结",
-                                TitleInDocument="事件",
-                                TimeUnit=TimeUnit.Year,
-                                DayNumberingType=NumberingType.ParagraphNumbering,
-                            },
-                ]);
-            await ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2020.docx", options);
-        }
+        private readonly DocumentManager dm = dm;
+        private readonly PresetStyleManager pm = pm;
 
-        public static async Task ParseAsync(string file, WordParserOptions options)
+        public async Task ParseAsync(string file, WordParserOptions options)
         {
             CheckOptions(options);
             using var fs = File.OpenRead(file);
@@ -58,8 +24,8 @@ namespace MyDiary.WordParser
             WordParserDiarySegment s = null;
             NullableDate date = default;
             int year = options.Year;
-            using var pm = new PresetStyleManager();
-            var level2Style = pm.GetAll();
+            IDictionary<int, TextStyle> level2Style = null;
+            level2Style = pm.GetAll();
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
             foreach (XWPFParagraph p in ps)
@@ -145,16 +111,15 @@ namespace MyDiary.WordParser
                     foreach (var line in text.Split('\r', '\n'))//正常情况下软换行\n
                     {
                         TextParagraph t = new TextParagraph() { Text = line };
-                        if (level2Style.ContainsKey(outline-1))
+                        if (level2Style.ContainsKey(outline - 1))
                         {
-                            level2Style[outline-1].Adapt(t);
+                            level2Style[outline - 1].Adapt(t);
                         }
                         AddToDic(documents, s, date, t);
                     }
                 }
             }
 
-            using var dm = new DocumentManager();
             List<Document> allDocuments = new List<Document>(documents.Select(p => p.Value.Count).Sum());
             foreach (var docs in documents.Values)
             {

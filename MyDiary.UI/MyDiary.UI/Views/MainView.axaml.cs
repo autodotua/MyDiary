@@ -1,8 +1,11 @@
 using Avalonia.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using MyDiary.WordParser;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MyDiary.UI.Views
 {
@@ -16,7 +19,39 @@ namespace MyDiary.UI.Views
         private async void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
 #if DEBUG
-            await WordReader.TestAsync();
+
+            DocumentManager dm = App.ServiceProvider.GetRequiredService<DocumentManager>();
+            await dm.ClearDocumentsAsync();
+             var wr = App.ServiceProvider.GetRequiredService<WordReader>();
+            var options = new WordParserOptions(2024, [
+                    new WordParserDiarySegment(){
+                        TitleInDocument="日记",
+                        TargetTag="日记",
+                        TimeUnit=TimeUnit.Day,
+                        DayNumberingType=NumberingType.ParagraphNumbering,
+                        MonthPattern="(?<value>[0-1]?[0-9])月",
+                    },
+                      new WordParserDiarySegment(){
+                                TitleInDocument="科研日志",
+                                TargetTag="科研日志",
+                                TimeUnit=TimeUnit.Day,
+                                DayNumberingType=NumberingType.ParagraphNumbering,
+                        MonthPattern="(?<value>[0-1]?[0-9])月",
+                            },  new WordParserDiarySegment(){
+                                TitleInDocument="求职日志",
+                                TargetTag="求职日志",
+                                TimeUnit=TimeUnit.Day,
+                                DayNumberingType=NumberingType.ParagraphNumbering,
+                        MonthPattern="(?<value>[0-1]?[0-9])月",
+                            },
+                      new WordParserDiarySegment(){
+                                TargetTag="年终总结",
+                                TitleInDocument="事件",
+                                TimeUnit=TimeUnit.Year,
+                                DayNumberingType=NumberingType.ParagraphNumbering,
+                            },
+                ]);
+            await wr.ParseAsync(@"C:\Users\fz\OneDrive\旧事重提\日记\2020.docx", options);
 #endif
             datePicker.SelectedDate = NullableDate.Today;
         }

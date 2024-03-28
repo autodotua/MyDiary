@@ -2,14 +2,9 @@
 
 namespace MyDiary.Managers.Services
 {
-    public class PresetStyleManager : IDisposable
+    public class PresetStyleManager(DiaryDbContext db) 
     {
-        private DiaryDbContext db = DiaryDbContext.GetNew();
-
-        public void Dispose()
-        {
-            db?.Dispose();
-        }
+        private readonly DiaryDbContext db = db;
 
         public TextStyle GetByLevel(int level)
         {

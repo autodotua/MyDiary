@@ -4,7 +4,7 @@ using MyDiary.Models.Converters;
 
 namespace MyDiary.Models
 {
-    internal class DiaryDbContext : DbContext
+    public class DiaryDbContext : DbContext
     {
         static DiaryDbContext()
         {
@@ -26,7 +26,7 @@ namespace MyDiary.Models
 
         private static readonly string connectionString;
 
-        private DiaryDbContext()
+        public DiaryDbContext()
         {
             Database.EnsureCreated();
         }
@@ -56,7 +56,7 @@ namespace MyDiary.Models
                 }
                 sqlite.Close();
             }
-            using var db = GetNew();
+            using var db = new DiaryDbContext();
             var item = db.Configs.FirstOrDefault(p => p.Key == "Version");
             if (item == null)
             {
@@ -69,11 +69,6 @@ namespace MyDiary.Models
             }
             db.SaveChanges();
             db.Dispose();
-        }
-
-        internal static DiaryDbContext GetNew()
-        {
-            return new DiaryDbContext();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

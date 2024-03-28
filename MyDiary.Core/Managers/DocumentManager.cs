@@ -4,14 +4,9 @@ using System.Diagnostics;
 
 namespace MyDiary.Managers.Services
 {
-    public class DocumentManager : IDisposable
+    public class DocumentManager(DiaryDbContext db) 
     {
-        private DiaryDbContext db = DiaryDbContext.GetNew();
-
-        public void Dispose()
-        {
-            db?.Dispose();
-        }
+        private readonly DiaryDbContext db = db;
 
 #if DEBUG
 

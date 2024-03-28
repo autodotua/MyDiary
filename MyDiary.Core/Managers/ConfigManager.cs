@@ -20,7 +20,7 @@ namespace MyDiary.Managers.Services
             }
             lock (lockObj)
             {
-                using var db = DiaryDbContext.GetNew();
+                using var db = new DiaryDbContext();
                 var item = db.Configs.Where(p => p.Key == key).FirstOrDefault();
                 if (item == null)
                 {
@@ -40,7 +40,7 @@ namespace MyDiary.Managers.Services
             {
                 cache[key] = value;
             }
-            using var db = DiaryDbContext.GetNew();
+            using var db = new DiaryDbContext();
             var item = db.Configs.Where(p => p.Key == key).FirstOrDefault();
             if (item == null)
             {
