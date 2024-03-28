@@ -45,7 +45,7 @@ namespace MyDiary.UI.ViewModels
                 TextData = TextDatas[0];
                 TextData.PropertyChanged += TextData_PropertyChanged;
             }
-            LoadDbDataAsync().ConfigureAwait(false);
+            LoadDbDataAsync().Wait();
         }
 
         public async Task LoadDbDataAsync()

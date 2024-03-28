@@ -86,12 +86,11 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
             bindings.Clear();
             BindToData(TextProperty, nameof(TextElementInfo.Text));
             BindToData(FontSizeProperty, nameof(TextElementInfo.FontSize));
-            BindToData(LineHeightProperty, nameof(TextElementInfo.FontSize), new MultiplyingFactorConverter(), 1.3);
+            BindToData(LineHeightProperty, nameof(TextElementInfo.FontSize), new MultiplyingFactorConverter(), 1.5);
             BindToData(FontWeightProperty, nameof(TextElementInfo.FontWeight));
             BindToData(FontStyleProperty, nameof(TextElementInfo.FontStyle));
             BindToData(TextAlignmentProperty, nameof(TextElementInfo.TextAlignment));
             BindToData(ForegroundProperty, nameof(TextElementInfo.Foreground));
-            //BindToData(BackgroundProperty, nameof(TextElementInfo.Background));
         }
     }
 
@@ -114,7 +113,14 @@ public abstract class DiaryTextBoxBase : TextBox, IDiaryElement
 
     public void LoadData(Block data)
     {
-        TextData = TextElementInfo.FromModel<TextElementInfo>(data as TextParagraph);
+        if (data is TextParagraph p)
+        {
+            TextData = TextElementInfo.FromModel<TextElementInfo>(p);
+        }
+        else if (data is TextStyle s)
+        {
+            TextData = TextElementInfo.FromModel<TextElementInfo>(s);
+        }
     }
 
     public Block GetData()

@@ -20,7 +20,7 @@ namespace MyDiary.UI
             AvaloniaXamlLoader.Load(this);
             if (OperatingSystem.IsWindows())
             {
-                Resources.Add("ContentControlThemeFontFamily", new FontFamily("Microsoft YaHei"));
+                Resources.Add("ContentControlThemeFontFamily", new FontFamily("Microsoft YaHei UI"));
             }
             else if (OperatingSystem.IsBrowser())
             {

@@ -102,6 +102,10 @@ namespace MyDiary.UI.ViewModels
         {
             return model.Adapt<T>();
         }
+        public static T FromModel<T>(TextStyle model) where T : TextElementInfo
+        {
+            return model.Adapt<T>();
+        }
 
         public TextParagraph ToModel()
         {
@@ -111,7 +115,7 @@ namespace MyDiary.UI.ViewModels
         protected override async void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            if(e.PropertyName==nameof(Level))
+            if (e.PropertyName == nameof(Level))
             {
                 var preset = await App.ServiceProvider.GetRequiredService<PresetStyleManager>().GetByLevelAsync(Level);
                 preset.Adapt(this);

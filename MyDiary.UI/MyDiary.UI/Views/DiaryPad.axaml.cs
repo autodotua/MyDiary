@@ -68,7 +68,7 @@ public partial class DiaryPad : UserControl
         IDiaryElement element = sender as IDiaryElement;
         editBar.DataContext = element.GetEditData();
     }
-    private async void AddTagButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void AddTagButton_Click(object sender, RoutedEventArgs e)
     {
         string newTag = await this.ShowInputTextDialogAsync("新增标签", "请输入要新增的标签名", validation: t =>
           {
@@ -245,6 +245,9 @@ public partial class DiaryPad : UserControl
         {
             case Avalonia.Input.Key.Enter when !string.IsNullOrEmpty(text):
                 newTextBox = CreateAndInsertElementBelow<DiaryTextBox>(oldTextBox);
+                var oldModel = oldTextBox.GetData() as TextParagraph;
+                oldModel.Text = null;
+                newTextBox.LoadData(oldModel); //保证和上面的样式一致
                 newTextBox.KeyDown += TextBox_KeyDown;
                 if (oldTextBox.SelectionEnd != text.Length)
                 {

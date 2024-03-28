@@ -18,17 +18,17 @@ namespace MyDiary.WordParser
         {
             CheckOptions(options);
             using var fs = File.OpenRead(file);
-            XWPFDocument doc = new XWPFDocument(fs);
-            var ps = doc.Paragraphs;
+            using XWPFDocument doc = new XWPFDocument(fs);
+
             var segments = options.Segments.ToDictionary(p => p.TitleInDocument);
+            IDictionary<int, TextStyle> level2Style = await pm.GetAllAsync();
+
             WordParserDiarySegment s = null;
             NullableDate date = default;
-            int year = options.Year;
-            IDictionary<int, TextStyle> level2Style = null;
-            level2Style = await pm.GetAllAsync();
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
-            foreach (XWPFParagraph p in ps)
+
+            foreach (XWPFParagraph p in doc.Paragraphs)
             {
                 var text = p.Text;
                 var outline = GetOutlineLevel(p);
@@ -39,23 +39,16 @@ namespace MyDiary.WordParser
                 Debug.WriteLine(text);
                 if (outline > 0)
                 {
-                    //进入一个新的主题
-                    if (s == null)
+                    if (outline == 1 && segments.TryGetValue(text, out WordParserDiarySegment value))
                     {
-                        if (outline == 1 && segments.TryGetValue(text, out WordParserDiarySegment value))
-                        {
-                            s = value;
-                            date = new NullableDate(year);
-                        }
+                        s = value;
+                        date = new NullableDate(options.Year);
+                        continue;
                     }
-                    else //currentSegment is not null
+                    //进入一个新的主题
+                    if (s != null)
                     {
-                        if (outline == 1 && segments.TryGetValue(text, out WordParserDiarySegment value))
-                        {
-                            s = value;
-                            date = new NullableDate(year);
-                        }
-                        else if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
+                         if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
                            && CheckDateTitle(ref date, text, s.MonthPattern, errors, TimeUnit.Month, "月份"))
                         {
                             //跳转新月份

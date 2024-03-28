@@ -46,6 +46,7 @@
                             Padding="8,4"
                             CornerRadius="8,8,0,0">
                             <TextBlock
+                                VerticalAlignment="Center"
                                 Text="{Binding .}"
                                 TextAlignment="Center" />
                         </Border>

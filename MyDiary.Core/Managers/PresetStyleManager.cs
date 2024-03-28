@@ -7,14 +7,25 @@ namespace MyDiary.Managers.Services
     {
         private readonly DiaryDbContext db = db;
 
+        private static Dictionary<int, TextStyle> cache;
+
         public async Task<TextStyle> GetByLevelAsync(int level)
         {
-            return (await db.PresetStyles.FirstOrDefaultAsync(p => p.Level == level && !p.IsDeleted))?.Style;
+            if (cache == null)
+            {
+                await GetAllAsync();
+            }
+            if (cache.TryGetValue(level, out TextStyle value))
+            {
+                return value;
+            }
+            return null;
         }
 
         public async Task<IDictionary<int, TextStyle>> GetAllAsync()
         {
-            return await db.PresetStyles.Where(p => !p.IsDeleted && p.Style != null).ToDictionaryAsync(p => p.Level, p => p.Style);
+            cache ??= await db.PresetStyles.Where(p => !p.IsDeleted && p.Style != null).ToDictionaryAsync(p => p.Level, p => p.Style);
+            return cache;
         }
     }
 }
