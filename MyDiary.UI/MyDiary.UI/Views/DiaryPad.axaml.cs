@@ -37,11 +37,20 @@ namespace MyDiary.UI.Views;
 /// </remarks>
 public partial class DiaryPad : UserControl
 {
+    #region 依赖方法
     public static readonly StyledProperty<NullableDate> SelectedDateProperty
         = AvaloniaProperty.Register<DiaryPad, NullableDate>(nameof(SelectedDate), default);
 
+    public NullableDate SelectedDate
+    {
+        get => GetValue(SelectedDateProperty);
+        set => SetValue(SelectedDateProperty, value);
+    }
+    #endregion
+
+    #region 页面加载和卸载
     private bool dbLoaded = false;
-    //DocumentManager docManager = new DocumentManager();
+
     private DiaryPadVM viewModel = new DiaryPadVM();
     public DiaryPad()
     {
@@ -51,11 +60,6 @@ public partial class DiaryPad : UserControl
         viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    public NullableDate SelectedDate
-    {
-        get => GetValue(SelectedDateProperty);
-        set => SetValue(SelectedDateProperty, value);
-    }
 
     protected override async void OnUnloaded(RoutedEventArgs e)
     {
@@ -63,11 +67,6 @@ public partial class DiaryPad : UserControl
         base.OnUnloaded(e);
     }
 
-    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
-    {
-        IDiaryElement element = sender as IDiaryElement;
-        editBar.DataContext = element.GetEditData();
-    }
     private async void AddTagButton_Click(object sender, RoutedEventArgs e)
     {
         string newTag = await this.ShowInputTextDialogAsync("新增标签", "请输入要新增的标签名", validation: t =>
@@ -94,7 +93,10 @@ public partial class DiaryPad : UserControl
         dbLoaded = true;
     }
 
+    #endregion
+
     #region 加载和保存数据
+
     protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -140,6 +142,8 @@ public partial class DiaryPad : UserControl
         }
         var cts = LoadingOverlay.ShowLoading(this, TimeSpan.FromSeconds(0.5));
         var doc = await App.ServiceProvider.GetRequiredService<IDataProvider>().GetDocumentAsync(date, tag);
+        //viewModel.Outlines = new ObservableCollection<Node>();
+        //outlinesNode2Control.Clear();
         if (doc == null || doc.Blocks.Count == 0)
         {
             var txt = CreateAndAppendElement<DiaryTextBox>();
@@ -197,10 +201,71 @@ public partial class DiaryPad : UserControl
             await SaveDocumentAsync(SelectedDate, viewModel.SelectedTag);
         }
     }
+
     #endregion 加载和保存数据
 
-    #region 文档部件控制
+    #region 大纲目录
 
+
+    private Dictionary<Node, Control> outlinesNode2Control = new Dictionary<Node, Control>();
+    private void AddToOutlineTree(ObservableCollection<Node> nodes, DiaryTextBox txt)
+    {
+        int level = txt.TextData.Level - 1;
+        Node node;
+        while (level > 0)
+        {
+            if (nodes.Count == 0)
+            {
+                node = new Node("未命名", new ObservableCollection<Node>());
+                nodes.Add(node);
+                nodes = node.SubNodes;
+            }
+            else
+            {
+                node = nodes[^1];
+                node.SubNodes ??= new ObservableCollection<Node>();
+                nodes = node.SubNodes;
+            }
+            level--;
+        }
+        node = new Node(txt.TextData.Text);
+        nodes.Add(node);
+        outlinesNode2Control.Add(node, txt);
+    }
+    private void Flyout_Opening(object sender, System.EventArgs e)
+    {
+        var outlines = new ObservableCollection<Node>();
+        outlinesNode2Control.Clear();
+        foreach (var txt in stkBody.Children
+            .OfType<DiaryPart>()
+            .Select(p => p.GetControlContent())
+            .OfType<DiaryTextBox>())
+        {
+            //var t = part as TextParagraph;
+            if (txt.TextData.Level > 0)
+            {
+                AddToOutlineTree(outlines, txt);
+            }
+        }
+        if (outlines.Count == 0)
+        {
+            outlines.Add(new Node("无大纲"));
+        }
+        viewModel.Outlines = outlines;
+    }
+
+    private void TreeView_SelectionChanged(object sender, Avalonia.Controls.SelectionChangedEventArgs e)
+    {
+        if ((sender as TreeView).SelectedItem is Node node)
+        {
+            //通过先到最底部然后显示元素，可以保证这个标题在视图的上方出现
+            scrBody.ScrollToEnd();
+            outlinesNode2Control[node].BringIntoView();
+        }
+    }
+    #endregion
+
+    #region 文档部件控制
     public static DiaryPad GetDiaryPad(Control control)
     {
         return control.GetLogicalAncestors().OfType<DiaryPad>().FirstOrDefault()
@@ -217,6 +282,7 @@ public partial class DiaryPad : UserControl
         int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
         return CreateAndInsertElement<T>(index + 1);
     }
+
     public void RemoveElement<T>(T element) where T : Control, IDiaryElement
     {
         element.NotifyEditDataUpdated -= DiaryElement_EditPropertiesUpdated;
@@ -231,6 +297,13 @@ public partial class DiaryPad : UserControl
         stkBody.InsertDiaryPart(index, newElement);
         return newElement;
     }
+
+    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
+    {
+        IDiaryElement element = sender as IDiaryElement;
+        editBar.DataContext = element.GetEditData();
+    }
+
     #endregion 文档部件控制
 
     #region 多行文本

@@ -22,12 +22,35 @@
             Grid.RowSpan="3"
             Fill="{DynamicResource Background1}"
             IsHitTestVisible="False" />
-        <ScrollViewer
-            HorizontalAlignment="Left"
-            HorizontalScrollBarVisibility="Hidden"
-            VerticalScrollBarVisibility="Disabled">
-            <v:EditBar x:Name="editBar" />
-        </ScrollViewer>
+        <Grid ColumnDefinitions="*,8,Auto">
+            <ScrollViewer
+                HorizontalAlignment="Left"
+                HorizontalScrollBarVisibility="Hidden"
+                VerticalScrollBarVisibility="Disabled">
+                <v:EditBar x:Name="editBar" />
+            </ScrollViewer>
+            <Button
+                Grid.Column="2"
+                Background="Transparent">
+                <PathIcon Data="{StaticResource IconList}" />
+                <Button.Flyout>
+                    <Flyout Opening="Flyout_Opening">
+                        <TreeView
+                            MaxHeight="{Binding #pad.Bounds.Height}"
+                            ItemsSource="{Binding Outlines}"
+                            SelectionChanged="TreeView_SelectionChanged">
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate ItemsSource="{Binding SubNodes}">
+                                    <TextBlock
+                                        Margin="0,0,12,0"
+                                        Text="{Binding Title}" />
+                                </TreeDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+        </Grid>
         <Grid
             Grid.Row="2"
             ColumnDefinitions="Auto,8,Auto,*">
@@ -97,6 +120,7 @@
                 Text="{Binding Title}" />
         </StackPanel>
         <ScrollViewer
+            x:Name="scrBody"
             Grid.Row="6"
             HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Auto">

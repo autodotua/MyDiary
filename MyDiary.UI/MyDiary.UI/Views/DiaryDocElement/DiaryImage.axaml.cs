@@ -24,7 +24,7 @@ public partial class DiaryImage : Grid, IDiaryElement
 
     public Block GetData()
     {
-        return new Models.Image()
+        return new MyDiary.Models.Image()
         {
             Title = viewModel.Title,
             DataId = viewModel.ImageDataId
@@ -38,7 +38,7 @@ public partial class DiaryImage : Grid, IDiaryElement
 
     public async void LoadData(Block data)
     {
-        var imageData = data as Models.Image;
+        var imageData = data as MyDiary.Models.Image;
         viewModel.Title = imageData.Title;
         viewModel.ImageDataId = imageData.DataId;
         if (imageData.DataId.HasValue)
@@ -50,9 +50,9 @@ public partial class DiaryImage : Grid, IDiaryElement
     private async void ChangeSourceButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var files = await TopLevel.GetTopLevel(this).StorageProvider.OpenFilePickerAsync(
-         new Avalonia.Platform.Storage.FilePickerOpenOptions
+         new FilePickerOpenOptions
          {
-             FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
+             FileTypeFilter = [FilePickerFileTypes.ImageAll]
          });
         if (files.Count > 0)
         {

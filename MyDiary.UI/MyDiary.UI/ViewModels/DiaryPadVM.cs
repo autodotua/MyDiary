@@ -17,5 +17,8 @@ namespace MyDiary.UI.ViewModels
 
         [ObservableProperty]
         private string selectedTag;
+
+        [ObservableProperty]
+        private ObservableCollection<Node> outlines;
     }
 }
