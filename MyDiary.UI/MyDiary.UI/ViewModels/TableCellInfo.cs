@@ -1,10 +1,5 @@
-﻿using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MyDiary.UI.ViewModels
 {
@@ -27,11 +22,11 @@ namespace MyDiary.UI.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(VisualRowSpan))]
-        private int rowSpan=1;
+        private int rowSpan = 1;
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(VisualColumnSpan))]
-        private int columnSpan=1;
-
+        private int columnSpan = 1;
 
         public int VisualRowSpan => RowSpan * 2 - 1;
         public int VisualColumnSpan => ColumnSpan * 2 - 1;

@@ -6,6 +6,7 @@ namespace MyDiary.UI.ViewModels
     {
         [ObservableProperty]
         private int row = 3;
+
         [ObservableProperty]
         private int column = 3;
     }

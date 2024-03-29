@@ -1,12 +1,8 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using MyDiary.Models;
+using Microsoft.Extensions.DependencyInjection;
 using MyDiary.Managers.Services;
+using MyDiary.Models;
 using MyDiary.UI.ViewModels;
 using System;
 using System.IO;
@@ -17,16 +13,18 @@ namespace MyDiary.UI.Views.DiaryDocElement;
 public partial class DiaryImage : Grid, IDiaryElement
 {
     private DiaryImageVM viewModel = new DiaryImageVM();
+
     public DiaryImage()
     {
         DataContext = viewModel = new DiaryImageVM();
         InitializeComponent();
     }
+
     public event EventHandler NotifyEditDataUpdated;
 
     public Block GetData()
     {
-        return new Models.Image()
+        return new MyDiary.Models.Image()
         {
             Title = viewModel.Title,
             DataId = viewModel.ImageDataId
@@ -40,22 +38,21 @@ public partial class DiaryImage : Grid, IDiaryElement
 
     public async void LoadData(Block data)
     {
-        var binaryManager = new BinaryManager();
-        var imageData = data as Models.Image;
+        var imageData = data as MyDiary.Models.Image;
         viewModel.Title = imageData.Title;
         viewModel.ImageDataId = imageData.DataId;
         if (imageData.DataId.HasValue)
         {
-            viewModel.ImageData = await DataManager.Manager.GetBinaryAsync(imageData.DataId.Value);
+            viewModel.ImageData = await App.ServiceProvider.GetRequiredService<IDataProvider>().GetBinaryAsync(imageData.DataId.Value);
         }
     }
 
     private async void ChangeSourceButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var files = await TopLevel.GetTopLevel(this).StorageProvider.OpenFilePickerAsync(
-         new Avalonia.Platform.Storage.FilePickerOpenOptions
+         new FilePickerOpenOptions
          {
-             FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
+             FileTypeFilter = [FilePickerFileTypes.ImageAll]
          });
         if (files.Count > 0)
         {
@@ -67,7 +64,7 @@ public partial class DiaryImage : Grid, IDiaryElement
     {
         viewModel.ImageData = await File.ReadAllBytesAsync(filePath);
 
-        viewModel.ImageDataId = await DataManager.Manager.AddBinaryAsync(viewModel.ImageData);
+        viewModel.ImageDataId = await App.ServiceProvider.GetRequiredService<IDataProvider>().AddBinaryAsync(viewModel.ImageData);
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

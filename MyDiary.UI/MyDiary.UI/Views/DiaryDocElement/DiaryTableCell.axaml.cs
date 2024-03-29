@@ -1,12 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using MyDiary.UI.ViewModels;
 using System;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -26,7 +21,6 @@ public partial class DiaryTableCell : DiaryTextBoxBase
             Grid.SetColumn(s, DiaryTable.TID2GID((int)e.NewValue));
         });
     }
-
 
     public static readonly StyledProperty<int> TableRowProperty =
         AvaloniaProperty.Register<DiaryTableCell, int>(nameof(TableRow), -1);

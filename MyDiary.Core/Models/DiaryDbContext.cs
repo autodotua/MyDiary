@@ -1,14 +1,10 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using MyDiary.Models.Converters;
-using System.Diagnostics;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 
 namespace MyDiary.Models
 {
-    internal class DiaryDbContext : DbContext
+    public class DiaryDbContext : DbContext
     {
         static DiaryDbContext()
         {
@@ -17,11 +13,15 @@ namespace MyDiary.Models
             {
                 dataDir = Path.Combine(dataDir, nameof(MyDiary));
             }
-            if(!Directory.Exists(dataDir))
+            if (!Directory.Exists(dataDir))
             {
                 Directory.CreateDirectory(dataDir);
             }
+#if DEBUG
+            dbName = Path.Combine(dataDir, "db_test.diary");
+#else
             dbName = Path.Combine(dataDir, "db.diary");
+#endif
             connectionString = $"Data Source={dbName}";
         }
 
@@ -29,7 +29,8 @@ namespace MyDiary.Models
         private static readonly string dbName;
 
         private static readonly string connectionString;
-        private DiaryDbContext()
+
+        public DiaryDbContext()
         {
             Database.EnsureCreated();
         }
@@ -38,6 +39,8 @@ namespace MyDiary.Models
         public DbSet<Config> Configs { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Binary> Binaries { get; set; }
+        public DbSet<PresetStyle> PresetStyles { get; set; }
+
         public static void Migrate()
         {
             if (File.Exists(dbName))
@@ -57,7 +60,7 @@ namespace MyDiary.Models
                 }
                 sqlite.Close();
             }
-            using var db = GetNew();
+            using var db = new DiaryDbContext();
             var item = db.Configs.FirstOrDefault(p => p.Key == "Version");
             if (item == null)
             {
@@ -72,11 +75,6 @@ namespace MyDiary.Models
             db.Dispose();
         }
 
-        internal static DiaryDbContext GetNew()
-        {
-            return new DiaryDbContext();
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite(connectionString);
@@ -86,10 +84,70 @@ namespace MyDiary.Models
         {
             //对于非结构化数据，采用Json的方式进行存储
             var blocksConverter = new EfJsonConverter<IList<Block>>();
+            var presetStyleConverter = new EfJsonConverter<TextStyle>();
             modelBuilder.Entity<Document>()
                 .Property(p => p.Blocks)
                 .HasConversion(blocksConverter);
+            modelBuilder.Entity<PresetStyle>()
+                .Property(p => p.Style)
+                .HasConversion(presetStyleConverter);
+
+            modelBuilder.Entity<Tag>().HasData(new Tag()
+            {
+                Id = 1,
+                Name = "日记",
+                TimeUnit = TimeUnit.Day
+            });
+
+            modelBuilder.Entity<PresetStyle>().HasData(new PresetStyle()
+            {
+                Id = 1,
+                Level = 0,
+                Style=new()
+            },
+            new PresetStyle()
+            {
+                Id = 2,
+                Level = 1,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 24,
+                    Alignment = 1
+                }
+            },
+            new PresetStyle()
+            {
+                Id = 3,
+                Level = 2,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 22,
+                }
+            },
+            new PresetStyle()
+            {
+                Id = 4,
+                Level = 3,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 20,
+                }
+            },
+            new PresetStyle()
+            {
+                Id = 5,
+                Level = 4,
+                Style = new()
+                {
+                    Bold = true,
+                    FontSize = 18,
+                }
+            });
         }
+
         private static void MigrateXXXX(SqliteConnection sqlite)
         {
             //Debug.WriteLine("数据库迁移：" + nameof(Migrate20230408));
@@ -104,7 +162,6 @@ namespace MyDiary.Models
             //new SqliteCommand("CREATE INDEX IX_Tasks_Status ON Tasks (Status);", sqlite).ExecuteNonQuery();
 
             //new SqliteCommand("CREATE INDEX IX_Presets_Type ON Presets (Type);", sqlite).ExecuteNonQuery();
-
         }
     }
 }

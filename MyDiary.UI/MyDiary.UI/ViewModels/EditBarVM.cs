@@ -1,24 +1,31 @@
-﻿using Avalonia.Media;
-using Avalonia.Media.Fonts;
-using CommunityToolkit.Mvvm.ComponentModel;
-using FzLib;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyDiary.UI.ViewModels
 {
     public partial class EditBarVM : ViewModelBase, IDisposable
     {
+
         [ObservableProperty]
         private bool cellsMerged;
+
         [ObservableProperty]
         private bool canMergeCell;
+
         [ObservableProperty]
         private IList<TextElementInfo> textDatas;
+
         [ObservableProperty]
         private TextElementInfo textData;
+
+        [ObservableProperty]
+        private IList<int> levels;
 
         public EditBarVM(IList<TextElementInfo> textDatas, bool canMergeCell = false, bool cellsMerged = false)
         {
@@ -38,6 +45,13 @@ namespace MyDiary.UI.ViewModels
                 TextData = TextDatas[0];
                 TextData.PropertyChanged += TextData_PropertyChanged;
             }
+            LoadDbDataAsync().Wait();
+        }
+
+        public async Task LoadDbDataAsync()
+        {
+            var styles = await App.ServiceProvider.GetRequiredService<IDataProvider>().GetPresetStylesAsync();
+            Levels = styles.Keys.OrderBy(p => p).ToList();
         }
 
         public void Dispose()

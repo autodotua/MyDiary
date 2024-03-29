@@ -16,12 +16,12 @@ namespace MyDiary.Models.Converters
                 args: new object[] { options },
                 culture: null);
 
-        class Array2DConverterInner<T> : JsonConverter<T[,]>
+        private class Array2DConverterInner<T> : JsonConverter<T[,]>
         {
-            readonly JsonConverter<T> _valueConverter;
+            private readonly JsonConverter<T> _valueConverter;
 
             public Array2DConverterInner(JsonSerializerOptions options) =>
-                _valueConverter = typeof(T) == typeof(object) ? null : (JsonConverter<T>)options.GetConverter(typeof(T)); // Encountered a bug using the builtin ObjectConverter 
+                _valueConverter = typeof(T) == typeof(object) ? null : (JsonConverter<T>)options.GetConverter(typeof(T)); // Encountered a bug using the builtin ObjectConverter
 
             public override void Write(Utf8JsonWriter writer, T[,] array, JsonSerializerOptions options)
             {
@@ -66,6 +66,7 @@ namespace MyDiary.Models.Converters
                     result[i, j] = source[i][j];
             return result;
         }
+
         public static void WriteOrSerialize<T>(JsonConverter<T> converter, Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             if (converter != null)
@@ -73,6 +74,5 @@ namespace MyDiary.Models.Converters
             else
                 JsonSerializer.Serialize(writer, value, typeof(T), options);
         }
-
     }
 }

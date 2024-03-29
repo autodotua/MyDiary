@@ -12,7 +12,9 @@ namespace MyDiary.Models.Converters
             {
                 return typeElement.GetString() switch
                 {
-                    Block.TypeOfTextElement => JsonSerializer.Deserialize<TextElement>(doc.RootElement.GetRawText(), options),
+                    Block.TypeOfTextParagraph => JsonSerializer.Deserialize<TextParagraph>(doc.RootElement.GetRawText(), options),
+                    Block.TypeOfTextStyle => JsonSerializer.Deserialize<TextStyle>(doc.RootElement.GetRawText(), options),
+                    Block.TypeOfTableCell => JsonSerializer.Deserialize<TableCell>(doc.RootElement.GetRawText(), options),
                     Block.TypeOfTable => JsonSerializer.Deserialize<Table>(doc.RootElement.GetRawText(), options),
                     Block.TypeOfImage => JsonSerializer.Deserialize<Image>(doc.RootElement.GetRawText(), options),
                     _ => throw new NotImplementedException(),
@@ -26,6 +28,4 @@ namespace MyDiary.Models.Converters
             JsonSerializer.Serialize(writer, value, value.GetType(), options);
         }
     }
-
 }
-

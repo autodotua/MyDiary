@@ -1,13 +1,7 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.LogicalTree;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using Avalonia.VisualTree;
+using Microsoft.Extensions.DependencyInjection;
 using MyDiary.UI.ViewModels;
-using System;
-using System.Linq;
 
 namespace MyDiary.UI.Views.DiaryDocElement;
 
@@ -19,9 +13,10 @@ public partial class AddPartBar : Grid
         InitializeComponent();
     }
 
-    private void InsertTextButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void InsertTextButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        DiaryPad.GetDiaryPad(this).CreateAndInsertElementBelow<DiaryTextBox>(this);
+      var txt=  DiaryPad.GetDiaryPad(this).CreateAndInsertElementBelow<DiaryTextBox>(this);
+        txt.LoadData(await App.ServiceProvider.GetService<IDataProvider>().GetPresetStyleByLevelAsync(0));
     }
     private async void InsertImageButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {

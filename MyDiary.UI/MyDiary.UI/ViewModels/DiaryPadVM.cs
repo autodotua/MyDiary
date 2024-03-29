@@ -1,11 +1,5 @@
-﻿using Avalonia.Controls;
-using CommunityToolkit.Mvvm.ComponentModel;
-using MyDiary.UI.Events;
-using System;
-using System.Collections.Generic;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
 
 namespace MyDiary.UI.ViewModels
 {
@@ -17,9 +11,14 @@ namespace MyDiary.UI.ViewModels
 
         [ObservableProperty]
         private string title;
+
         [ObservableProperty]
         private ObservableCollection<string> tags;
+
         [ObservableProperty]
         private string selectedTag;
+
+        [ObservableProperty]
+        private ObservableCollection<Node> outlines;
     }
 }

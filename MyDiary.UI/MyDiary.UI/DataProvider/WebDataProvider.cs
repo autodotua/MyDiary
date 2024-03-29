@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-public class WebDataManager : IDataManager
+public class WebDataProvider : IDataProvider
 {
     private readonly HttpClient HttpClient = new HttpClient();
     private const string BaseApiUrl = "https://localhost:7135/api";
@@ -21,7 +21,7 @@ public class WebDataManager : IDataManager
     private const string AddBinaryEndpoint = "Binary";
     private const string DeleteTagEndpoint = "Tag";
 
-    public async Task<Document> GetDocumentAsync(DateTime date, string tag)
+    public async Task<Document> GetDocumentAsync(NullableDate date, string tag)
     {
         var endpoint = $"{DocumentEndpoint}?date={date:yyyy-MM-dd}&tag={tag}";
         return await GetAsync<Document>(endpoint);
@@ -32,11 +32,13 @@ public class WebDataManager : IDataManager
         var endpoint = AddBinaryEndpoint;
         return await PostAsync<int>(endpoint, data);
     }
-    public async Task SetDocumentAsync(DateTime date, string tag, IList<Block> blocks, string title)
+
+    public async Task SetDocumentAsync(NullableDate date, string tag, IList<Block> blocks, string title)
     {
         var endpoint = $"{SetDocumentEndpoint}?date={date:yyyy-MM-dd}&tag={tag}&title={title}";
         await PostAsync(endpoint, blocks);
     }
+
     public async Task<byte[]> GetBinaryAsync(int id)
     {
         var endpoint = $"{GetBinaryEndpoint}/{id}";
@@ -52,15 +54,15 @@ public class WebDataManager : IDataManager
         }
     }
 
-    public async Task<IList<string>> GetTagsAsync()
+    public async Task<IList<string>> GetTagsAsync(TimeUnit timeUnit)
     {
-        var endpoint = GetTagsEndpoint;
+        var endpoint = $"{GetTagsEndpoint}?timeUnit={timeUnit}";
         return await GetAsync<IList<string>>(endpoint);
     }
 
-    public async Task AddTagAsync(string tagName)
+    public async Task AddTagAsync(string tagName, TimeUnit timeUnit)
     {
-        await PostAsync(AddTagEndpoint, new { tagName });
+        await PostAsync(AddTagEndpoint, new { tagName, timeUnit });
     }
 
     public async Task UpdateBinaryAsync(int id, byte[] data)
@@ -69,9 +71,9 @@ public class WebDataManager : IDataManager
         await PutAsync(endpoint, data);
     }
 
-    public async Task DeleteTagAsync(string tagName)
+    public async Task DeleteTagAsync(string tagName, TimeUnit timeUnit)
     {
-        var endpoint = $"{DeleteTagEndpoint}?tagName={tagName}";
+        var endpoint = $"{DeleteTagEndpoint}?tagName={tagName}&timeUnit={timeUnit}";
         await DeleteAsync(endpoint);
     }
 
@@ -141,5 +143,15 @@ public class WebDataManager : IDataManager
     public void Dispose()
     {
         HttpClient.Dispose();
+    }
+
+    public Task<TextStyle> GetPresetStyleByLevelAsync(int level)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IDictionary<int, TextStyle>> GetPresetStylesAsync()
+    {
+        throw new NotImplementedException();
     }
 }

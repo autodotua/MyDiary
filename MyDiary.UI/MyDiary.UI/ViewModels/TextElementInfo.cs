@@ -1,17 +1,14 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Mapster;
+using Microsoft.Extensions.DependencyInjection;
+using MyDiary.Managers.Services;
 using MyDiary.Models;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 
 namespace MyDiary.UI.ViewModels
 {
@@ -52,9 +49,11 @@ namespace MyDiary.UI.ViewModels
         [NotifyPropertyChangedFor(nameof(Foreground))]
         private bool useDefaultTextColor = true;
 
+        [ObservableProperty]
+        private int level;
+
         static TextElementInfo()
         {
- 
         }
 
         public TextElementInfo()
@@ -99,14 +98,28 @@ namespace MyDiary.UI.ViewModels
                 _ => throw new NotImplementedException()
             };
         }
-        public static T FromModel<T>(TextElement model) where T : TextElementInfo
+        public static T FromModel<T>(TextParagraph model) where T : TextElementInfo
+        {
+            return model.Adapt<T>();
+        }
+        public static T FromModel<T>(TextStyle model) where T : TextElementInfo
         {
             return model.Adapt<T>();
         }
 
-        public TextElement ToModel()
+        public TextParagraph ToModel()
         {
-            return this.Adapt<TextElement>();
+            return this.Adapt<TextParagraph>();
+        }
+
+        protected override async void OnPropertyChanged(PropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.PropertyName == nameof(Level))
+            {
+                var preset = await App.ServiceProvider.GetRequiredService<PresetStyleManager>().GetByLevelAsync(Level);
+                preset.Adapt(this);
+            }
         }
     }
 }

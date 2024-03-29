@@ -35,6 +35,7 @@ namespace MyDiary.UI.Views.DiaryDocElement
             }
             throw new ArgumentException($"{nameof(control)}的{nameof(control.Parent)}不为{nameof(DiaryPart)}");
         }
+
         public static DiaryPart CreateDiaryPart(this Control control)
         {
             if (control.Parent == null)

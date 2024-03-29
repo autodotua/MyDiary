@@ -8,14 +8,14 @@
     xmlns:vm="using:MyDiary.UI.ViewModels"
     d:DesignHeight="450"
     x:DataType="vm:DiaryDatePickerVM"
-    SelectedDate="{Binding Date,Mode=TwoWay}"
+    SelectedDate="{Binding Date, Mode=TwoWay}"
     mc:Ignorable="d">
     <Design.DataContext>
         <vm:DiaryDatePickerVM />
     </Design.DataContext>
     <Grid
         ColumnDefinitions="64,64"
-        RowDefinitions="Auto,8,Auto,4,*">
+        RowDefinitions="Auto,8,Auto,4,*,4,Auto">
         <Grid.Styles>
             <Style Selector="ListBox">
                 <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden" />
@@ -45,6 +45,7 @@
             Grid.ColumnSpan="2"
             Margin="4"
             HorizontalAlignment="Stretch"
+            Background="{DynamicResource Background1}"
             ItemsSource="{Binding Years}"
             SelectedItem="{Binding Year}" />
         <TextBlock
@@ -67,7 +68,23 @@
         <ListBox
             Grid.Row="4"
             Grid.Column="1"
+            IsEnabled="{Binding Month, Converter={StaticResource NotNullConverter}}"
             ItemsSource="{Binding Days}"
             SelectedItem="{Binding Day}" />
+        <Button
+            Grid.Row="6"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Center"
+            Background="Transparent"
+            Command="{Binding WholeYearButtonClickCommand}"
+            Content="全年" />
+        <Button
+            Grid.Row="6"
+            Grid.Column="2"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Center"
+            Background="Transparent"
+            Command="{Binding WholeMonthButtonClickCommand}"
+            Content="全月" />
     </Grid>
 </UserControl>

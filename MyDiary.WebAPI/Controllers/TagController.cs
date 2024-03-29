@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyDiary.Managers.Services;
+using MyDiary.Models;
 
 namespace MyDiary.WebAPI.Controllers
 {
@@ -15,11 +16,11 @@ namespace MyDiary.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTagsAsync()
+        public async Task<IActionResult> GetAllTagsAsync(TimeUnit timeUnit)
         {
             try
             {
-                var tags = await tagManager.GetAllAsync();
+                var tags = await tagManager.GetAllAsync(timeUnit);
                 return Ok(tags);
             }
             catch (Exception ex)
@@ -30,11 +31,11 @@ namespace MyDiary.WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTagAsync(string tagName)
+        public async Task<IActionResult> AddTagAsync(string tagName, TimeUnit timeUnit)
         {
             try
             {
-                await tagManager.AddTagAsync(tagName);
+                await tagManager.AddTagAsync(tagName, timeUnit);
                 return Ok(); // 或返回更合适的响应
             }
             catch (ArgumentNullException ex)
@@ -55,11 +56,11 @@ namespace MyDiary.WebAPI.Controllers
         }
 
         [HttpDelete("{tagName}")]
-        public async Task<IActionResult> DeleteTagAsync(string tagName)
+        public async Task<IActionResult> DeleteTagAsync(string tagName, TimeUnit timeUnit)
         {
             try
             {
-                await tagManager.DeleteTagAsync(tagName);
+                await tagManager.DeleteTagAsync(tagName, timeUnit);
                 return Ok(); // 或返回更合适的响应
             }
             catch (ArgumentNullException ex)

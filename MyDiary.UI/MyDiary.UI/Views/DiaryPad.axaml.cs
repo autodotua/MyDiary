@@ -2,24 +2,17 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
-using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using FzLib.Avalonia.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using MyDiary.Models;
-using MyDiary.Managers.Services;
 using MyDiary.UI.ViewModels;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using System.Threading;
 
 namespace MyDiary.UI.Views;
 /// <summary>
@@ -44,11 +37,20 @@ namespace MyDiary.UI.Views;
 /// </remarks>
 public partial class DiaryPad : UserControl
 {
-    public static readonly StyledProperty<DateTime?> SelectedDateProperty
-        = AvaloniaProperty.Register<DiaryPad, DateTime?>(nameof(SelectedDate), null);
+    #region 依赖方法
+    public static readonly StyledProperty<NullableDate> SelectedDateProperty
+        = AvaloniaProperty.Register<DiaryPad, NullableDate>(nameof(SelectedDate), default);
 
+    public NullableDate SelectedDate
+    {
+        get => GetValue(SelectedDateProperty);
+        set => SetValue(SelectedDateProperty, value);
+    }
+    #endregion
+
+    #region 页面加载和卸载
     private bool dbLoaded = false;
-    //DocumentManager docManager = new DocumentManager();
+
     private DiaryPadVM viewModel = new DiaryPadVM();
     public DiaryPad()
     {
@@ -58,27 +60,14 @@ public partial class DiaryPad : UserControl
         viewModel.PropertyChanged += ViewModel_PropertyChanged;
     }
 
-    public DateTime? SelectedDate
-    {
-        get => GetValue(SelectedDateProperty);
-        set => SetValue(SelectedDateProperty, value);
-    }
 
     protected override async void OnUnloaded(RoutedEventArgs e)
     {
-        if (SelectedDate.HasValue)
-        {
-            await SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-        }
+        await SaveDocumentAsync(SelectedDate, viewModel.SelectedTag);
         base.OnUnloaded(e);
     }
 
-    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
-    {
-        IDiaryElement element = sender as IDiaryElement;
-        editBar.DataContext = element.GetEditData();
-    }
-    private async void AddTagButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void AddTagButton_Click(object sender, RoutedEventArgs e)
     {
         string newTag = await this.ShowInputTextDialogAsync("新增标签", "请输入要新增的标签名", validation: t =>
           {
@@ -89,8 +78,7 @@ public partial class DiaryPad : UserControl
           });
         if (!string.IsNullOrWhiteSpace(newTag))
         {
-            //using var tm = new TagManager();
-            await DataManager.Manager.AddTagAsync(newTag);
+            await App.ServiceProvider.GetRequiredService<IDataProvider>().AddTagAsync(newTag, SelectedDate.TimeUnit);
             viewModel.Tags.Add(newTag);
             viewModel.SelectedTag = newTag;
         }
@@ -99,39 +87,63 @@ public partial class DiaryPad : UserControl
     private async void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
         //using TagManager tm = new TagManager();
-        viewModel.Tags = new ObservableCollection<string>(await DataManager.Manager.GetTagsAsync());
-        viewModel.SelectedTag = viewModel.Tags.First();
-        if (SelectedDate.HasValue)
-        {
-            await LoadDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-        }
+        viewModel.Tags = new ObservableCollection<string>(await App.ServiceProvider.GetRequiredService<IDataProvider>().GetTagsAsync(TimeUnit.Day));
+        viewModel.SelectedTag = viewModel.Tags[0];
+        await LoadDocumentAsync(SelectedDate, viewModel.SelectedTag);
         dbLoaded = true;
     }
 
+    #endregion
+
     #region 加载和保存数据
+
     protected override async void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (dbLoaded && change.Property == SelectedDateProperty)
         {
-            (var oldValue, var newValue) = change.GetOldAndNewValue<DateTime?>();
-            if (change.OldValue != null)
+            try
             {
-                await SaveDocumentAsync(oldValue.Value, viewModel.SelectedTag);
+                dbLoaded = false;
+                (var oldValue, var newValue) = change.GetOldAndNewValue<NullableDate>();
+
+                await SaveDocumentAsync(oldValue, viewModel.SelectedTag);
+
+                var oldTag = viewModel.SelectedTag;
+                viewModel.Tags = new ObservableCollection<string>(await App.ServiceProvider.GetRequiredService<IDataProvider>().GetTagsAsync(newValue.TimeUnit));
+                if (viewModel.Tags.Contains(oldTag))
+                {
+                    viewModel.SelectedTag = oldTag;
+                }
+                else if (viewModel.Tags.Count > 0)
+                {
+                    viewModel.SelectedTag = viewModel.Tags[0];
+                }
+                else
+                {
+                    viewModel.SelectedTag = null;
+                }
+                await LoadDocumentAsync(newValue, viewModel.SelectedTag);
             }
-            stkBody.Children.Clear();
-            if (change.NewValue != null)
+            finally
             {
-                await LoadDocumentAsync(newValue.Value, viewModel.SelectedTag);
+                dbLoaded = true;
             }
         }
     }
 
-    private async Task LoadDocumentAsync(DateTime date, string tag)
+    private async Task LoadDocumentAsync(NullableDate date, string tag)
     {
         stkBody.Children.Clear();
-        var cts = LoadingOverlay.ShowLoading(this,TimeSpan.FromSeconds(0.5));
-        var doc = await DataManager.Manager.GetDocumentAsync(date, tag);
+        viewModel.Title = null;
+        if (tag == null)
+        {
+            return;
+        }
+        var cts = LoadingOverlay.ShowLoading(this, TimeSpan.FromSeconds(0.5));
+        var doc = await App.ServiceProvider.GetRequiredService<IDataProvider>().GetDocumentAsync(date, tag);
+        //viewModel.Outlines = new ObservableCollection<Node>();
+        //outlinesNode2Control.Clear();
         if (doc == null || doc.Blocks.Count == 0)
         {
             var txt = CreateAndAppendElement<DiaryTextBox>();
@@ -144,13 +156,15 @@ public partial class DiaryPad : UserControl
                 IDiaryElement element = null;
                 switch (part.Type)
                 {
-                    case Block.TypeOfTextElement:
+                    case Block.TypeOfTextParagraph:
                         element = CreateAndAppendElement<DiaryTextBox>();
                         (element as DiaryTextBox).AddHandler(KeyDownEvent, TextBox_KeyDown, RoutingStrategies.Tunnel);
                         break;
+
                     case Block.TypeOfTable:
                         element = CreateAndAppendElement<DiaryTable>();
                         break;
+
                     case Block.TypeOfImage:
                         element = CreateAndAppendElement<DiaryImage>();
                         break;
@@ -162,24 +176,21 @@ public partial class DiaryPad : UserControl
         cts.Cancel();
     }
 
-    private async Task SaveDocumentAsync(DateTime date, string tag)
+    private async Task SaveDocumentAsync(NullableDate date, string tag)
     {
         List<Block> blocks = new List<Block>();
         foreach (var element in stkBody.Children)
         {
             blocks.Add((element as DiaryPart).GetDiaryElement().GetData());
         }
-        await DataManager.Manager.SetDocumentAsync(date, tag, blocks, viewModel.Title);
+        await App.ServiceProvider.GetRequiredService<IDataProvider>().SetDocumentAsync(date, tag, blocks, viewModel.Title);
     }
 
     private async void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         if (dbLoaded && e.PropertyName == nameof(DiaryPadVM.SelectedTag))
         {
-            if (SelectedDate.HasValue)
-            {
-                await LoadDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
-            }
+            await LoadDocumentAsync(SelectedDate, viewModel.SelectedTag);
         }
     }
 
@@ -187,16 +198,74 @@ public partial class DiaryPad : UserControl
     {
         if (dbLoaded && e.PropertyName == nameof(DiaryPadVM.SelectedTag))
         {
-            if (SelectedDate.HasValue)
+            await SaveDocumentAsync(SelectedDate, viewModel.SelectedTag);
+        }
+    }
+
+    #endregion 加载和保存数据
+
+    #region 大纲目录
+
+
+    private Dictionary<Node, Control> outlinesNode2Control = new Dictionary<Node, Control>();
+    private void AddToOutlineTree(ObservableCollection<Node> nodes, DiaryTextBox txt)
+    {
+        int level = txt.TextData.Level - 1;
+        Node node;
+        while (level > 0)
+        {
+            if (nodes.Count == 0)
             {
-                await SaveDocumentAsync(SelectedDate.Value, viewModel.SelectedTag);
+                node = new Node("未命名", new ObservableCollection<Node>());
+                nodes.Add(node);
+                nodes = node.SubNodes;
             }
+            else
+            {
+                node = nodes[^1];
+                node.SubNodes ??= new ObservableCollection<Node>();
+                nodes = node.SubNodes;
+            }
+            level--;
+        }
+        node = new Node(txt.TextData.Text);
+        nodes.Add(node);
+        outlinesNode2Control.Add(node, txt);
+    }
+    private void Flyout_Opening(object sender, System.EventArgs e)
+    {
+        var outlines = new ObservableCollection<Node>();
+        outlinesNode2Control.Clear();
+        foreach (var txt in stkBody.Children
+            .OfType<DiaryPart>()
+            .Select(p => p.GetControlContent())
+            .OfType<DiaryTextBox>())
+        {
+            //var t = part as TextParagraph;
+            if (txt.TextData.Level > 0)
+            {
+                AddToOutlineTree(outlines, txt);
+            }
+        }
+        if (outlines.Count == 0)
+        {
+            outlines.Add(new Node("无大纲"));
+        }
+        viewModel.Outlines = outlines;
+    }
+
+    private void TreeView_SelectionChanged(object sender, Avalonia.Controls.SelectionChangedEventArgs e)
+    {
+        if ((sender as TreeView).SelectedItem is Node node)
+        {
+            //通过先到最底部然后显示元素，可以保证这个标题在视图的上方出现
+            scrBody.ScrollToEnd();
+            outlinesNode2Control[node].BringIntoView();
         }
     }
     #endregion
 
     #region 文档部件控制
-
     public static DiaryPad GetDiaryPad(Control control)
     {
         return control.GetLogicalAncestors().OfType<DiaryPad>().FirstOrDefault()
@@ -213,6 +282,7 @@ public partial class DiaryPad : UserControl
         int index = element == null ? -1 : stkBody.Children.IndexOf(element.GetParentDiaryPart());
         return CreateAndInsertElement<T>(index + 1);
     }
+
     public void RemoveElement<T>(T element) where T : Control, IDiaryElement
     {
         element.NotifyEditDataUpdated -= DiaryElement_EditPropertiesUpdated;
@@ -227,7 +297,14 @@ public partial class DiaryPad : UserControl
         stkBody.InsertDiaryPart(index, newElement);
         return newElement;
     }
-    #endregion
+
+    private void DiaryElement_EditPropertiesUpdated(object sender, EventArgs e)
+    {
+        IDiaryElement element = sender as IDiaryElement;
+        editBar.DataContext = element.GetEditData();
+    }
+
+    #endregion 文档部件控制
 
     #region 多行文本
     private void TextBox_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
@@ -242,6 +319,9 @@ public partial class DiaryPad : UserControl
         {
             case Avalonia.Input.Key.Enter when !string.IsNullOrEmpty(text):
                 newTextBox = CreateAndInsertElementBelow<DiaryTextBox>(oldTextBox);
+                var oldModel = oldTextBox.GetData() as TextParagraph;
+                oldModel.Text = null;
+                newTextBox.LoadData(oldModel); //保证和上面的样式一致
                 newTextBox.KeyDown += TextBox_KeyDown;
                 if (oldTextBox.SelectionEnd != text.Length)
                 {
@@ -327,6 +407,5 @@ public partial class DiaryPad : UserControl
         }
     }
 
-    #endregion
-
+    #endregion 多行文本
 }

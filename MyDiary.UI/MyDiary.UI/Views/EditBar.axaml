@@ -35,6 +35,12 @@
                 <Setter Property="Opacity" Value="0.5" />
             </Style>
         </StackPanel.Styles>
+        <ComboBox
+            Background="Transparent"
+            BorderThickness="0"
+            DisplayMemberBinding="{Binding ., StringFormat='预设级别：{0}'}"
+            ItemsSource="{Binding Levels}"
+            SelectedItem="{Binding TextData.Level}" />
         <Button
             Width="96"
             HorizontalContentAlignment="Center"
