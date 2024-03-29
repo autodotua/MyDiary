@@ -24,7 +24,29 @@ namespace MyDiary.WordParser
         /// </summary>
         public NumberingType DayNumberingType { get; set; }
 
+        /// <summary>
+        /// 月份标题的正则表达式
+        /// </summary>
         public string MonthPattern { get; set; }
+
+        /// <summary>
+        /// 日标题的正则表达式
+        /// </summary>
         public string DayPattern { get; set; }
+
+        /// <summary>
+        /// 若包含内部标题，设置最大内部标题的大纲级别。0表示内部都是正文
+        /// </summary>
+        public int LargestInnerLevel { get; set; } = 0;
+
+        /// <summary>
+        /// 月份标题的大纲级别
+        /// </summary>
+        public int MonthTitleLevel { get; set; } = 2;
+
+        /// <summary>
+        /// 日标题的大纲级别
+        /// </summary>
+        public int DayTitleLevel { get; set; } = 3;
     }
 }

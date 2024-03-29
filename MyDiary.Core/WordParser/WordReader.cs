@@ -33,100 +33,109 @@ namespace MyDiary.WordParser
                 foreach (XWPFParagraph p in doc.Paragraphs)
                 {
                     var outline = GetOutlineLevel(p);
+                    //跳过目录
                     if (IsCatalogue(p))
                     {
                         continue;
                     }
-                    if (outline > 0)
+
+                    //运行到此处，排除了目录
+
+                    if (outline == 1)//一级大纲
                     {
-                        if (outline == 1)
+                        if (p.Text == s.TitleInDocument) //找到了对应的Tag
                         {
-                            if (p.Text == s.TitleInDocument)
-                            {
-                                hasCaptured = true;
-                            }
-                            else
-                            {
-                                if (hasCaptured)
-                                {
-                                    //该部分结束，跳出
-                                    break;
-                                }
-                            }
-                            continue;
+                            hasCaptured = true;
                         }
-                        //进入一个新的主题
-                        if (hasCaptured)
+                        else //不匹配，可能是还没找到，也可能是新的一节开始
                         {
-                            if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
-                              && CheckMonthTitle(ref date, p.Text, s.MonthPattern, errors, "月份"))
+                            if (hasCaptured)
                             {
-                                //跳转新月份
-                            }
-                            else if (s.TimeUnit is TimeUnit.Day
-                                && s.DayNumberingType == NumberingType.OutlineTitle
-                                && CheckDayTitle(ref date, p.Text, s.DayPattern, errors, "日", out string title))
-                            {
-                                //跳转新日
-                                GetOrCreateDocument(documents, s, date).Title = title;
-                            }
-                            else
-                            {
-                                AddParagraph();
+                                //该部分结束，跳出
+                                break;
                             }
                         }
+                        continue;
                     }
-                    else //outline == 0
+
+                    //运行到此处，大纲级别为非1
+
+                    if (outline > 1) //二级以上大纲
                     {
                         if (!hasCaptured) //还没定位到时间
                         {
                             continue;
                         }
 
-                        if (s.TimeUnit == TimeUnit.Year)
+                        //进入一个新的主题
+                        if (s.TimeUnit is TimeUnit.Month or TimeUnit.Day
+                            && outline == s.MonthTitleLevel
+                          && CheckMonthTitle(ref date, p.Text, s.MonthPattern, errors, "月份"))
                         {
-                            AddParagraph();
+                            //跳转新月份
                         }
-                        else if (s.TimeUnit == TimeUnit.Month)
+                        else if (s.TimeUnit is TimeUnit.Day
+                            && outline == s.DayTitleLevel
+                            && s.DayNumberingType == NumberingType.OutlineTitle
+                            && CheckDayTitle(ref date, p.Text, s.DayPattern, errors, "日", out string title))
                         {
+                            //跳转新日
+                            GetOrCreateDocument(documents, s, date).Title = title;
+                        }
+                        else //不是月或日的标题
+                        {
+                            //如果允许插入标题并且设置的最大标题级别大于当前段落的级别
+                            if (s.LargestInnerLevel > 0 && outline >= s.LargestInnerLevel)
+                            {
+                                if (s.TimeUnit == TimeUnit.Day && s.DayNumberingType == NumberingType.ParagraphNumbering)
+                                {
+                                    //序号形式不可能存在内部大纲级别
+                                    continue;
+                                }
+                                AddParagraph();
+                            }
+                        }
+                        continue;
+                    }
+
+                    //运行到此处，无大纲级别正文
+
+                    if (!hasCaptured) //还没定位到时间
+                    {
+                        continue;
+                    }
+
+                    switch (s.TimeUnit)
+                    {
+                        case TimeUnit.Year:
+                            AddParagraph();
+                            break;
+                        case TimeUnit.Month:
                             if (date.Month.HasValue)
                             {
                                 AddParagraph();
                             }
-                        }
-                        else if (s.TimeUnit == TimeUnit.Day)
-                        {
-                            switch (s.DayNumberingType)
+                            break;
+                        case TimeUnit.Day:
+                            if (date.IsSpecified)
                             {
-                                case NumberingType.OutlineTitle:
-                                    if (date.IsSpecified)
-                                    {
+                                switch (s.DayNumberingType)
+                                {
+                                    case NumberingType.OutlineTitle:
                                         AddParagraph();
-                                    }
-                                    else
-                                    {
-                                        throw new NotImplementedException();
-                                    }
-                                    break;
-                                case NumberingType.ParagraphNumbering:
-                                    if (HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
-                                    {
-                                        if (date.IsSpecified)
+                                        break;
+                                    case NumberingType.ParagraphNumbering:
+                                        if (HasNumberingEnabled(doc, p))//仅考虑启用了项目编号的段落
                                         {
                                             date = new NullableDate(date.Year, date.Month, date.Day + 1);
                                             AddParagraph();
                                         }
-                                        else
-                                        {
-                                            throw new NotImplementedException();
-                                        }
-                                    }
-                                    break;
-                                default:
-                                    break;
+                                        break;
+                                }
                             }
-                        }
+                            break;
                     }
+
                     void AddParagraph()
                     {
                         foreach (var line in p.Text.Split('\r', '\n'))//正常情况下软换行\n
@@ -134,7 +143,7 @@ namespace MyDiary.WordParser
                             TextParagraph t = new TextParagraph() { Text = line };
                             if (outline > 0)
                             {
-                                t.Level = outline - 1;
+                                t.Level = outline - (s.LargestInnerLevel - 1);
                             }
                             if (level2Style.TryGetValue(t.Level, out TextStyle value))
                             {
@@ -156,7 +165,7 @@ namespace MyDiary.WordParser
         private static bool HasNumberingEnabled(XWPFDocument doc, XWPFParagraph p)
         {
             return p.GetCTP().pPr?.numPr != null
-           ||doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
+           || doc.GetCTStyle().GetStyleList().Where(s => s.styleId == p.StyleID).FirstOrDefault()?.pPr?.numPr != null;
         }
 
         private static Document GetOrCreateDocument(Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> docs4Seg, WordParserDiarySegment seg, NullableDate date)

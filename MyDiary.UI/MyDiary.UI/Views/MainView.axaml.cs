@@ -55,28 +55,47 @@ namespace MyDiary.UI.Views
             //    ]);
             //await wr.ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2020.docx", options);
 
+            //var options = new WordParserOptions(2024, [
+            //    new WordParserDiarySegment(){
+            //            TitleInDocument="日记",
+            //            TargetTag="日记（简单）",
+            //            TimeUnit=TimeUnit.Day,
+            //            DayNumberingType=NumberingType.ParagraphNumbering,
+            //            MonthPattern="(?<month>[0-1]?[0-9])月",
+            //        },       new WordParserDiarySegment(){
+            //            TitleInDocument="日记",
+            //            TargetTag="日记",
+            //            TimeUnit=TimeUnit.Day,
+            //            DayNumberingType=NumberingType.OutlineTitle,
+            //            MonthPattern="(?<month>[0-1]?[0-9])月",
+            //            DayPattern=@"[0-9]{1,2}\-(?<day>[0-9]{1,2})[~、0-9 ]*(?<title>.*)"
+            //        },
+            //          new WordParserDiarySegment(){
+            //                    TargetTag="年终总结",
+            //                    TitleInDocument="年度总结",
+            //                    TimeUnit=TimeUnit.Year,
+            //                    LargestInnerLevel=2
+            //                },
+            //    ]);
+            //await wr.ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2017.docx", options); 
+            
             var options = new WordParserOptions(2024, [
                 new WordParserDiarySegment(){
-                        TitleInDocument="日记",
-                        TargetTag="日记（简单）",
-                        TimeUnit=TimeUnit.Day,
-                        DayNumberingType=NumberingType.ParagraphNumbering,
-                        MonthPattern="(?<month>[0-1]?[0-9])月",
-                    },       new WordParserDiarySegment(){
                         TitleInDocument="日记",
                         TargetTag="日记",
                         TimeUnit=TimeUnit.Day,
                         DayNumberingType=NumberingType.OutlineTitle,
-                        MonthPattern="(?<month>[0-1]?[0-9])月",
-                        DayPattern=@"[0-9]{1,2}\-(?<day>[0-9]{1,2})[~0-9]*(?<title>.*)"
+                        MonthPattern="(?<month>[0-1]?[0-9])",
+                        DayPattern=@"(?<day>[0-9]{1,2})[-、0-9 ]*(?<title>.*)"
                     },
                       new WordParserDiarySegment(){
                                 TargetTag="年终总结",
                                 TitleInDocument="年度总结",
                                 TimeUnit=TimeUnit.Year,
+                                LargestInnerLevel=2
                             },
                 ]);
-            await wr.ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2019.docx", options);
+            await wr.ParseAsync(@"C:\Users\autod\OneDrive\旧事重提\日记\2016.docx", options);
 #endif
             datePicker.SelectedDate = NullableDate.Today;
         }

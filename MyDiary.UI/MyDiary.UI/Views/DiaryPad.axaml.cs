@@ -133,6 +133,7 @@ public partial class DiaryPad : UserControl
     private async Task LoadDocumentAsync(NullableDate date, string tag)
     {
         stkBody.Children.Clear();
+        viewModel.Title = null;
         if (tag == null)
         {
             return;
