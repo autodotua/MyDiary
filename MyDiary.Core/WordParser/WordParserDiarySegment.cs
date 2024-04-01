@@ -12,27 +12,27 @@ namespace MyDiary.WordParser
         /// <summary>
         /// 导入后的分类标签
         /// </summary>
-        public string TargetTag { get; set; }
+        public string TargetTag { get; set; } = "日记";
 
         /// <summary>
         /// 这一部分以什么时间单位，就是一年一章，还是一个月一章，还是每天都有
         /// </summary>
-        public TimeUnit TimeUnit { get; set; }
+        public TimeUnit TimeUnit { get; set; }  =TimeUnit.Day;
 
         /// <summary>
         /// 每日的内容是如何编号的，是提供了带大纲级别的标题，还是用段落编号
         /// </summary>
-        public NumberingType DayNumberingType { get; set; }
+        public NumberingType DayNumberingType { get; set; } =NumberingType.OutlineTitle;
 
         /// <summary>
         /// 月份标题的正则表达式
         /// </summary>
-        public string MonthPattern { get; set; }
+        public string MonthPattern { get; set; } = "(?<month>[0-1]?[0-9])月";
 
         /// <summary>
         /// 日标题的正则表达式
         /// </summary>
-        public string DayPattern { get; set; }
+        public string DayPattern { get; set; } = @"[0-9]{1,2}\-(?<day>[0-9]{1,2})[~、0-9 ]*(?<title>.*)";
 
         /// <summary>
         /// 若包含内部标题，设置最大内部标题的大纲级别。0表示内部都是正文

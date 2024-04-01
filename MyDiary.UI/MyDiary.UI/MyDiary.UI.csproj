@@ -42,16 +42,7 @@
     <ProjectReference Include="..\..\MyDiary.Core\MyDiary.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <Reference Include="FzLib">
-      <HintPath>..\..\..\模块\Publish\Release\net8.0\FzLib.dll</HintPath>
-    </Reference>
-    <Reference Include="FzLib.Avalonia">
-      <HintPath>..\..\..\模块\Publish\Release\net8.0\FzLib.Avalonia.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <ItemGroup>
     <Reference Include="FzLib">
       <HintPath>..\..\libs\FzLib.dll</HintPath>
     </Reference>
@@ -61,6 +52,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Views\Dialogs\ImportWordDialog.axaml.cs">
+      <DependentUpon>ImportWordDialog.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\DiaryDocElement\DiaryTableCell.axaml.cs">
       <DependentUpon>DiaryTableCell.axaml</DependentUpon>
     </Compile>

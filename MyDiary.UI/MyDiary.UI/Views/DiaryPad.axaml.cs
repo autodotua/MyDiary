@@ -6,6 +6,7 @@ using FzLib.Avalonia.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
 using MyDiary.Models;
 using MyDiary.UI.ViewModels;
+using MyDiary.UI.Views.Dialogs;
 using MyDiary.UI.Views.DiaryDocElement;
 using System;
 using System.Collections.Generic;
@@ -408,4 +409,14 @@ public partial class DiaryPad : UserControl
     }
 
     #endregion 多行文本
+
+    #region 菜单
+
+    private async void ImportWordMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new ImportWordDialog();
+        await dialog.ShowDialog(DialogExtension.ContainerType, this);
+    }
+
+    #endregion
 }

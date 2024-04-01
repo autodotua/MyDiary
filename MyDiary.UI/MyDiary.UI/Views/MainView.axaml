@@ -15,17 +15,12 @@
         <vm:MainViewVM />
     </Design.DataContext>
     <Grid ColumnDefinitions="Auto,0,*">
-        <v:DiaryDatePicker x:Name="datePicker" />
+        <v:DiaryDatePicker
+            x:Name="datePicker"
+            Grid.Row="2" />
         <v:DiaryPad
+            Grid.Row="2"
             Grid.Column="2"
             SelectedDate="{Binding #datePicker.SelectedDate, Mode=OneWay}" />
-        <Button
-            Grid.Row="99"
-            Grid.Column="99"
-            Margin="8"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
-            Click="Button_Click"
-            Content="打开目录" />
     </Grid>
 </UserControl>

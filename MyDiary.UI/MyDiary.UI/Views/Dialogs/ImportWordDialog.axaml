@@ -1,0 +1,161 @@
+<dialog:DialogHost
+    x:Class="MyDiary.UI.Views.Dialogs.ImportWordDialog"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dialog="using:FzLib.Avalonia.Dialogs"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:v="using:MyDiary.UI.Views"
+    xmlns:vm="using:MyDiary.UI.ViewModels"
+    xmlns:wp="using:MyDiary.WordParser"
+    x:Name="root"
+    Title="导入Word"
+    x:DataType="vm:ImportWordViewModel"
+    CloseButtonContent="取消"
+    CloseButtonEnable="True"
+    PrimaryButtonContent="导入"
+    PrimaryButtonEnable="True"
+    Theme="{StaticResource DialogHostTheme}"
+    mc:Ignorable="d">
+    <dialog:DialogHost.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Grid.Column" Value="2" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Grid.Column" Value="2" />
+        </Style>
+        <Style Selector="NumericUpDown">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Grid.Column" Value="2" />
+        </Style>
+    </dialog:DialogHost.Styles>
+
+    <Grid RowDefinitions="Auto,8,*,8,Auto,8,Auto">
+        <Grid
+            ColumnDefinitions="96,8,*,8,Auto"
+            RowDefinitions="Auto,8,Auto">
+            <TextBlock Text="Word文件" />
+            <TextBox Text="{Binding File}" />
+            <Button
+                Grid.Column="4"
+                Click="BrowseButton_Click"
+                Content="浏览" />
+
+            <TextBlock
+                Grid.Row="2"
+                Text="年份" />
+            <TextBox
+                Grid.Row="2"
+                Text="{Binding Year}" />
+        </Grid>
+        <ScrollViewer
+            Grid.Row="2"
+            Grid.ColumnSpan="99"
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Segments}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:CompileBindings="False">
+                        <Grid
+                            ColumnDefinitions="96,8,*,8,Auto"
+                            RowDefinitions="Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
+
+                            <Grid
+                                Grid.ColumnSpan="99"
+                                Margin="0,18,0,0"
+                                HorizontalAlignment="Stretch"
+                                ColumnDefinitions="Auto,*,Auto">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="20"
+                                    Text="{Binding Index, StringFormat='文档部分 {0}'}" />
+                                <Button
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Background="Transparent"
+                                    Command="{Binding $parent[ItemsControl].DataContext.RemoveSegmentCommand}"
+                                    CommandParameter="{Binding .}"
+                                    Content="删除" />
+                            </Grid>
+                            <TextBlock
+                                Grid.Row="2"
+                                Text="导入标签" />
+                            <TextBox
+                                Grid.Row="2"
+                                Text="{Binding Content.TargetTag}" />
+
+                            <TextBlock
+                                Grid.Row="4"
+                                Text="文档中标题" />
+                            <TextBox
+                                Grid.Row="4"
+                                Text="{Binding Content.TitleInDocument}" />
+                            <TextBlock
+                                Grid.Row="6"
+                                Text="日期编号类型" />
+                            <ComboBox
+                                Grid.Row="6"
+                                DisplayMemberBinding="{Binding ., Converter={StaticResource DescriptionConverter}}"
+                                ItemsSource="{Binding NumberingTypes}"
+                                SelectedItem="{Binding Content.DayNumberingType}" />
+                            <TextBlock
+                                Grid.Row="8"
+                                Text="日期细分级别" />
+                            <ComboBox
+                                Grid.Row="8"
+                                DisplayMemberBinding="{Binding ., Converter={StaticResource DescriptionConverter}}"
+                                ItemsSource="{Binding TimeUnits}"
+                                SelectedItem="{Binding Content.TimeUnit}" />
+                            <TextBlock
+                                Grid.Row="10"
+                                Text="月解析正则" />
+                            <TextBox
+                                Grid.Row="10"
+                                Text="{Binding Content.MonthPattern}"
+                                Watermark="仅当日期细分级别为“日”或“月”时需要填写" />
+                            <TextBlock
+                                Grid.Row="12"
+                                Text="日解析正则" />
+                            <TextBox
+                                Grid.Row="12"
+                                Text="{Binding Content.DayPattern}"
+                                Watermark="仅当日期细分级别为“日”时需要填写" />
+                            <TextBlock
+                                Grid.Row="14"
+                                Text="月大纲级别" />
+                            <NumericUpDown
+                                Grid.Row="14"
+                                Value="{Binding Content.MonthTitleLevel}" />
+                            <TextBlock
+                                Grid.Row="16"
+                                Text="日大纲级别" />
+                            <NumericUpDown
+                                Grid.Row="16"
+                                Value="{Binding Content.DayTitleLevel}" />
+                            <TextBlock
+                                Grid.Row="18"
+                                Text="内部最高级别" />
+                            <NumericUpDown
+                                Grid.Row="18"
+                                Value="{Binding Content.LargestInnerLevel}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <Button
+            Grid.Row="4"
+            Command="{Binding AddSegmentCommand}"
+            Content="新增文档部分" />
+        <TextBlock
+            Grid.Row="99"
+            Foreground="Red"
+            Text="{Binding Message}" />
+    </Grid>
+</dialog:DialogHost>

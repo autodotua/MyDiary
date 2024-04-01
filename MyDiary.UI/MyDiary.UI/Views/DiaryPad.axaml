@@ -32,28 +32,21 @@
             <Button
                 Grid.Column="2"
                 Background="Transparent">
-                <PathIcon Data="{StaticResource IconList}" />
+                <PathIcon Data="{StaticResource IconMore}" />
                 <Button.Flyout>
-                    <Flyout Opening="Flyout_Opening">
-                        <TreeView
-                            MaxHeight="{Binding #pad.Bounds.Height}"
-                            ItemsSource="{Binding Outlines}"
-                            SelectionChanged="TreeView_SelectionChanged">
-                            <TreeView.ItemTemplate>
-                                <TreeDataTemplate ItemsSource="{Binding SubNodes}">
-                                    <TextBlock
-                                        Margin="0,0,12,0"
-                                        Text="{Binding Title}" />
-                                </TreeDataTemplate>
-                            </TreeView.ItemTemplate>
-                        </TreeView>
-                    </Flyout>
+                    <MenuFlyout>
+                        <MenuItem Header="导入导出">
+                            <MenuItem
+                                Click="ImportWordMenuItem_Click"
+                                Header="导入Word" />
+                        </MenuItem>
+                    </MenuFlyout>
                 </Button.Flyout>
             </Button>
         </Grid>
         <Grid
             Grid.Row="2"
-            ColumnDefinitions="Auto,8,Auto,*">
+            ColumnDefinitions="Auto,8,Auto,*,Auto">
             <ListBox
                 Background="{DynamicResource Background1}"
                 ItemsSource="{Binding Tags}"
@@ -98,6 +91,28 @@
                 CornerRadius="8,8,0,0">
                 <PathIcon Data="M864 480H544V160c0-17.7-14.3-32-32-32s-32 14.3-32 32v320H160c-17.7 0-32 14.3-32 32s14.3 32 32 32h320v320c0 17.7 14.3 32 32 32s32-14.3 32-32V544h320c17.7 0 32-14.3 32-32s-14.3-32-32-32z" />
             </Button>
+            <Button
+                Grid.Column="99"
+                Background="Transparent">
+                <PathIcon Data="{StaticResource IconList}" />
+                <Button.Flyout>
+                    <Flyout Opening="Flyout_Opening">
+                        <TreeView
+                            MaxHeight="{Binding #pad.Bounds.Height}"
+                            ItemsSource="{Binding Outlines}"
+                            SelectionChanged="TreeView_SelectionChanged">
+                            <TreeView.ItemTemplate>
+                                <TreeDataTemplate ItemsSource="{Binding SubNodes}">
+                                    <TextBlock
+                                        Margin="0,0,12,0"
+                                        Text="{Binding Title}" />
+                                </TreeDataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+
         </Grid>
         <StackPanel
             Grid.Row="4"
