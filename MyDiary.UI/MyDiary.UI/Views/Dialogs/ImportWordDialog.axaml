@@ -11,7 +11,7 @@
     x:Name="root"
     Title="导入Word"
     x:DataType="vm:ImportWordViewModel"
-    CloseButtonContent="取消"
+    CloseButtonContent="关闭"
     CloseButtonEnable="True"
     PrimaryButtonContent="导入"
     PrimaryButtonEnable="True"
@@ -85,7 +85,7 @@
                             </Grid>
                             <TextBlock
                                 Grid.Row="2"
-                                Text="导入标签" />
+                                Text="标签" />
                             <TextBox
                                 Grid.Row="2"
                                 Text="{Binding Content.TargetTag}" />
@@ -155,7 +155,6 @@
             Content="新增文档部分" />
         <TextBlock
             Grid.Row="99"
-            Foreground="Red"
             Text="{Binding Message}" />
     </Grid>
 </dialog:DialogHost>

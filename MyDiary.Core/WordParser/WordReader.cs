@@ -15,7 +15,7 @@ namespace MyDiary.WordParser
         private readonly DocumentManager dm = dm;
         private readonly PresetStyleManager pm = pm;
 
-        public async Task ParseAsync(string file, WordParserOptions options)
+        public async Task<IList<Document>> ParseAsync(string file, WordParserOptions options)
         {
             CheckOptions(options);
             //using var fs = File.OpenRead(file);
@@ -160,6 +160,8 @@ namespace MyDiary.WordParser
                 allDocuments.AddRange(docs.Values);
             }
             await dm.SetDocumentsAsync(allDocuments);
+
+            return allDocuments;
         }
 
         private static bool HasNumberingEnabled(XWPFDocument doc, XWPFParagraph p)
