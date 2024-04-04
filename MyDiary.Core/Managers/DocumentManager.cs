@@ -47,7 +47,7 @@ namespace MyDiary.Managers.Services
             {
                 var doc = await docs.FirstAsync();
                 doc.Blocks = blocks;
-                doc.Title = title;
+                doc.Caption = title;
                 db.Entry(doc).State = EntityState.Modified;
             }
             else
@@ -59,7 +59,7 @@ namespace MyDiary.Managers.Services
                     Day = date.Day,
                     Tag = tag,
                     Blocks = blocks,
-                    Title = title
+                    Caption = title
                 };
                 db.Documents.Add(doc);
             }
@@ -83,7 +83,7 @@ namespace MyDiary.Managers.Services
                 if (existedDoc != null)
                 {
                     existedDoc.Blocks = doc.Blocks;
-                    existedDoc.Title = doc.Title;
+                    existedDoc.Caption = doc.Caption;
                     db.Entry(existedDoc).State = EntityState.Modified;
                 }
                 else

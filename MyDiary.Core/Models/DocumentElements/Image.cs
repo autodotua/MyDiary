@@ -3,7 +3,7 @@
     public class Image : Block
     {
         public override string Type => TypeOfImage;
-        public string Title { get; set; }
+        public string Caption { get; set; }
         public int? DataId { get; set; }
     }
 }

@@ -26,7 +26,7 @@ public partial class DiaryImage : Grid, IDiaryElement
     {
         return new MyDiary.Models.Image()
         {
-            Title = viewModel.Title,
+            Caption = viewModel.Title,
             DataId = viewModel.ImageDataId
         };
     }
@@ -39,7 +39,7 @@ public partial class DiaryImage : Grid, IDiaryElement
     public async void LoadData(Block data)
     {
         var imageData = data as MyDiary.Models.Image;
-        viewModel.Title = imageData.Title;
+        viewModel.Title = imageData.Caption;
         viewModel.ImageDataId = imageData.DataId;
         if (imageData.DataId.HasValue)
         {

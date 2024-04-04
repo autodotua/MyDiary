@@ -47,7 +47,7 @@ public partial class DiaryTable : Grid, IDiaryElement
     {
         var table = new Table();
         table.Cells = GetCellsData().Adapt<TableCell[,]>();
-        table.Title = viewModel.Title;
+        table.Caption = viewModel.Title;
         return table;
     }
 
@@ -111,7 +111,7 @@ public partial class DiaryTable : Grid, IDiaryElement
         Debug.Assert(data is Table);
         var table = data as Table;
         var cells = table.Cells.Adapt<TableCellInfo[,]>();
-        viewModel.Title = table.Title;
+        viewModel.Title = table.Caption;
         MakeTable(cells);
     }
 

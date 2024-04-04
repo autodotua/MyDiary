@@ -16,8 +16,22 @@ namespace MyDiary.UI.Views
             InitializeComponent();
         }
 
-        private void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private
+#if DEBUG
+            async
+#endif
+            void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
+#if DEBUG
+            var options = new WordParserOptions(2024,
+              [new WordParserDiarySegment() {
+                    TargetTag="日记",
+                    TitleInDocument="日记"
+                }]
+            );
+            var wr = App.ServiceProvider.GetRequiredService<WordReader>();
+        await    wr.ParseAsync(@"C:\Users\autod\Desktop\test.docx", options);
+#endif
             datePicker.SelectedDate = NullableDate.Today;
         }
 

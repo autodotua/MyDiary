@@ -10,10 +10,12 @@ using Document = MyDiary.Models.Document;
 
 namespace MyDiary.WordParser
 {
-    public class WordReader(DocumentManager dm, PresetStyleManager pm)
+    public class WordReader(DocumentManager dm, PresetStyleManager pm, BinaryManager bm)
     {
         private readonly DocumentManager dm = dm;
         private readonly PresetStyleManager pm = pm;
+        private readonly BinaryManager bm = bm;
+        private readonly Regex rPicCaption =new Regex(@"^图 ?(([0-9]+)|([:：])).*$", RegexOptions.Compiled);
 
         public async Task<IList<Document>> ParseAsync(string file, WordParserOptions options)
         {
@@ -26,6 +28,7 @@ namespace MyDiary.WordParser
 
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
+            Block lastBlock = null;
             foreach (var s in options.Segments)
             {
                 NullableDate date = new NullableDate(options.Year);
@@ -36,6 +39,7 @@ namespace MyDiary.WordParser
                     //跳过目录
                     if (IsCatalogue(p))
                     {
+                        lastBlock = null;
                         continue;
                     }
 
@@ -55,6 +59,7 @@ namespace MyDiary.WordParser
                                 break;
                             }
                         }
+                        lastBlock = null;
                         continue;
                     }
 
@@ -80,7 +85,7 @@ namespace MyDiary.WordParser
                             && CheckDayTitle(ref date, p.Text, s.DayPattern, errors, "日", out string title))
                         {
                             //跳转新日
-                            GetOrCreateDocument(documents, s, date).Title = title;
+                            GetOrCreateDocument(documents, s, date).Caption = title;
                         }
                         else //不是月或日的标题
                         {
@@ -95,6 +100,7 @@ namespace MyDiary.WordParser
                                 AddParagraph();
                             }
                         }
+                        lastBlock= null;
                         continue;
                     }
 
@@ -136,20 +142,51 @@ namespace MyDiary.WordParser
                             break;
                     }
 
-                    void AddParagraph()
+                    async void AddParagraph()
                     {
-                        foreach (var line in p.Text.Split('\r', '\n'))//正常情况下软换行\n
+                        if (!string.IsNullOrEmpty(p.Text))//文本
                         {
-                            TextParagraph t = new TextParagraph() { Text = line };
-                            if (outline > 0)
+                            if (lastBlock is Image && rPicCaption.IsMatch(p.Text))//图注
                             {
-                                t.Level = outline - (s.LargestInnerLevel - 1);
+                                (lastBlock as Image).Caption = p.Text;
                             }
-                            if (level2Style.TryGetValue(t.Level, out TextStyle value))
+                            else//普通文本段落
                             {
-                                value.Adapt(t);
+                                foreach (var line in p.Text.Split('\r', '\n'))//正常情况下软换行\n
+                                {
+                                    TextParagraph t = new TextParagraph() { Text = line };
+                                    if (outline > 0)
+                                    {
+                                        t.Level = outline - (s.LargestInnerLevel - 1);
+                                    }
+                                    if (level2Style.TryGetValue(t.Level, out TextStyle value))
+                                    {
+                                        value.Adapt(t);
+                                    }
+                                    GetOrCreateDocument(documents, s, date).Blocks.Add(t);
+                                    lastBlock = t;
+                                }
                             }
-                            GetOrCreateDocument(documents, s, date).Blocks.Add(t);
+                        }
+                        else
+                        {
+                            foreach (var run in p.Runs)
+                            {
+                                if (run.GetEmbeddedPictures().Count != 0)//图片
+                                {
+                                    foreach (var pic in run.GetEmbeddedPictures())
+                                    {
+                                        var data = pic.GetPictureData().Data;
+                                        var imageID = await bm.AddBinaryAsync(data);
+                                        Image image = new Image()
+                                        {
+                                            DataId = imageID,
+                                        };
+                                        GetOrCreateDocument(documents, s, date).Blocks.Add(image);
+                                        lastBlock = image;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -173,7 +173,7 @@ public partial class DiaryPad : UserControl
                 element.LoadData(part);
             }
         }
-        viewModel.Title = doc?.Title;
+        viewModel.Title = doc?.Caption;
         cts.Cancel();
     }
 

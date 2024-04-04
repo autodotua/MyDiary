@@ -9,7 +9,7 @@ namespace MyDiary.Models
         public int Year { get; set; }
         public int? Month { get; set; }
         public int? Day { get; set; }
-        public string Title { get; set; }
+        public string Caption { get; set; }
         public string Tag { get; set; }
     }
 }
