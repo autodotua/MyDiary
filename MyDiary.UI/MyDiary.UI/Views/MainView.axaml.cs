@@ -23,14 +23,22 @@ namespace MyDiary.UI.Views
             void UserControl_Loaded(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
 #if DEBUG
+            //var options = new WordParserOptions(2024,
+            //  [new WordParserDiarySegment() {
+            //        TargetTag="日记",
+            //        TitleInDocument="日记"
+            //    }]
+            //);     
+            await App.ServiceProvider.GetRequiredService<DocumentManager>().ClearDocumentsAsync();
             var options = new WordParserOptions(2024,
               [new WordParserDiarySegment() {
-                    TargetTag="日记",
-                    TitleInDocument="日记"
+                    TargetTag="年终总结",
+                    TitleInDocument="年终总结",
+                    TimeUnit=TimeUnit.Year
                 }]
             );
             var wr = App.ServiceProvider.GetRequiredService<WordReader>();
-        await    wr.ParseAsync(@"C:\Users\autod\Desktop\test.docx", options);
+            await wr.ParseAsync(@"C:\Users\autod\Desktop\2023.docx", options);
 #endif
             datePicker.SelectedDate = NullableDate.Today;
         }

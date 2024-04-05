@@ -3,7 +3,7 @@
     public class TableCell : TextElement
     {
         public override string Type => TypeOfTableCell;
-        public int RowSpan { get; set; }
-        public int ColumnSpan { get; set; }
+        public int RowSpan { get; set; } = 1;
+        public int ColumnSpan { get; set; } = 1;
     }
 }

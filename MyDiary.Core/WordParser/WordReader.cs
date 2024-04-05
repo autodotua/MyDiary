@@ -15,7 +15,7 @@ namespace MyDiary.WordParser
         private readonly DocumentManager dm = dm;
         private readonly PresetStyleManager pm = pm;
         private readonly BinaryManager bm = bm;
-        private readonly Regex rPicCaption =new Regex(@"^图 ?(([0-9]+)|([:：])).*$", RegexOptions.Compiled);
+        private readonly Regex rPicCaption = new Regex(@"^图 ?(([0-9]+)|([:：])).*$", RegexOptions.Compiled);
 
         public async Task<IList<Document>> ParseAsync(string file, WordParserOptions options)
         {
@@ -25,6 +25,7 @@ namespace MyDiary.WordParser
             using XWPFDocument doc = new XWPFDocument(fs);
 
             IDictionary<int, TextStyle> level2Style = await pm.GetAllAsync();
+            var tables = doc.Tables.ToDictionary(doc.GetPosOfTable);
 
             List<WordParserError> errors = new List<WordParserError>();
             Dictionary<WordParserDiarySegment, Dictionary<NullableDate, Document>> documents = new();
@@ -33,8 +34,9 @@ namespace MyDiary.WordParser
             {
                 NullableDate date = new NullableDate(options.Year);
                 bool hasCaptured = false;
-                foreach (XWPFParagraph p in doc.Paragraphs)
+                for (int i = 0; i < doc.Paragraphs.Count; i++)
                 {
+                    XWPFParagraph p = doc.Paragraphs[i];
                     var outline = GetOutlineLevel(p);
                     //跳过目录
                     if (IsCatalogue(p))
@@ -100,7 +102,7 @@ namespace MyDiary.WordParser
                                 AddParagraph();
                             }
                         }
-                        lastBlock= null;
+                        lastBlock = null;
                         continue;
                     }
 
@@ -144,7 +146,44 @@ namespace MyDiary.WordParser
 
                     async void AddParagraph()
                     {
-                        if (!string.IsNullOrEmpty(p.Text))//文本
+
+                        if (tables.TryGetValue(i, out XWPFTable table))
+                        {
+                            Table newTable = new Table();
+                            int columnCount = GetColumnCount(table);
+                            newTable.Cells = new TableCell[table.NumberOfRows, columnCount];
+                            for (int r = 0; r < table.NumberOfRows; r++)
+                            {
+                                for (int c1 = 0, c2 = 0; c1 < columnCount; c2++)
+                                {
+                                    var cell = table.GetRow(r).GetCell(c2);
+
+
+                                    int columnSpan = GetCellColumnSpan(cell);
+                                    if (cell.GetCTTc().tcPr.vMerge != null //当前单元格是上面合并下来的
+                                        && cell.GetCTTc().tcPr.vMerge.val == ST_Merge.@continue)
+                                    {
+                                        int tempR = r - 1;
+                                        while (tempR >= 0 && newTable.Cells[tempR, c1] == null)
+                                        {
+                                            tempR--;
+                                        }
+                                        newTable.Cells[tempR, c1].RowSpan++;
+                                    }
+                                    else//新建单元格
+                                    {
+                                        newTable.Cells[r, c1] = new TableCell() { Text = cell.GetText() };
+                                        newTable.Cells[r, c1].ColumnSpan = columnSpan;
+                                    }
+
+                                    c1 += columnSpan;
+                                }
+                            }
+
+                            GetOrCreateDocument(documents, s, date).Blocks.Add(newTable);
+                            lastBlock = newTable;
+                        }
+                        else if (!string.IsNullOrEmpty(p.Text))//文本
                         {
                             if (lastBlock is Image && rPicCaption.IsMatch(p.Text))//图注
                             {
@@ -197,9 +236,48 @@ namespace MyDiary.WordParser
                 allDocuments.AddRange(docs.Values);
             }
             await dm.SetDocumentsAsync(allDocuments);
-
+#if DEBUG
+            foreach (var tempDoc in allDocuments)
+            {
+                var checkDoc = await dm.GetDocumentAsync(new NullableDate(tempDoc.Year, tempDoc.Month, tempDoc.Day), tempDoc.Tag);
+                Debug.Assert(checkDoc.Equals(tempDoc));
+            }
+#endif
             return allDocuments;
         }
+        private static int GetColumnCount(XWPFTable table)
+        {
+            int maxColumnCount = 0;
+
+            // 遍历表格的每一行
+            foreach (var row in table.Rows)
+            {
+                int columnCount = 0;
+
+                // 遍历当前行的每一个单元格
+                foreach (var cell in row.GetTableCells().OfType<XWPFTableCell>())
+                {
+                    int colSpan = GetCellColumnSpan(cell);
+                    columnCount += colSpan;
+                }
+
+                // 更新最大列数
+                if (columnCount > maxColumnCount)
+                {
+                    maxColumnCount = columnCount;
+                }
+            }
+
+            return maxColumnCount;
+        }
+
+        private static int GetCellColumnSpan(XWPFTableCell cell)
+        {
+            // 获取合并单元格的列数
+            return cell.GetCTTc().tcPr.gridSpan == null ? 1 : int.Parse(cell.GetCTTc().tcPr.gridSpan.val);
+        }
+
+
 
         private static bool HasNumberingEnabled(XWPFDocument doc, XWPFParagraph p)
         {

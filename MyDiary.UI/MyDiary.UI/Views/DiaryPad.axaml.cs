@@ -152,6 +152,7 @@ public partial class DiaryPad : UserControl
         }
         else
         {
+            var types = doc.Blocks.Select(p => p.Type).ToList();
             foreach (var part in doc.Blocks)
             {
                 IDiaryElement element = null;

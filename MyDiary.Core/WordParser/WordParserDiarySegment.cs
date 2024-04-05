@@ -37,7 +37,7 @@ namespace MyDiary.WordParser
         /// <summary>
         /// 若包含内部标题，设置最大内部标题的大纲级别。0表示内部都是正文
         /// </summary>
-        public int LargestInnerLevel { get; set; } = 0;
+        public int LargestInnerLevel { get; set; } = 2;
 
         /// <summary>
         /// 月份标题的大纲级别
