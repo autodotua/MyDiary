@@ -27,10 +27,4 @@
       <HintPath>..\libs\FzLib.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
-    <PackageReference Include="NPOI" />
-    <PackageReference Include="Mapster" />
-  </ItemGroup>
-
 </Project>
